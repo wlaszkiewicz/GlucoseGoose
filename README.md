@@ -1,14 +1,18 @@
 # 🧠 How To Run The Project
 
-Follow these steps EXACTLY.
-
-## 1. Clone the Project
+## 0. Clone the Project
 
 ```bash
-git clone <repo-url>
+git clone https://github.com/wlaszkiewicz/GlucoseGoose.git
 ```
 
 Then open the folder in VS Code.
+
+## 1. Create .env
+
+Create a .env in the project root!!
+
+> ⚠ Do not commit .env to git. Each developer needs their own copy. !!!!!!! DO NOT COMMIT IT
 
 ## 2. Install All Project Dependencies
 
@@ -20,17 +24,7 @@ npm install
 
 This installs Expo, React Native, etc.
 
-## 3. Install Extra Tools for Desktop Development
-
-We use Electron only for the desktop app.
-
-Run:
-
-```bash
-npm install --save-dev electron concurrently wait-on
-```
-
-## 4. Start Expo
+## 3. Start Expo
 
 ```bash
 npm start
@@ -44,7 +38,7 @@ You can run it on:
 - Android emulator (If you hate yourself)
 - iOS simulator (Mac only)
 
-## 5. Start the Desktop App (Electron)
+## 4. Start the Desktop App (Electron)
 
 In a different terminal (expo web must be running already)
 
@@ -52,7 +46,7 @@ In a different terminal (expo web must be running already)
 npm run electron
 ```
 
-## 6. Start Expo Web + Electron Together
+## 5. Start Expo Web + Electron Together
 
 Run:
 
@@ -70,20 +64,6 @@ What this does:
 
 3. Launches Electron.
 4. Electron loads the web version inside a desktop window.
-
-# 🚨 Notes
-
-### 1. Everyone must install Electron, concurrently and wait-on
-
-Otherwise desktop won’t run.
-
-### 2. You **do not** need Android Studio or Xcode unless you want mobile emulators.
-
-Using Expo Go on your phone is enough.
-
-### 3. We focus on mobile development, some things may need additional libraries or strategies for web/desktop.
-
-But that's fine, we good.
 
 ---
 
