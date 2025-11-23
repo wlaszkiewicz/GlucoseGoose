@@ -1,0 +1,11 @@
+import { db } from "../../firebaseConfig";
+import { collection, query, where, getDocs } from "firebase/firestore";
+
+export async function isUsernameAvailable(username: string): Promise<boolean> {
+  if (!username) return false;
+
+  const q = query(collection(db, "users"), where("username", "==", username));
+
+  const snapshot = await getDocs(q);
+  return snapshot.empty; // true if no user has that username
+}
