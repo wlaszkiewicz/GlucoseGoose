@@ -5,9 +5,9 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import HomeScreen from "./screens/HomeScreen";
-import { NightscoutProvider } from "./context/NightscoutContext";
-import { AuthProvider, useAuth } from "./context/AuthContext";
 import SplashScreen from "./screens/SplashScreen";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { NightscoutProvider } from "./context/NightscoutContext";
 import { RootStackParamList } from "./types/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -19,14 +19,12 @@ const AppNavigator = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {firebaseUser ? (
-        <Stack.Screen name="Home" component={HomeScreen} />
-      ) : (
-        <>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-        </>
-      )}
+      <Stack.Screen
+        name="Home"
+        component={firebaseUser ? HomeScreen : LoginScreen}
+      />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
     </Stack.Navigator>
   );
 };
