@@ -5,9 +5,11 @@ import { HomeScreenProps } from "../types/navigation";
 import { getPlatformStyles, CommonStyles } from "../themes/styles";
 import { useNightscout } from "../context/NightscoutContext";
 import { useEffect } from "react";
+import { logoutUser } from "../services/authService";
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { entries, loadInitial, startPolling, stopPolling } = useNightscout();
+  const { entries, loadInitial, startPolling, stopPolling, isLoading } =
+    useNightscout();
 
   useEffect(() => {
     loadInitial(); //  once per login
@@ -15,6 +17,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
     return () => stopPolling();
   }, []);
+
+  const handleLogout = async () => {
+    const result = await logoutUser();
+    if (result.success) {
+      navigation.replace("Login");
+    } else {
+      console.error("Logout failed:", result.error);
+    }
+  };
 
   const platformStyles = getPlatformStyles();
   return (
@@ -26,7 +37,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       >
         <Text style={CommonStyles.appTitle}>MY GOOSNES IT WORKS?</Text>
 
-        {entries.length === 0 ? (
+        <Text
+          onPress={handleLogout}
+          style={{ color: "blue", marginBottom: 20 }}
+        >
+          Logout
+        </Text>
+
+        {isLoading && <Text>Loading data...</Text>}
+        {entries.length === 0 && !isLoading ? (
           <Text>No data yet...</Text>
         ) : (
           entries.map((entry) => (

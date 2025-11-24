@@ -19,6 +19,7 @@ import { useState, useRef } from "react";
 import { registerUser } from "../services/authService";
 import { isUsernameAvailable } from "../services/userService";
 import { ActivityIndicator } from "react-native";
+import sha1 from "js-sha1";
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
@@ -109,10 +110,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       return;
     }
 
+    const nightscoutSecretHash = sha1.sha1(nightscoutSecret);
+
     const result = await registerUser(email, password, {
       username,
       nightscoutUrl: nightscoutUrl,
-      nightscoutSecret: nightscoutSecret,
+      nightscoutSecret: nightscoutSecretHash,
       role: "user",
     });
     setLoading(false);
@@ -151,8 +154,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
           <View style={styles.welcomeSection}>
             <Text style={styles.welcomeText}>
               Create your account to start tracking your glucose levels and get
-              personalized insights. You'll need your xDrip+ URL to connect your
-              data.
+              personalized insights. You'll need your Nightscout URL to connect
+              your data.
             </Text>
           </View>
 
@@ -223,17 +226,17 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               )}
             </View>
 
-            {/* xDrip+ Section */}
-            <View style={styles.xdripSection}>
-              <Text style={styles.sectionTitle}>xDrip+ Connection</Text>
+            {/* Nightscout Section */}
+            <View style={styles.nightscoutSection}>
+              <Text style={styles.sectionTitle}>Nightscout Connection</Text>
               <Text style={styles.sectionDescription}>
-                To get the most out of GlucoseGoose, connect your xDrip+ data.
-                This allows real-time glucose monitoring and AI-powered
+                To get the most out of GlucoseGoose, connect your Nightscout
+                data. This allows real-time glucose monitoring and AI-powered
                 insights.
               </Text>
 
               <View style={CommonStyles.inputGroup}>
-                <Text style={CommonStyles.inputLabel}>xDrip+ URL *</Text>
+                <Text style={CommonStyles.inputLabel}>Nightscout URL *</Text>
                 <TextInput
                   style={CommonStyles.input}
                   ref={nightscoutUrlRef}
@@ -357,7 +360,7 @@ const styles = StyleSheet.create({
     width: "100%",
     marginBottom: 40,
   },
-  xdripSection: {
+  nightscoutSection: {
     width: "100%",
     marginBottom: 32,
     paddingTop: 16,
