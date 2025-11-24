@@ -21,6 +21,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const handleLogout = async () => {
     const result = await logoutUser();
     if (result.success) {
+      //TODO: THERES A BUG HERE WHERE THE CONTEXT KEEPS THE OLD DATA AFTER LOGOUT/LOGIN!! so a new user sees the previous user's data .......
     } else {
       console.error("Logout failed:", result.error);
     }
