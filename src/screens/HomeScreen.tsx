@@ -21,7 +21,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const handleLogout = async () => {
     const result = await logoutUser();
     if (result.success) {
-      navigation.replace("Login");
     } else {
       console.error("Logout failed:", result.error);
     }
