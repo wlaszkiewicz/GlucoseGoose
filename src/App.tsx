@@ -6,24 +6,42 @@ import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import { RootStackParamList } from "./types/navigation";
 import HomeScreen from "./screens/HomeScreen";
-import { useAuth } from "./hooks/useAuth";
+import { NightscoutProvider } from "./context/NightscoutContext";
+import { AuthProvider } from "./context/AuthContext";
+import { useAuthContext } from "./context/AuthContext";
+import SplashScreen from "./screens/SplashScreen";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App() {
-  const user = useAuth(); // TODO: use this to redirect if already logged in
+const AppNavigator = () => {
+  const { user, loading } = useAuthContext();
 
-  //TODO: implement so onlogged in users can access HomeScreen!!!
+  if (loading) return <SplashScreen />;
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      {user ? (
+        <Stack.Screen name="Home" component={HomeScreen} />
+      ) : (
+        <>
           <Stack.Screen name="Login" component={LoginScreen} />
           <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+        </>
+      )}
+    </Stack.Navigator>
+  );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <NightscoutProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </NightscoutProvider>
+    </AuthProvider>
   );
 }

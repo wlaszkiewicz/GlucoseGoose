@@ -28,8 +28,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [xdripUrl, setXdripUrl] = useState("");
-  const [xdripToken, setXdripToken] = useState("");
+  const [nightscoutUrl, setNightscoutUrl] = useState("");
+  const [nightscoutSecret, setNightscoutSecret] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
@@ -37,7 +37,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     username?: string;
     password?: string;
     confirmPassword?: string;
-    xdripUrl?: string;
+    nightscoutUrl?: string;
     firebase?: string;
   }>({});
 
@@ -45,7 +45,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const usernameRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
   const confirmPasswordRef = useRef<TextInput>(null);
-  const xdripUrlRef = useRef<TextInput>(null);
+  const nightscoutUrlRef = useRef<TextInput>(null);
 
   const validateData = () => {
     const newErrors: typeof errors = {};
@@ -67,12 +67,12 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     else if (password !== confirmPassword)
       newErrors.confirmPassword = "Passwords do not match.";
 
-    if (!xdripUrl) newErrors.xdripUrl = "xDrip+ URL is required.";
+    if (!nightscoutUrl) newErrors.nightscoutUrl = "Nightscout URL is required.";
     else {
       try {
-        new URL(xdripUrl);
+        new URL(nightscoutUrl);
       } catch {
-        newErrors.xdripUrl = "Invalid xDrip+ URL.";
+        newErrors.nightscoutUrl = "Invalid Nightscout URL.";
       }
     }
 
@@ -85,7 +85,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     else if (errors.username) usernameRef.current?.focus();
     else if (errors.password) passwordRef.current?.focus();
     else if (errors.confirmPassword) confirmPasswordRef.current?.focus();
-    else if (errors.xdripUrl) xdripUrlRef.current?.focus();
+    else if (errors.nightscoutUrl) nightscoutUrlRef.current?.focus();
   };
 
   async function handleRegister() {
@@ -111,7 +111,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
 
     const result = await registerUser(email, password, {
       username,
-      url: xdripUrl,
+      nightscoutUrl: nightscoutUrl,
+      nightscoutSecret: nightscoutSecret,
       role: "user",
     });
     setLoading(false);
@@ -235,37 +236,38 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                 <Text style={CommonStyles.inputLabel}>xDrip+ URL *</Text>
                 <TextInput
                   style={CommonStyles.input}
-                  ref={xdripUrlRef}
-                  placeholder="https://your-xdrip-url.com"
+                  ref={nightscoutUrlRef}
+                  placeholder="https://your-nightscout-url.com"
                   placeholderTextColor="#A0A0A0"
                   autoCapitalize="none"
-                  value={xdripUrl}
-                  onChangeText={setXdripUrl}
+                  value={nightscoutUrl}
+                  onChangeText={setNightscoutUrl}
                 />
-                {errors.xdripUrl && (
-                  <Text style={styles.errorText}>{errors.xdripUrl}</Text>
+                {errors.nightscoutUrl && (
+                  <Text style={styles.errorText}>{errors.nightscoutUrl}</Text>
                 )}
                 <Text style={CommonStyles.helpText}>
-                  This is required to connect with your xDrip+ data source. Make
-                  sure your xDrip+ web server is enabled and accessible.
+                  This is required to connect with your Nightscout data source.
+                  Make sure your Nightscout web server is enabled and
+                  accessible.
                 </Text>
               </View>
 
               <View style={CommonStyles.inputGroup}>
                 <Text style={CommonStyles.inputLabel}>
-                  xDrip+ Token (Optional)
+                  Nightscout API Secret (Optional)
                 </Text>
                 <TextInput
                   style={CommonStyles.input}
                   placeholder="Enter your API token if you have one"
                   placeholderTextColor="#A0A0A0"
                   autoCapitalize="none"
-                  value={xdripToken}
-                  onChangeText={setXdripToken}
+                  value={nightscoutSecret}
+                  onChangeText={setNightscoutSecret}
                 />
                 <Text style={CommonStyles.helpText}>
-                  If your xDrip+ instance requires authentication, add your API
-                  token here. Most users can leave this field empty.
+                  If your Nightscout instance requires authentication, add your
+                  API token here. Most users can leave this field empty.
                 </Text>
               </View>
 
@@ -296,9 +298,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
               </View>
 
               <Text style={styles.setupHelp}>
-                Don't have xDrip+ set up yet? No problem! These user friendly
-                guides will walk you through the installation, configuration,
-                and connection process step by step.
+                Don't have Nightscout set up yet? No problem! These user
+                friendly guides will walk you through the installation,
+                configuration, and connection process step by step.
               </Text>
             </View>
 
