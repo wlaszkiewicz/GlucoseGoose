@@ -8,6 +8,7 @@ import React, {
 } from "react";
 import { useAuth } from "./AuthContext";
 import { fetchLast24h, fetchSince } from "../utils/fns";
+import Constants from "expo-constants";
 
 interface Entry {
   sgv: number;
@@ -26,12 +27,15 @@ interface NightscoutContextType {
 const NightscoutContext = createContext<NightscoutContextType | null>(null);
 
 export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
+  const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
+
   const { userData } = useAuth();
   const nightscoutUrl = userData?.nightscoutUrl;
   const nightscoutSecret = userData?.nightscoutSecret;
   const [isLoading, setIsLoading] = useState(false);
 
   const [entries, setEntries] = useState<Entry[]>([]);
+
   const [lastTimestamp, setLastTimestamp] = useState<number | null>(null);
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
@@ -39,12 +43,12 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
   const loadInitial = useCallback(async () => {
     if (!nightscoutUrl) return;
 
-    if (entries.length > 0) return; // already loaded
+    if (entries.length > 0) return;
     setIsLoading(true);
     console.log("Loading initial Nightscout data...");
 
     const res = await fetchLast24h(
-      `https://us-central1-glucose-goose.cloudfunctions.net/getLast24h?url=${nightscoutUrl}`,
+      `https://${CLOUD_FUNCTIONS_HOST}/getLast24h?url=${nightscoutUrl}`,
       nightscoutSecret ? nightscoutSecret : undefined
     );
     const data: Entry[] = await res;
@@ -60,7 +64,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     console.log("Fetching new Nightscout updates...");
 
     const res = await fetchSince(
-      `https://us-central1-glucose-goose.cloudfunctions.net/getSince?url=${nightscoutUrl}`,
+      `https://${CLOUD_FUNCTIONS_HOST}/getSince?url=${nightscoutUrl}`,
       lastTimestamp,
       nightscoutSecret ? nightscoutSecret : undefined
     );
