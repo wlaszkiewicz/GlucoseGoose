@@ -1,47 +1,47 @@
+// context/AuthContext.tsx
 import React, {
   createContext,
   useContext,
-  useState,
   useEffect,
+  useState,
   ReactNode,
 } from "react";
 import { auth, db } from "../../firebaseConfig";
-import { onAuthStateChanged, User } from "firebase/auth";
+import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 
+export interface UserData {
+  uid: string;
+  email: string;
+  username?: string;
+  nightscoutUrl?: string;
+  nightscoutSecret?: string;
+  createdAt: number;
+  role: string;
+  [key: string]: any;
+}
+
 interface AuthContextType {
-  user: User | null;
-  nightscoutUrl: string | null;
-  nightscoutSecret: string | null;
+  firebaseUser: FirebaseUser | null;
+  userData: UserData | null;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-interface AuthProviderProps {
-  children: ReactNode;
-}
-
-export const AuthProvider = ({ children }: AuthProviderProps) => {
-  const [user, setUser] = useState<User | null>(null);
-  const [nightscoutUrl, setNightscoutUrl] = useState<string | null>(null);
-  const [nightscoutSecret, setNightscoutSecret] = useState<string | null>(null);
+export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
+  const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser) {
-        setUser(firebaseUser);
-
-        const ref = doc(db, "users", firebaseUser.uid);
-        const snap = await getDoc(ref);
-        const data = snap.data();
-        setNightscoutUrl(data?.nightscoutUrl || null);
-        setNightscoutSecret(data?.nightscoutSecret || null);
+    const unsubscribe = onAuthStateChanged(auth, async (user) => {
+      setFirebaseUser(user);
+      if (user) {
+        const docSnap = await getDoc(doc(db, "users", user.uid));
+        setUserData(docSnap.exists() ? (docSnap.data() as UserData) : null);
       } else {
-        setUser(null);
-        setNightscoutUrl(null);
-        setNightscoutSecret(null);
+        setUserData(null);
       }
       setLoading(false);
     });
@@ -50,15 +50,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   return (
-    <AuthContext.Provider
-      value={{ user, nightscoutUrl, nightscoutSecret, loading }}
-    >
+    <AuthContext.Provider value={{ firebaseUser, userData, loading }}>
       {children}
     </AuthContext.Provider>
   );
 };
 
-export const useAuthContext = () => {
+export const useAuth = () => {
   const ctx = useContext(AuthContext);
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;

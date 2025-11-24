@@ -6,7 +6,7 @@ import React, {
   useRef,
   ReactNode,
 } from "react";
-import { useAuthContext } from "./AuthContext";
+import { useAuth } from "./AuthContext";
 import { fetchLast24h, fetchSince } from "../utils/fns";
 
 interface Entry {
@@ -20,12 +20,16 @@ interface NightscoutContextType {
   loadInitial: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
+  isLoading: boolean;
 }
 
 const NightscoutContext = createContext<NightscoutContextType | null>(null);
 
 export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
-  const { nightscoutUrl, nightscoutSecret } = useAuthContext();
+  const { userData } = useAuth();
+  const nightscoutUrl = userData?.nightscoutUrl;
+  const nightscoutSecret = userData?.nightscoutSecret;
+  const [isLoading, setIsLoading] = useState(false);
 
   const [entries, setEntries] = useState<Entry[]>([]);
   const [lastTimestamp, setLastTimestamp] = useState<number | null>(null);
@@ -34,8 +38,9 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
   const loadInitial = useCallback(async () => {
     if (!nightscoutUrl) return;
-    if (entries.length > 0) return; // already loaded
 
+    if (entries.length > 0) return; // already loaded
+    setIsLoading(true);
     console.log("Loading initial Nightscout data...");
 
     const res = await fetchLast24h(
@@ -46,6 +51,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
     setEntries(data);
     if (data.length > 0) setLastTimestamp(data[0].date);
+    setIsLoading(false);
   }, [nightscoutUrl, nightscoutSecret, entries.length]);
 
   const fetchUpdates = useCallback(async () => {
@@ -90,6 +96,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         loadInitial,
         startPolling,
         stopPolling,
+        isLoading,
       }}
     >
       {children}

@@ -77,6 +77,15 @@ export async function loginWithEmailOrUsername(
   }
 }
 
+export async function logoutUser() {
+  try {
+    await auth.signOut();
+    return { success: true };
+  } catch (error) {
+    return { success: false, error };
+  }
+}
+
 //TODO: expand this and CHECK IF THESE ARE ACTAULLY REAL FIREBASE ERRORS
 export function getFriendlyFirebaseError(code: string): string {
   switch (code) {
