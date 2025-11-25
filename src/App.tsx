@@ -4,26 +4,41 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
-import { RootStackParamList } from "./types/navigation";
 import HomeScreen from "./screens/HomeScreen";
-import { useAuth } from "./hooks/useAuth";
+import SplashScreen from "./screens/SplashScreen";
+import { AuthProvider, useAuth } from "./context/AuthContext";
+import { NightscoutProvider } from "./context/NightscoutContext";
+import { RootStackParamList } from "./types/navigation";
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
-export default function App() {
-  const user = useAuth(); // TODO: use this to redirect if already logged in
+const AppNavigator = () => {
+  const { firebaseUser, loading } = useAuth();
 
-  //TODO: implement so onlogged in users can access HomeScreen!!!
+  if (loading) return <SplashScreen />;
 
   return (
-    <SafeAreaProvider>
-      <NavigationContainer>
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          <Stack.Screen name="Login" component={LoginScreen} />
-          <Stack.Screen name="Register" component={RegisterScreen} />
-          <Stack.Screen name="Home" component={HomeScreen} />
-        </Stack.Navigator>
-      </NavigationContainer>
-    </SafeAreaProvider>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen
+        name="Home"
+        component={firebaseUser ? HomeScreen : LoginScreen}
+      />
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="Register" component={RegisterScreen} />
+    </Stack.Navigator>
+  );
+};
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <NightscoutProvider>
+        <SafeAreaProvider>
+          <NavigationContainer>
+            <AppNavigator />
+          </NavigationContainer>
+        </SafeAreaProvider>
+      </NightscoutProvider>
+    </AuthProvider>
   );
 }
