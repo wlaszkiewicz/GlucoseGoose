@@ -1,9 +1,17 @@
+import { BottomTabNavigationProp } from "@react-navigation/bottom-tabs";
 import { NativeStackNavigationProp } from "@react-navigation/native-stack";
 
 export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Home: undefined;
+};
+
+export type MainTabParamList = {
+  Home: undefined;
+  Journal: undefined;
+  Trends: undefined;
+  Settings: undefined;
 };
 
 export type LoginScreenNavigationProp = NativeStackNavigationProp<
@@ -15,8 +23,8 @@ export type RegisterScreenNavigationProp = NativeStackNavigationProp<
   "Register"
 >;
 
-export type HomeScreenNavigationProp = NativeStackNavigationProp<
-  RootStackParamList,
+export type HomeScreenNavigationProp = BottomTabNavigationProp<
+  MainTabParamList,
   "Home"
 >;
 

@@ -35,6 +35,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     const result = await logoutUser();
     if (result.success) {
       reset();
+      navigation.reset({
+        index: 0,
+        routes: [{ name: 'Login' as any }],
+      });
     } else {
       console.error("Logout failed:", result.error);
     }
