@@ -43,7 +43,9 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
 
-  //TODO: FOR SOME WEIRD FYCKING READON IT STARTS FETCHING WHEN SOMEONE REGISTERS AND IS ON LOGIN PAGE
+  //TODO: FOR SOME WEIRD FYCKING READON IT STARTS FETCHING WHEN SOMEONE REGISTERS AND IS ON LOGIN PAGE ????????
+  // idk why tho xd - prob cuz context is loaded at app start and userData gets set when registering so the effect triggers?? but why tho
+  // honestly we can just leave it idc atp
 
   const reset = useCallback(() => {
     setEntries([]);
@@ -107,12 +109,12 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
   const startPolling = useCallback(() => {
     if (!nightscoutUrl || !firebaseUser) return;
-    if (pollingRef.current) return; // already running
+    if (pollingRef.current) return;
 
     console.log("Starting Nightscout polling...");
 
     pollingRef.current = setInterval(fetchUpdates, 5 * 60 * 1000);
-    fetchUpdates(); // immediate refresh when entering Home
+    fetchUpdates();
   }, [fetchUpdates]);
 
   const stopPolling = useCallback(() => {
