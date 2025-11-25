@@ -6,22 +6,35 @@ import { getPlatformStyles, CommonStyles } from "../themes/styles";
 import { useNightscout } from "../context/NightscoutContext";
 import { useEffect } from "react";
 import { logoutUser } from "../services/authService";
+import { useAuth } from "../context/AuthContext";
+import { useFocusEffect } from "@react-navigation/native";
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
-  const { entries, loadInitial, startPolling, stopPolling, isLoading } =
-    useNightscout();
+  const { userData } = useAuth();
+  const nightscoutUrl = userData?.nightscoutUrl;
+  const {
+    entries,
+    loadInitial,
+    startPolling,
+    stopPolling,
+    isLoading,
+    reset,
+    error,
+  } = useNightscout();
 
   useEffect(() => {
-    loadInitial(); //  once per login
+    if (!nightscoutUrl) return;
+    loadInitial();
+
     startPolling();
 
     return () => stopPolling();
-  }, []);
+  }, [nightscoutUrl]);
 
   const handleLogout = async () => {
     const result = await logoutUser();
     if (result.success) {
-      //TODO: THERES A BUG HERE WHERE THE CONTEXT KEEPS THE OLD DATA AFTER LOGOUT/LOGIN!! so a new user sees the previous user's data .......
+      reset();
     } else {
       console.error("Logout failed:", result.error);
     }
@@ -36,6 +49,8 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         showsVerticalScrollIndicator={false}
       >
         <Text style={CommonStyles.appTitle}>MY GOOSNES IT WORKS?</Text>
+
+        {error && <Text style={{ color: "red" }}>{error}</Text>}
 
         <Text
           onPress={handleLogout}
