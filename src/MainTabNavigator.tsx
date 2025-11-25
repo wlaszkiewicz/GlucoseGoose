@@ -15,68 +15,68 @@ const MainTabNavigator = () => {
       screenOptions={{
         headerShown: false,
         tabBarStyle: {
-          backgroundColor: '#ffffff',
+          backgroundColor: "#ffffff",
           borderTopWidth: 1,
-          borderTopColor: '#e0e0e0',
+          borderTopColor: "#e0e0e0",
         },
-        tabBarActiveTintColor: '#007AFF',
-        tabBarInactiveTintColor: '#8e8e93',
+        tabBarActiveTintColor: "#007AFF",
+        tabBarInactiveTintColor: "#8e8e93",
       }}
     >
-      <Tab.Screen 
-        name="Home" 
+      <Tab.Screen
+        name="Home"
         component={HomeScreen}
-        options={{ 
+        options={{
           title: "Home",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "home" : "home-outline"} 
-              size={size} 
-              color={color} 
+            <Ionicons
+              name={focused ? "home" : "home-outline"}
+              size={size}
+              color={color}
             />
-          )
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Journal" 
+      <Tab.Screen
+        name="Journal"
         component={JournalScreen}
-        options={{ 
+        options={{
           title: "Journal",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "journal" : "journal-outline"} 
-              size={size} 
-              color={color} 
+            <Ionicons
+              name={focused ? "journal" : "journal-outline"}
+              size={size}
+              color={color}
             />
-          )
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Trends" 
+      <Tab.Screen
+        name="Trends"
         component={TrendsScreen}
-        options={{ 
+        options={{
           title: "Trends",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "trending-up" : "trending-up-outline"} 
-              size={size} 
-              color={color} 
+            <Ionicons
+              name={focused ? "trending-up" : "trending-up-outline"}
+              size={size}
+              color={color}
             />
-          )
+          ),
         }}
       />
-      <Tab.Screen 
-        name="Settings" 
+      <Tab.Screen
+        name="Settings"
         component={SettingsScreen}
-        options={{ 
+        options={{
           title: "Settings",
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons 
-              name={focused ? "settings" : "settings-outline"} 
-              size={size} 
-              color={color} 
+            <Ionicons
+              name={focused ? "settings" : "settings-outline"}
+              size={size}
+              color={color}
             />
-          )
+          ),
         }}
       />
     </Tab.Navigator>
