@@ -55,6 +55,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         return;
       }
 
+      cleanup();
       navigation.navigate("Home");
     } catch (e) {
       setErrors((prev) => ({
@@ -65,6 +66,12 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       setLoading(false);
     }
   }
+
+  const cleanup = () => {
+    setIdentifier("");
+    setPassword("");
+    setErrors({});
+  };
 
   const validateData = () => {
     const newErrors: typeof errors = {};
