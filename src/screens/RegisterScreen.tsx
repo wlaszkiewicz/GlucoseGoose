@@ -16,7 +16,7 @@ import { RegisterScreenProps } from "../types/navigation";
 import { Colors } from "../themes/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useRef } from "react";
-import { registerUser } from "../services/authService";
+import { registerUser, logoutUser } from "../services/authService";
 import { isUsernameAvailable } from "../services/userService";
 import { ActivityIndicator } from "react-native";
 import sha1 from "js-sha1";
@@ -128,9 +128,21 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         setErrors((prev) => ({ ...prev, firebase: result.error.message }));
       }
     } else {
+      logoutUser();
+      clearUp();
       navigation.navigate("Login");
     }
   }
+
+  const clearUp = () => {
+    setEmail("");
+    setUsername("");
+    setPassword("");
+    setConfirmPassword("");
+    setNightscoutUrl("");
+    setNightscoutSecret("");
+    setErrors({});
+  };
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
