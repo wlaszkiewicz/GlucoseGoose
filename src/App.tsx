@@ -4,41 +4,46 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
-import HomeScreen from "./screens/HomeScreen";
 import SplashScreen from "./screens/SplashScreen";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NightscoutProvider } from "./context/NightscoutContext";
-import { RootStackParamList } from "./types/navigation";
+import MainTabNavigator from "./MainTabNavigator";
 
-const Stack = createNativeStackNavigator<RootStackParamList>();
+const Stack = createNativeStackNavigator();
 
-const AppNavigator = () => {
+export type RootStackParamList = {
+  Login: undefined;
+  Register: undefined;
+  Home: undefined;
+};
+
+const AppContent = () => {
   const { firebaseUser, loading } = useAuth();
 
   if (loading) return <SplashScreen />;
 
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
-      <Stack.Screen
-        name="Home"
-        component={firebaseUser ? HomeScreen : LoginScreen}
-      />
+    <Stack.Navigator 
+      screenOptions={{ headerShown: false }}
+      initialRouteName={firebaseUser ? "Home" : "Login"}
+    >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="Home" component={MainTabNavigator} />
     </Stack.Navigator>
   );
 };
 
 export default function App() {
   return (
-    <AuthProvider>
-      <NightscoutProvider>
-        <SafeAreaProvider>
+    <SafeAreaProvider>
+      <AuthProvider>
+        <NightscoutProvider>
           <NavigationContainer>
-            <AppNavigator />
+            <AppContent />
           </NavigationContainer>
-        </SafeAreaProvider>
-      </NightscoutProvider>
-    </AuthProvider>
+        </NightscoutProvider>
+      </AuthProvider>
+    </SafeAreaProvider>
   );
 }
