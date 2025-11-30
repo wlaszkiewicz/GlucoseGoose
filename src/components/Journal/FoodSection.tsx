@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { CommonStyles } from "../../themes/styles";
 import { Ionicons } from "@expo/vector-icons";
+import { useNightscoutFood } from "../../services/nightscoutFoodService";
 
 type MealType =
   | "Breakfast"
@@ -50,6 +51,7 @@ interface FoodSectionProps {
 }
 
 const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
+  const { saveFoodToNightscout } = useNightscoutFood();
   const [selectedMealType, setSelectedMealType] =
     useState<MealType>("Breakfast");
   const [mealDescription, setMealDescription] = useState("");
@@ -138,14 +140,19 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     analyzeMealWithAI();
   }, [mealDescription, showManualInput]);
 
+  // changed handleSaveMeal ------
   const handleSaveMeal = async () => {
+    console.log("🚀 START: Save meal clicked");
+
     if (!mealDescription.trim()) {
+      console.log("❌ STOP: No meal description");
       Alert.alert("Error", "Please describe your meal");
       return;
     }
 
     const dateString = selectedDate.toISOString().split("T")[0];
 
+    // prepare nutrition
     let nutrition: NutritionInfo | undefined;
     if (showManualInput && manualCalories) {
       nutrition = {
@@ -158,27 +165,66 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       };
     }
 
-    const newMeal: MealEntry = {
-      id: Date.now().toString(),
-      type: selectedMealType,
+    console.log("📝 Meal data:", {
       description: mealDescription,
-      nutrition: nutrition,
-      time: new Date(),
+      mealType: selectedMealType,
+      nutrition: nutrition, // Moved this log after nutrition is declared
+    });
+
+    // nightscout payload
+    const foodEntry = {
+      eventType: "Meal",
+      notes: `${selectedMealType}: ${mealDescription}`,
+      carbs: nutrition?.carbs || 0,
+      protein: nutrition?.protein,
+      fat: nutrition?.fat,
+      sugar: nutrition?.sugar,
+      fiber: nutrition?.fiber,
+      calories: nutrition?.calories,
+      created_at: new Date().toISOString(),
     };
 
-    setDayEntries((prev) => {
-      const existingDayIndex = prev.findIndex(
-        (entry: any) => entry.date === dateString
-      );
+    console.log("📦 Nightscout payload:", foodEntry);
 
-      if (existingDayIndex >= 0) {
-        const updated = [...prev];
-        updated[existingDayIndex] = {
-          ...updated[existingDayIndex],
-          meals: [...updated[existingDayIndex].meals, newMeal],
-        };
-        return updated;
-      } else {
+    try {
+      console.log("📤 Sending to Nightscout...");
+      const success = await saveFoodToNightscout(foodEntry);
+      console.log("✅ Save result:", success);
+
+      if (!success) {
+        console.error("❌ Failed to save to Nightscout");
+        Alert.alert(
+          "Error",
+          "Failed to save meal to Nightscout. Check your Nightscout server or API key."
+        );
+        return;
+      }
+
+      console.log("🎉 Successfully saved to Nightscout!");
+
+      // save locally so UI updates immediately
+      const newMeal: MealEntry = {
+        id: Date.now().toString(),
+        type: selectedMealType,
+        description: mealDescription,
+        nutrition,
+        time: new Date(),
+      };
+
+      setDayEntries((prev) => {
+        const existingDayIndex = prev.findIndex(
+          (entry: any) => entry.date === dateString
+        );
+
+        if (existingDayIndex >= 0) {
+          const updated = [...prev];
+          updated[existingDayIndex] = {
+            ...updated[existingDayIndex],
+            meals: [...updated[existingDayIndex].meals, newMeal],
+          };
+          return updated;
+        }
+
         return [
           ...prev,
           {
@@ -186,21 +232,28 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
             meals: [newMeal],
           },
         ];
-      }
-    });
+      });
 
-    setMealDescription("");
-    setManualCalories("");
-    setManualCarbs("");
-    setManualProtein("");
-    setManualFat("");
-    setManualSugar("");
-    setManualFiber("");
-    setShowManualInput(false);
+      setMealDescription("");
+      setManualCalories("");
+      setManualCarbs("");
+      setManualProtein("");
+      setManualFat("");
+      setManualSugar("");
+      setManualFiber("");
+      setShowManualInput(false);
 
-    Alert.alert("Success", `${selectedMealType} saved successfully!`);
+      Alert.alert("Success", `${selectedMealType} saved to Nightscout! 🎉`);
+    } catch (error: any) {
+      console.error("💥 Error saving meal:", error);
+      Alert.alert(
+        "Error",
+        `Failed to save meal: ${error?.message || "Unknown error"}`
+      );
+    }
   };
 
+  // -----------
   const handlePhotoUpload = () => {
     Alert.alert("Info", "Photo upload functionality will be implemented soon");
   };

@@ -9,6 +9,7 @@ import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NightscoutProvider } from "./context/NightscoutContext";
 import MainTabNavigator from "./MainTabNavigator";
 import { ActivityProvider } from "./context/ActivityContext";
+import { FoodProvider } from "./context/FoodContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -24,7 +25,7 @@ const AppContent = () => {
   if (loading) return <SplashScreen />;
 
   return (
-    <Stack.Navigator 
+    <Stack.Navigator
       screenOptions={{ headerShown: false }}
       initialRouteName={firebaseUser ? "Home" : "Login"}
     >
@@ -40,10 +41,12 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <NightscoutProvider>
-           <ActivityProvider>
-          <NavigationContainer>
-            <AppContent />
-          </NavigationContainer>
+          <ActivityProvider>
+            <FoodProvider>
+              <NavigationContainer>
+                <AppContent />
+              </NavigationContainer>
+            </FoodProvider>
           </ActivityProvider>
         </NightscoutProvider>
       </AuthProvider>
