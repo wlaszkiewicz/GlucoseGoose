@@ -489,9 +489,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
           keyboardType="numeric"
         />
       </View>
-      <Text style={styles.requiredHint}>
-        * Particularly important for diabetes
-      </Text>
     </View>
   );
 
@@ -596,6 +593,9 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
                   </Text>
                 </View>
               )}
+              <Text style={CommonStyles.nutritionDetail}>
+                Time: {new Date(meal.created_at).toLocaleString()}
+              </Text>
             </View>
           );
         })}

@@ -10,17 +10,8 @@ interface JournalScreenProps {
 const JournalScreen: React.FC<JournalScreenProps> = ({ selectedDate }) => {
   const [dayEntries, setDayEntries] = useState<any[]>([]);
 
-  const {
-    entries,
-    meals,
-    activities,
-    loadInitial,
-    startPolling,
-    stopPolling,
-    isLoading,
-    reset,
-    error,
-  } = useNightscout();
+  const { meals, activities, fetchUpdates, isLoading, reset, error } =
+    useNightscout();
 
   const currentDayEntry = dayEntries.find(
     (entry) => entry.date === selectedDate.toISOString().split("T")[0]
@@ -66,38 +57,6 @@ const JournalScreen: React.FC<JournalScreenProps> = ({ selectedDate }) => {
             )}
           </View>
         ))}
-
-        {meals.length > 0 && (
-          <>
-            <Text style={{ fontSize: 18, marginTop: 20, marginBottom: 10 }}>
-              Meals:
-            </Text>
-            {meals.map((meal) => (
-              <View
-                key={meal._id || meal.created_at}
-                style={styles.activityItem}
-              >
-                <Text style={styles.activityType}>{meal.eventType}</Text>
-                {meal.carbs !== undefined && (
-                  <Text style={styles.activityDetails}>
-                    Carbs: {meal.carbs}g
-                  </Text>
-                )}
-                {meal.protein !== undefined && (
-                  <Text style={styles.activityDetails}>
-                    Protein: {meal.protein}g
-                  </Text>
-                )}
-                {meal.fat !== undefined && (
-                  <Text style={styles.activityDetails}>Fat: {meal.fat}g</Text>
-                )}
-                <Text style={styles.activityTime}>
-                  {new Date(meal.created_at).toLocaleString()}
-                </Text>
-              </View>
-            ))}
-          </>
-        )}
 
         {currentDayEntry?.sports && (
           <View style={CommonStyles.previousEntry}>
