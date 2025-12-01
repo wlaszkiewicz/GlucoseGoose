@@ -7,13 +7,14 @@ import { useNightscout } from "../context/NightscoutContext";
 import { useEffect } from "react";
 import { logoutUser } from "../services/authService";
 import { useAuth } from "../context/AuthContext";
-import { useFocusEffect } from "@react-navigation/native";
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const { userData } = useAuth();
   const nightscoutUrl = userData?.nightscoutUrl;
   const {
     entries,
+    meals,
+    activities,
     loadInitial,
     startPolling,
     stopPolling,
@@ -37,7 +38,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
       reset();
       navigation.reset({
         index: 0,
-        routes: [{ name: 'Login' as any }],
+        routes: [{ name: "Login" as any }],
       });
     } else {
       console.error("Logout failed:", result.error);
@@ -82,6 +83,59 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               <Text>BG: {entry.sgv}</Text>
             </View>
           ))
+        )}
+
+        {meals.length > 0 && (
+          <>
+            <Text style={{ fontSize: 18, marginTop: 20, marginBottom: 10 }}>
+              Meals:
+            </Text>
+            {meals.map((meal) => (
+              <View
+                key={meal._id}
+                style={{
+                  padding: 8,
+                  marginBottom: 4,
+                  borderWidth: 1,
+                  borderRadius: 6,
+                  borderColor: "#ccc",
+                }}
+              >
+                <Text>Type: {meal.eventType}</Text>
+                <Text>Carbs: {meal.carbs || "N/A"}</Text>
+                <Text>Time: {new Date(meal.created_at).toLocaleString()}</Text>
+              </View>
+            ))}
+          </>
+        )}
+
+        {activities.length > 0 && (
+          <>
+            <Text style={{ fontSize: 18, marginTop: 20, marginBottom: 10 }}>
+              Activities:
+            </Text>
+            {activities.map((activity) => (
+              <View
+                key={activity._id}
+                style={{
+                  padding: 8,
+                  marginBottom: 4,
+                  borderWidth: 1,
+                  borderRadius: 6,
+                  borderColor: "#ccc",
+                }}
+              >
+                <Text>Type: {activity.eventType}</Text>
+                <Text>
+                  Duration:{" "}
+                  {activity.duration ? `${activity.duration} mins` : "N/A"}
+                </Text>
+                <Text>
+                  Time: {new Date(activity.created_at).toLocaleString()}
+                </Text>
+              </View>
+            ))}
+          </>
         )}
       </ScrollView>
     </SafeAreaView>
