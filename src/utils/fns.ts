@@ -44,3 +44,45 @@ export async function addTreatment(
   if (!res.ok) throw new Error("Failed to add treatment");
   return res.json();
 }
+
+export async function updateTreatment(
+  cloudHost: string,
+  nsUrl: string,
+  secret: string,
+  treatment: NightscoutTreatment
+) {
+  treatment.enteredBy = "GlucoseGoose App";
+  const res = await fetch(
+    `https://${cloudHost}/updateTreatment?url=${nsUrl}&secret=${secret}`,
+    {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(treatment),
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to update treatment");
+  return res.json();
+}
+
+export async function deleteTreatment(
+  cloudHost: string,
+  nsUrl: string,
+  secret: string,
+  treatment_id: string
+) {
+  const res = await fetch(
+    `https://${cloudHost}/deleteTreatment?url=${nsUrl}&secret=${secret}&id=${treatment_id}`,
+    {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    }
+  );
+
+  if (!res.ok) throw new Error("Failed to update treatment");
+  return res.json();
+}

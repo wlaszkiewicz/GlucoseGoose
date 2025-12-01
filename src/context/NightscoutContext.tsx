@@ -17,6 +17,7 @@ interface NightscoutContextType {
   activities: NightscoutTreatment[];
   loadInitial: () => Promise<void>;
   startPolling: () => void;
+  fetchUpdates: () => Promise<void>;
   stopPolling: () => void;
   isLoading: boolean;
   reset: () => void;
@@ -48,6 +49,8 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
   const reset = useCallback(() => {
     setEntries([]);
+    setMeals([]);
+    setActivities([]);
     setLastTimestamp(null);
     setError(null);
     setIsLoading(false);
@@ -99,15 +102,36 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
       const newMeals = data.meals || [];
       const newActivities = data.activities || [];
 
+      const getId = (item: any) => item?.id ?? item?._id;
+
       if (newEntries.length > 0) {
-        setEntries((prev) => [...newEntries, ...prev]);
-        setLastTimestamp(newEntries[0]?.date ?? lastTimestamp);
+        setEntries((prev) => {
+          const existingIds = new Set(prev.map(getId));
+          const filtered = newEntries.filter((e) => !existingIds.has(getId(e)));
+          if (filtered.length === 0) return prev;
+          setLastTimestamp(filtered[0]?.date ?? lastTimestamp);
+          return [...filtered, ...prev];
+        });
       }
+
       if (newMeals.length > 0) {
-        setMeals((prev) => [...newMeals, ...prev]);
+        setMeals((prev) => {
+          const existingIds = new Set(prev.map(getId));
+          const filtered = newMeals.filter((m) => !existingIds.has(getId(m)));
+          if (filtered.length === 0) return prev;
+          return [...filtered, ...prev];
+        });
       }
+
       if (newActivities.length > 0) {
-        setActivities((prev) => [...newActivities, ...prev]);
+        setActivities((prev) => {
+          const existingIds = new Set(prev.map(getId));
+          const filtered = newActivities.filter(
+            (a) => !existingIds.has(getId(a))
+          );
+          if (filtered.length === 0) return prev;
+          return [...filtered, ...prev];
+        });
       }
     } catch (err: any) {
       setError(err.message);
@@ -141,6 +165,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         loadInitial,
         startPolling,
         stopPolling,
+        fetchUpdates,
         isLoading,
         reset,
         error,
