@@ -165,7 +165,6 @@ export const updateTreatment = functions.https.onRequest(
       res.status(400).json({ error: "Missing url or treatment" });
       return;
     }
-
     const baseUrl = (url as string).replace(/\/$/, "");
 
     const headers: Record<string, string> = {
@@ -278,19 +277,10 @@ export const simulateGlucose = onSchedule(
     const now = new Date();
     const bg = simulateBG(now.getTime());
 
-    const timezoneOffsetMinutes = parseInt(
-      process.env.TIMEZONE_OFFSET || "60",
-      10
-    );
-
-    const adjusted = new Date(
-      now.getTime() + timezoneOffsetMinutes * 60 * 1000
-    );
-
     const entry = {
-      date: adjusted.getTime(),
-      dateString: adjusted.toISOString(),
-      sysTime: adjusted.toISOString(),
+      date: now.getTime(),
+      dateString: now.toISOString(),
+      sysTime: now.toISOString(),
       device: "xDrip-DexcomG5",
       sgv: bg,
       direction: getDirection(bg, lastBG),
@@ -299,7 +289,7 @@ export const simulateGlucose = onSchedule(
       rssi: 100,
       filtered: 0,
       unfiltered: 0,
-      utcOffset: timezoneOffsetMinutes,
+      utcOffset: 60,
     };
 
     lastBG = bg;

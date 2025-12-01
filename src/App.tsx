@@ -11,12 +11,6 @@ import MainTabNavigator from "./MainTabNavigator";
 
 const Stack = createNativeStackNavigator();
 
-export type RootStackParamList = {
-  Login: undefined;
-  Register: undefined;
-  Home: undefined;
-};
-
 const AppContent = () => {
   const { firebaseUser, loading } = useAuth();
 
