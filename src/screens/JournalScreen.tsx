@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  SafeAreaView,
   ScrollView,
   View,
   Text,
@@ -10,6 +9,7 @@ import {
   Dimensions,
 } from "react-native";
 import { getPlatformStyles, CommonStyles } from "../themes/styles";
+import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@expo/vector-icons";
 import FoodSection from "../components/Journal/FoodSection";
 import SportsSection from "../components/Journal/SportsSection";
