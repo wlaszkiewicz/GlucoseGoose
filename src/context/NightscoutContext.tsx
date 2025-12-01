@@ -7,19 +7,17 @@ import React, {
   ReactNode,
 } from "react";
 import { useAuth } from "./AuthContext";
-import { fetchLast24h, fetchSince } from "../utils/fns";
+import { fetchBundle } from "../utils/fns";
 import Constants from "expo-constants";
-
-interface Entry {
-  sgv: number;
-  date: number;
-  [key: string]: any;
-}
+import { NightscoutEntry, NightscoutTreatment } from "../types/nightscout";
 
 interface NightscoutContextType {
-  entries: Entry[];
+  entries: NightscoutEntry[];
+  meals: NightscoutTreatment[];
+  activities: NightscoutTreatment[];
   loadInitial: () => Promise<void>;
   startPolling: () => void;
+  fetchUpdates: () => Promise<void>;
   stopPolling: () => void;
   isLoading: boolean;
   reset: () => void;
@@ -37,7 +35,9 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const [entries, setEntries] = useState<Entry[]>([]);
+  const [entries, setEntries] = useState<NightscoutEntry[]>([]);
+  const [meals, setMeals] = useState<NightscoutTreatment[]>([]);
+  const [activities, setActivities] = useState<NightscoutTreatment[]>([]);
 
   const [lastTimestamp, setLastTimestamp] = useState<number | null>(null);
 
@@ -49,6 +49,8 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
   const reset = useCallback(() => {
     setEntries([]);
+    setMeals([]);
+    setActivities([]);
     setLastTimestamp(null);
     setError(null);
     setIsLoading(false);
@@ -61,51 +63,80 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
   const loadInitial = useCallback(async () => {
     if (!nightscoutUrl || !firebaseUser) return;
 
-    setError(null);
-
-    console.log("Current entries length:", entries.length);
     if (entries.length > 0) return;
 
     setIsLoading(true);
-    console.log("Loading initial Nightscout data...");
+    setError(null);
 
     try {
-      const data = await fetchLast24h(
-        `https://${CLOUD_FUNCTIONS_HOST}/getLast24h?url=${nightscoutUrl}`,
-        nightscoutSecret
+      const data = await fetchBundle(
+        CLOUD_FUNCTIONS_HOST,
+        nightscoutUrl,
+        nightscoutSecret,
+        1440 // last 24 hours
       );
-      setEntries(data);
-      if (data.length > 0) setLastTimestamp(data[0].date);
+
+      setEntries(data.entries);
+      setMeals(data.meals || []);
+      setActivities(data.activities || []);
+      setLastTimestamp(data.entries[0]?.date ?? null);
     } catch (err: any) {
-      setError(err.message || "Failed to fetch Nightscout data");
+      setError(err.message);
     } finally {
       setIsLoading(false);
     }
-  }, [nightscoutUrl, nightscoutSecret]);
+  }, [nightscoutUrl, nightscoutSecret, firebaseUser, entries.length]);
 
   const fetchUpdates = useCallback(async () => {
     if (!nightscoutUrl || !firebaseUser || !lastTimestamp) return;
 
-    setError(null);
-
-    console.log("Fetching new Nightscout updates...");
-
     try {
-      const res = await fetchSince(
-        `https://${CLOUD_FUNCTIONS_HOST}/getSince?url=${nightscoutUrl}`,
-        lastTimestamp,
-        nightscoutSecret ? nightscoutSecret : undefined
+      const data = await fetchBundle(
+        CLOUD_FUNCTIONS_HOST,
+        nightscoutUrl,
+        nightscoutSecret,
+        5 // 5 minutes
       );
-      const newEntries: Entry[] = res;
+
+      const newEntries = data.entries;
+      const newMeals = data.meals || [];
+      const newActivities = data.activities || [];
+
+      const getId = (item: any) => item?.id ?? item?._id;
 
       if (newEntries.length > 0) {
-        setEntries((prev) => [...newEntries, ...prev]);
-        setLastTimestamp(newEntries[0].date);
+        setEntries((prev) => {
+          const existingIds = new Set(prev.map(getId));
+          const filtered = newEntries.filter((e) => !existingIds.has(getId(e)));
+          if (filtered.length === 0) return prev;
+          setLastTimestamp(filtered[0]?.date ?? lastTimestamp);
+          return [...filtered, ...prev];
+        });
+      }
+
+      if (newMeals.length > 0) {
+        setMeals((prev) => {
+          const existingIds = new Set(prev.map(getId));
+          const filtered = newMeals.filter((m) => !existingIds.has(getId(m)));
+          if (filtered.length === 0) return prev;
+          return [...filtered, ...prev];
+        });
+      }
+
+      if (newActivities.length > 0) {
+        setActivities((prev) => {
+          const existingIds = new Set(prev.map(getId));
+          const filtered = newActivities.filter(
+            (a) => !existingIds.has(getId(a))
+          );
+          if (filtered.length === 0) return prev;
+          return [...filtered, ...prev];
+        });
       }
     } catch (err: any) {
-      setError(err.message || "Failed to fetch Nightscout updates");
+      setError(err.message);
     }
-  }, [nightscoutUrl, nightscoutSecret, lastTimestamp]);
+  }, [nightscoutUrl, nightscoutSecret, lastTimestamp, firebaseUser]);
 
   const startPolling = useCallback(() => {
     if (!nightscoutUrl || !firebaseUser) return;
@@ -129,9 +160,12 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     <NightscoutContext.Provider
       value={{
         entries,
+        meals,
+        activities,
         loadInitial,
         startPolling,
         stopPolling,
+        fetchUpdates,
         isLoading,
         reset,
         error,

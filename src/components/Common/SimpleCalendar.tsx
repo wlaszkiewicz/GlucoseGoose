@@ -159,8 +159,4 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
   );
 };
 
-const styles = StyleSheet.create({
-  // Empty - using CommonStyles only
-});
-
 export default SimpleCalendar;
