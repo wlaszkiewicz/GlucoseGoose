@@ -1,45 +1,46 @@
-export const fetchLast24h = async (url: string, secret?: string) => {
-  try {
-    const query = `${url}&secret=${secret || ""}`;
-    const res = await fetch(query);
+import {
+  NightscoutBundleResponse,
+  NightscoutTreatment,
+} from "../types/nightscout";
 
-    if (!res.ok) {
-      throw new Error(
-        `Error fetching last 24h: ${res.status} ${res.statusText}`
-      );
-    }
+export async function fetchBundle(
+  cloudHost: string,
+  nsUrl: string,
+  secret?: string,
+  minutes: number = 1440 // default 24h
+): Promise<NightscoutBundleResponse> {
+  const query = `https://${cloudHost}/getNightscoutBundle?url=${nsUrl}&secret=${
+    secret || ""
+  }&minutes=${minutes}`;
 
-    const data = await res.json();
-    if (!Array.isArray(data))
-      throw new Error("Invalid data format from server");
-    return data;
-  } catch (err: any) {
-    console.error("fetchLast24h failed", err);
-    throw err;
+  const res = await fetch(query);
+
+  if (!res.ok) {
+    throw new Error(`Error fetching bundle: ${res.status} ${res.statusText}`);
   }
-};
 
-export const fetchSince = async (
-  url: string,
-  since: number,
-  secret?: string
-) => {
-  try {
-    const query = `${url}&since=${since}&secret=${secret || ""}`;
-    const res = await fetch(query);
+  const data = await res.json();
+  return data as NightscoutBundleResponse;
+}
 
-    if (!res.ok) {
-      throw new Error(
-        `Error fetching updates: ${res.status} ${res.statusText}`
-      );
+export async function addTreatment(
+  cloudHost: string,
+  nsUrl: string,
+  secret: string,
+  treatment: NightscoutTreatment
+) {
+  treatment.enteredBy = "GlucoseGoose App";
+  const res = await fetch(
+    `https://${cloudHost}/addTreatment?url=${nsUrl}&secret=${secret}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(treatment),
     }
+  );
 
-    const data = await res.json();
-    if (!Array.isArray(data))
-      throw new Error("Invalid data format from server");
-    return data;
-  } catch (err: any) {
-    console.error("fetchSince failed", err);
-    throw err;
-  }
-};
+  if (!res.ok) throw new Error("Failed to add treatment");
+  return res.json();
+}

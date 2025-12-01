@@ -8,8 +8,6 @@ import SplashScreen from "./screens/SplashScreen";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NightscoutProvider } from "./context/NightscoutContext";
 import MainTabNavigator from "./MainTabNavigator";
-import { ActivityProvider } from "./context/ActivityContext";
-import { FoodProvider } from "./context/FoodContext";
 
 const Stack = createNativeStackNavigator();
 
@@ -41,13 +39,9 @@ export default function App() {
     <SafeAreaProvider>
       <AuthProvider>
         <NightscoutProvider>
-          <ActivityProvider>
-            <FoodProvider>
-              <NavigationContainer>
-                <AppContent />
-              </NavigationContainer>
-            </FoodProvider>
-          </ActivityProvider>
+          <NavigationContainer>
+            <AppContent />
+          </NavigationContainer>
         </NightscoutProvider>
       </AuthProvider>
     </SafeAreaProvider>

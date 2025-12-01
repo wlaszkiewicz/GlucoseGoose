@@ -10,7 +10,11 @@ import {
 } from "react-native";
 import { CommonStyles } from "../../themes/styles";
 import { Ionicons } from "@expo/vector-icons";
-import { useNightscoutFood } from "../../services/nightscoutFoodService";
+import { useNightscout } from "../../context/NightscoutContext";
+import { addTreatment } from "../../utils/fns";
+import Constants from "expo-constants";
+import { useAuth } from "../../context/AuthContext";
+import { NightscoutTreatment } from "../../types/nightscout";
 
 type MealType =
   | "Breakfast"
@@ -51,7 +55,6 @@ interface FoodSectionProps {
 }
 
 const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
-  const { saveFoodToNightscout } = useNightscoutFood();
   const [selectedMealType, setSelectedMealType] =
     useState<MealType>("Breakfast");
   const [mealDescription, setMealDescription] = useState("");
@@ -64,8 +67,13 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   const [manualSugar, setManualSugar] = useState("");
   const [manualFiber, setManualFiber] = useState("");
   const [showManualInput, setShowManualInput] = useState(false);
+  const { firebaseUser, userData } = useAuth();
 
   const [dayEntries, setDayEntries] = useState<any[]>([]);
+
+  const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
+
+  const { entries, meals, isLoading, reset, error } = useNightscout();
 
   const currentDayEntry = dayEntries.find(
     (entry) => entry.date === selectedDate.toISOString().split("T")[0]
@@ -140,19 +148,14 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     analyzeMealWithAI();
   }, [mealDescription, showManualInput]);
 
-  // changed handleSaveMeal ------
   const handleSaveMeal = async () => {
-    console.log("🚀 START: Save meal clicked");
-
     if (!mealDescription.trim()) {
-      console.log("❌ STOP: No meal description");
       Alert.alert("Error", "Please describe your meal");
       return;
     }
 
     const dateString = selectedDate.toISOString().split("T")[0];
 
-    // prepare nutrition
     let nutrition: NutritionInfo | undefined;
     if (showManualInput && manualCalories) {
       nutrition = {
@@ -165,16 +168,10 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       };
     }
 
-    console.log("📝 Meal data:", {
-      description: mealDescription,
-      mealType: selectedMealType,
-      nutrition: nutrition, // Moved this log after nutrition is declared
-    });
-
-    // nightscout payload
-    const foodEntry = {
-      eventType: "Meal",
-      notes: `${selectedMealType}: ${mealDescription}`,
+    const foodEntry: NightscoutTreatment = {
+      _id: undefined,
+      eventType: "Meal: " + selectedMealType,
+      notes: `${mealDescription}`,
       carbs: nutrition?.carbs || 0,
       protein: nutrition?.protein,
       fat: nutrition?.fat,
@@ -184,15 +181,25 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       created_at: new Date().toISOString(),
     };
 
-    console.log("📦 Nightscout payload:", foodEntry);
+    if (!firebaseUser || !userData) {
+      Alert.alert("Error", "You must be logged in to save meals.");
+      return;
+    }
+
+    if (!userData.nightscoutUrl) {
+      Alert.alert("Error", "Nightscout URL is not configured.");
+      return;
+    }
 
     try {
-      console.log("📤 Sending to Nightscout...");
-      const success = await saveFoodToNightscout(foodEntry);
-      console.log("✅ Save result:", success);
+      const success = await addTreatment(
+        CLOUD_FUNCTIONS_HOST,
+        userData.nightscoutUrl,
+        userData.nightscoutSecret ?? "",
+        foodEntry
+      );
 
       if (!success) {
-        console.error("❌ Failed to save to Nightscout");
         Alert.alert(
           "Error",
           "Failed to save meal to Nightscout. Check your Nightscout server or API key."
@@ -200,9 +207,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         return;
       }
 
-      console.log("🎉 Successfully saved to Nightscout!");
-
-      // save locally so UI updates immediately
       const newMeal: MealEntry = {
         id: Date.now().toString(),
         type: selectedMealType,
@@ -245,7 +249,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
       Alert.alert("Success", `${selectedMealType} saved to Nightscout! 🎉`);
     } catch (error: any) {
-      console.error("💥 Error saving meal:", error);
       Alert.alert(
         "Error",
         `Failed to save meal: ${error?.message || "Unknown error"}`
@@ -253,7 +256,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     }
   };
 
-  // -----------
   const handlePhotoUpload = () => {
     Alert.alert("Info", "Photo upload functionality will be implemented soon");
   };
