@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
 } from "react-native";
 import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useNightscout } from "../../context/NightscoutContext";
@@ -20,6 +19,7 @@ import { NightscoutTreatment } from "../../types/nightscout";
 import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageStylesSports } from "../../themes/vintage/styles_vintage_sports";
 
 type ActivityType =
   | "Walking"
@@ -276,7 +276,6 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
 
     let caloriesBurned = manualCaloriesBurned ? parseInt(manualCaloriesBurned) : 0;
     
-    // Calculate calories if not manually entered
     if (!manualCaloriesBurned && !isCalculatingCalories) {
       caloriesBurned = await calculateCaloriesWithAI(
         selectedActivityType,
@@ -394,7 +393,6 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     }
   };
 
-  // Funkcja zwracająca kolor dla każdego typu aktywności (zawsze ten sam)
   const getActivityColor = (activityType: ActivityType): string => {
     const colors: Record<ActivityType, string> = {
       "Walking": VintageColors.iconGreen,
@@ -412,7 +410,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   };
 
   const renderActivityTypeSelector = () => (
-    <View style={styles.sectionContainer}>
+    <View style={VintageStylesSports.sectionContainer}>
       <View style={VintageStyles.sectionHeader}>
         <Text style={VintageStyles.sectionTitle}>Select Activity Type</Text>
         <View style={VintageStyles.featherAccent}>
@@ -423,29 +421,27 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.activityTypeScroll}
-        contentContainerStyle={styles.activityTypeScrollContent}
+        style={VintageStylesSports.activityTypeScroll}
+        contentContainerStyle={VintageStylesSports.activityTypeScrollContent}
       >
         {activityTypes.map((activityType) => {
           const isSelected = selectedActivityType === activityType;
-          // Zawsze używaj primaryText dla ikony, niezależnie od stanu
           const iconColor = VintageColors.primaryText;
-          // Zawsze używaj tego samego koloru dla danego typu aktywności
           const backgroundColor = getActivityColor(activityType);
           
           return (
             <TouchableOpacity
               key={activityType}
               style={[
-                styles.activityTypeButton,
-                isSelected && styles.activityTypeButtonSelected,
+                VintageStylesSports.activityTypeButton,
+                isSelected && VintageStylesSports.activityTypeButtonSelected,
               ]}
               onPress={() => setSelectedActivityType(activityType)}
             >
               <View style={[
-                styles.activityIconContainer,
+                VintageStylesSports.activityIconContainer,
                 { backgroundColor },
-                isSelected && styles.activityIconContainerSelected,
+                isSelected && VintageStylesSports.activityIconContainerSelected,
               ]}>
                 <Ionicons
                   name={getActivityIcon(activityType) as any}
@@ -455,8 +451,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
               </View>
               <Text
                 style={[
-                  styles.activityTypeText,
-                  isSelected && styles.activityTypeTextSelected,
+                  VintageStylesSports.activityTypeText,
+                  isSelected && VintageStylesSports.activityTypeTextSelected,
                 ]}
               >
                 {activityType}
@@ -469,7 +465,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   );
 
   const renderActivityDescription = () => (
-    <View style={styles.sectionContainer}>
+    <View style={VintageStylesSports.sectionContainer}>
       <View style={VintageStyles.sectionHeader}>
         <Text style={VintageStyles.sectionTitle}>Activity Description</Text>
         <View style={VintageStyles.featherAccent}>
@@ -477,9 +473,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
         </View>
       </View>
       
-      <View style={styles.descriptionCard}>
+      <View style={VintageStylesSports.descriptionCard}>
         <TextInput
-          style={styles.descriptionInput}
+          style={VintageStylesSports.descriptionInput}
           placeholder="Describe your activity in detail (e.g., 'Morning jog in the park, felt energetic, sunny weather')"
           value={activityDescription}
           onChangeText={setActivityDescription}
@@ -492,7 +488,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   );
 
   const renderDurationInput = () => (
-    <View style={styles.sectionContainer}>
+    <View style={VintageStylesSports.sectionContainer}>
       <View style={VintageStyles.sectionHeader}>
         <Text style={VintageStyles.sectionTitle}>Duration & Intensity</Text>
         <View style={VintageStyles.featherAccent}>
@@ -500,41 +496,41 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
         </View>
       </View>
       
-      <View style={styles.durationIntensityCard}>
-        <View style={styles.durationSection}>
-          <Text style={styles.inputLabel}>Duration (minutes)</Text>
-          <View style={styles.durationInputContainer}>
+      <View style={VintageStylesSports.durationIntensityCard}>
+        <View style={VintageStylesSports.durationSection}>
+          <Text style={VintageStylesSports.inputLabel}>Duration (minutes)</Text>
+          <View style={VintageStylesSports.durationInputContainer}>
             <TextInput
-              style={styles.durationInput}
+              style={VintageStylesSports.durationInput}
               placeholder="0"
               value={manualDuration}
               onChangeText={setManualDuration}
               keyboardType="numeric"
               placeholderTextColor={VintageColors.secondaryText}
             />
-            <View style={styles.durationUnit}>
-              <Text style={styles.durationUnitText}>min</Text>
+            <View style={VintageStylesSports.durationUnit}>
+              <Text style={VintageStylesSports.durationUnitText}>min</Text>
             </View>
           </View>
         </View>
         
-        <View style={styles.intensitySection}>
+        <View style={VintageStylesSports.intensitySection}>
           <View style={VintageStyles.spacing10} />
-          <Text style={styles.inputLabel}>Intensity Level</Text>
-          <View style={styles.intensityButtons}>
+          <Text style={VintageStylesSports.inputLabel}>Intensity Level</Text>
+          <View style={VintageStylesSports.intensityButtons}>
             {(["Low", "Medium", "High"] as const).map((intensity) => (
               <TouchableOpacity
                 key={intensity}
                 style={[
-                  styles.intensityButton,
-                  manualIntensity === intensity && styles.intensityButtonSelected,
+                  VintageStylesSports.intensityButton,
+                  manualIntensity === intensity && VintageStylesSports.intensityButtonSelected,
                 ]}
                 onPress={() => setManualIntensity(intensity)}
               >
                 <Text
                   style={[
-                    styles.intensityText,
-                    manualIntensity === intensity && styles.intensityTextSelected,
+                    VintageStylesSports.intensityText,
+                    manualIntensity === intensity && VintageStylesSports.intensityTextSelected,
                   ]}
                 >
                   {intensity}
@@ -548,15 +544,15 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   );
 
   const renderManualInputs = () => (
-  <View style={styles.sectionContainer}>
-    <View style={styles.manualInputsCard}>
-      <View style={styles.inputRow}>
-        <View style={styles.inputLabelContainer}>
-          <Ionicons name="flame" size={16} color={VintageColors.primaryText} style={styles.inputIcon} />
-          <Text style={styles.inputLabel}>Calories Burned</Text>
+  <View style={VintageStylesSports.sectionContainer}>
+    <View style={VintageStylesSports.manualInputsCard}>
+      <View style={VintageStylesSports.inputRow}>
+        <View style={VintageStylesSports.inputLabelContainer}>
+          <Ionicons name="flame" size={16} color={VintageColors.primaryText} style={VintageStylesSports.inputIcon} />
+          <Text style={VintageStylesSports.inputLabel}>Calories Burned</Text>
         </View>
         <TextInput
-          style={styles.numberInput}
+          style={VintageStylesSports.numberInput}
           placeholder="Auto-calculated"
           value={manualCaloriesBurned}
           onChangeText={setManualCaloriesBurned}
@@ -565,13 +561,13 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
         />
       </View>
       
-      <View style={styles.inputRow}>
-        <View style={styles.inputLabelContainer}>
-          <Ionicons name="heart" size={16} color={VintageColors.primaryText} style={styles.inputIcon} />
-          <Text style={styles.inputLabel}>Heart Rate (bpm)</Text>
+      <View style={VintageStylesSports.inputRow}>
+        <View style={VintageStylesSports.inputLabelContainer}>
+          <Ionicons name="heart" size={16} color={VintageColors.primaryText} style={VintageStylesSports.inputIcon} />
+          <Text style={VintageStylesSports.inputLabel}>Heart Rate (bpm)</Text>
         </View>
         <TextInput
-          style={styles.numberInput}
+          style={VintageStylesSports.numberInput}
           placeholder="Optional"
           value={manualHeartRate}
           onChangeText={setManualHeartRate}
@@ -580,13 +576,13 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
         />
       </View>
       
-      <View style={styles.inputRow}>
-        <View style={styles.inputLabelContainer}>
-          <Feather name="map-pin" size={16} color={VintageColors.primaryText} style={styles.inputIcon} />
-          <Text style={styles.inputLabel}>Distance (km)</Text>
+      <View style={VintageStylesSports.inputRow}>
+        <View style={VintageStylesSports.inputLabelContainer}>
+          <Feather name="map-pin" size={16} color={VintageColors.primaryText} style={VintageStylesSports.inputIcon} />
+          <Text style={VintageStylesSports.inputLabel}>Distance (km)</Text>
         </View>
         <TextInput
-          style={styles.numberInput}
+          style={VintageStylesSports.numberInput}
           placeholder="Optional"
           value={manualDistance}
           onChangeText={setManualDistance}
@@ -599,31 +595,31 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
 );
 
   const renderAIEstimation = () => (
-    <View style={styles.sectionContainer}>
+    <View style={VintageStylesSports.sectionContainer}>
       {isCalculatingCalories && (
-        <View style={styles.caloriesCalculation}>
-          <View style={styles.calculationIcon}>
+        <View style={VintageStylesSports.caloriesCalculation}>
+          <View style={VintageStylesSports.calculationIcon}>
             <Ionicons name="sparkles" size={24} color={VintageColors.primaryText} />
           </View>
-          <Text style={styles.caloriesCalculationText}>
+          <Text style={VintageStylesSports.caloriesCalculationText}>
             Calculating calories burned...
           </Text>
         </View>
       )}
 
       {manualCaloriesBurned && !isCalculatingCalories && (
-        <View style={styles.aiEstimationCard}>
-          <View style={styles.aiHeader}>
-            <View style={styles.aiIconContainer}>
+        <View style={VintageStylesSports.aiEstimationCard}>
+          <View style={VintageStylesSports.aiHeader}>
+            <View style={VintageStylesSports.aiIconContainer}>
               <Ionicons name="sparkles" size={20} color="#4CAF50" />
             </View>
-            <Text style={styles.aiTitle}>AI Estimation</Text>
+            <Text style={VintageStylesSports.aiTitle}>AI Estimation</Text>
           </View>
-          <View style={styles.caloriesDisplay}>
-            <Text style={styles.caloriesValue}>{manualCaloriesBurned}</Text>
-            <Text style={styles.caloriesUnit}>calories burned</Text>
+          <View style={VintageStylesSports.caloriesDisplay}>
+            <Text style={VintageStylesSports.caloriesValue}>{manualCaloriesBurned}</Text>
+            <Text style={VintageStylesSports.caloriesUnit}>calories burned</Text>
           </View>
-          <Text style={styles.caloriesNote}>
+          <Text style={VintageStylesSports.caloriesNote}>
             Based on {manualDuration} minutes of {selectedActivityType.toLowerCase()} at {manualIntensity.toLowerCase()} intensity
           </Text>
         </View>
@@ -635,11 +631,11 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     if (!todayActivities || todayActivities.length === 0) return null;
 
     return (
-      <View style={styles.sectionContainer}>
+      <View style={VintageStylesSports.sectionContainer}>
         <View style={VintageStyles.sectionHeader}>
           <Text style={VintageStyles.sectionTitle}>Today's Activities</Text>
-          <View style={styles.activitiesCount}>
-            <Text style={styles.activitiesCountText}>{todayActivities.length}</Text>
+          <View style={VintageStylesSports.activitiesCount}>
+            <Text style={VintageStylesSports.activitiesCountText}>{todayActivities.length}</Text>
           </View>
         </View>
         
@@ -651,12 +647,12 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
           return (
             <TouchableOpacity 
               key={`${activity._id || activity.id}_${activity.created_at}`} 
-              style={styles.activityCard}
+              style={VintageStylesSports.activityCard}
               onPress={() => loadActivityForEditing(activity)}
             >
-              <View style={styles.activityHeader}>
-                <View style={styles.activityHeaderLeft}>
-                  <View style={[styles.activityTypeIcon, { backgroundColor: activityColor }]}>
+              <View style={VintageStylesSports.activityHeader}>
+                <View style={VintageStylesSports.activityHeaderLeft}>
+                  <View style={[VintageStylesSports.activityTypeIcon, { backgroundColor: activityColor }]}>
                     <Ionicons
                       name={getActivityIcon(activityType) as any}
                       size={18}
@@ -664,15 +660,15 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                     />
                   </View>
                   <View>
-                    <Text style={styles.activityCardType}>{activityType}</Text>
-                    <Text style={styles.activityTime}>
+                    <Text style={VintageStylesSports.activityCardType}>{activityType}</Text>
+                    <Text style={VintageStylesSports.activityTime}>
                       {new Date(activity.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                     </Text>
                   </View>
                 </View>
-                <View style={styles.activityHeaderRight}>
+                <View style={VintageStylesSports.activityHeaderRight}>
                   {metrics.duration > 0 && (
-                    <Text style={styles.activityDuration}>
+                    <Text style={VintageStylesSports.activityDuration}>
                       {metrics.duration} min
                     </Text>
                   )}
@@ -681,34 +677,34 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                       e.stopPropagation();
                       handleDeleteActivity(activity);
                     }}
-                    style={styles.deleteButton}
+                    style={VintageStylesSports.deleteButton}
                   >
                     <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
                   </TouchableOpacity>
                 </View>
               </View>
-              <Text style={styles.activityDescription}>
+              <Text style={VintageStylesSports.activityDescription}>
                 {activity.notes || "No description"}
               </Text>
               {(metrics.duration > 0 || metrics.caloriesBurned || metrics.distance) && (
-                <View style={styles.activityMetrics}>
-                  <View style={styles.metricsRow}>
+                <View style={VintageStylesSports.activityMetrics}>
+                  <View style={VintageStylesSports.metricsRow}>
                     {metrics.intensity && (
-                      <View style={styles.metricItem}>
+                      <View style={VintageStylesSports.metricItem}>
                         <Ionicons name="speedometer" size={14} color={VintageColors.secondaryText} />
-                        <Text style={styles.metricText}>{metrics.intensity}</Text>
+                        <Text style={VintageStylesSports.metricText}>{metrics.intensity}</Text>
                       </View>
                     )}
                     {metrics.caloriesBurned && (
-                      <View style={styles.metricItem}>
+                      <View style={VintageStylesSports.metricItem}>
                         <Ionicons name="flame" size={14} color={VintageColors.secondaryText} />
-                        <Text style={styles.metricText}>{metrics.caloriesBurned} cal</Text>
+                        <Text style={VintageStylesSports.metricText}>{metrics.caloriesBurned} cal</Text>
                       </View>
                     )}
                     {metrics.distance && (
-                      <View style={styles.metricItem}>
+                      <View style={VintageStylesSports.metricItem}>
                         <Feather name="map-pin" size={14} color={VintageColors.secondaryText} />
-                        <Text style={styles.metricText}>{metrics.distance} km</Text>
+                        <Text style={VintageStylesSports.metricText}>{metrics.distance} km</Text>
                       </View>
                     )}
                   </View>
@@ -718,29 +714,29 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
           );
         })}
         
-        <View style={styles.totalStatsCard}>
-          <Text style={styles.totalTitle}>Daily Summary</Text>
-          <View style={styles.totalStats}>
-            <View style={styles.totalStatItem}>
-              <Text style={styles.totalStatValue}>{totalActivityStats.activityCount}</Text>
-              <Text style={styles.totalStatLabel}>activities</Text>
+        <View style={VintageStylesSports.totalStatsCard}>
+          <Text style={VintageStylesSports.totalTitle}>Daily Summary</Text>
+          <View style={VintageStylesSports.totalStats}>
+            <View style={VintageStylesSports.totalStatItem}>
+              <Text style={VintageStylesSports.totalStatValue}>{totalActivityStats.activityCount}</Text>
+              <Text style={VintageStylesSports.totalStatLabel}>activities</Text>
             </View>
-            <View style={styles.totalStatDivider} />
-            <View style={styles.totalStatItem}>
-              <Text style={styles.totalStatValue}>{totalActivityStats.totalDuration}</Text>
-              <Text style={styles.totalStatLabel}>minutes</Text>
+            <View style={VintageStylesSports.totalStatDivider} />
+            <View style={VintageStylesSports.totalStatItem}>
+              <Text style={VintageStylesSports.totalStatValue}>{totalActivityStats.totalDuration}</Text>
+              <Text style={VintageStylesSports.totalStatLabel}>minutes</Text>
             </View>
-            <View style={styles.totalStatDivider} />
-            <View style={styles.totalStatItem}>
-              <Text style={styles.totalStatValue}>{totalActivityStats.totalCalories}</Text>
-              <Text style={styles.totalStatLabel}>calories</Text>
+            <View style={VintageStylesSports.totalStatDivider} />
+            <View style={VintageStylesSports.totalStatItem}>
+              <Text style={VintageStylesSports.totalStatValue}>{totalActivityStats.totalCalories}</Text>
+              <Text style={VintageStylesSports.totalStatLabel}>calories</Text>
             </View>
             {totalActivityStats.totalDistance > 0 && (
               <>
-                <View style={styles.totalStatDivider} />
-                <View style={styles.totalStatItem}>
-                  <Text style={styles.totalStatValue}>{totalActivityStats.totalDistance.toFixed(1)}</Text>
-                  <Text style={styles.totalStatLabel}>km</Text>
+                <View style={VintageStylesSports.totalStatDivider} />
+                <View style={VintageStylesSports.totalStatItem}>
+                  <Text style={VintageStylesSports.totalStatValue}>{totalActivityStats.totalDistance.toFixed(1)}</Text>
+                  <Text style={VintageStylesSports.totalStatLabel}>km</Text>
                 </View>
               </>
             )}
@@ -751,22 +747,22 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   };
 
   const renderInputToggle = () => (
-    <View style={styles.sectionContainer}>
+    <View style={VintageStylesSports.sectionContainer}>
       <TouchableOpacity
-        style={styles.toggleCard}
+        style={VintageStylesSports.toggleCard}
         onPress={toggleManualInput}
       >
-        <View style={styles.toggleHeader}>
+        <View style={VintageStylesSports.toggleHeader}>
           <Feather 
             name={showManualInput ? "edit-3" : "cpu"} 
             size={20} 
             color={VintageColors.primaryText} 
           />
-          <Text style={styles.toggleTitle}>
+          <Text style={VintageStylesSports.toggleTitle}>
             {showManualInput ? "Manual Input" : "AI Calculation"}
           </Text>
         </View>
-        <View style={styles.toggleArrow}>
+        <View style={VintageStylesSports.toggleArrow}>
           <Feather 
             name={showManualInput ? "chevron-up" : "chevron-down"} 
             size={20} 
@@ -779,23 +775,23 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
 
   // Render Log Activity Button
   const renderLogActivityButton = () => (
-    <View style={styles.sectionContainer}>
+    <View style={VintageStylesSports.sectionContainer}>
       <TouchableOpacity
         style={[
-          styles.saveButton,
-          editingActivityId && styles.updateButton,
+          VintageStylesSports.saveButton,
+          editingActivityId && VintageStylesSports.updateButton,
         ]}
         onPress={handleSaveActivity}
         disabled={isCalculatingCalories || !manualDuration}
       >
-        <View style={styles.saveButtonIcon}>
+        <View style={VintageStylesSports.saveButtonIcon}>
           {editingActivityId ? (
             <Feather name="save" size={20} color="#FFFFFF" />
           ) : (
             <Feather name="plus" size={20} color="#FFFFFF" />
           )}
         </View>
-        <Text style={styles.saveButtonText}>
+        <Text style={VintageStylesSports.saveButtonText}>
           {isCalculatingCalories
             ? "Calculating..."
             : editingActivityId
@@ -806,17 +802,17 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
 
       {editingActivityId && (
         <TouchableOpacity
-          style={styles.cancelButton}
+          style={VintageStylesSports.cancelButton}
           onPress={clearForm}
         >
-          <Text style={styles.cancelButtonText}>Cancel Edit</Text>
+          <Text style={VintageStylesSports.cancelButtonText}>Cancel Edit</Text>
         </TouchableOpacity>
       )}
     </View>
   );
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView style={VintageStylesSports.container} showsVerticalScrollIndicator={false}>
       {renderActivityTypeSelector()}
       {renderActivityDescription()}
       {renderDurationInput()}
@@ -824,7 +820,6 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       {renderInputToggle()}
       {showManualInput ? renderManualInputs() : renderAIEstimation()}
       
-      {/* Log Activity Button - PRZENIESIONY NAD Today's Activities */}
       {renderLogActivityButton()}
       
       {renderTodayActivities()}
@@ -833,614 +828,5 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     </ScrollView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  
-  sectionContainer: {
-    marginBottom: 20,
-    paddingHorizontal: 4,
-  },
-  
-  // Activity Type Selector
-  activityTypeScroll: {
-    marginTop: 8,
-  },
-  
-  activityTypeScrollContent: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-  },
-  
-  activityTypeButton: {
-    alignItems: 'center',
-    marginHorizontal: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
-    borderRadius: 12,
-    backgroundColor: VintageColors.cardBackground,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  activityTypeButtonSelected: {
-    borderColor: VintageColors.primaryText,
-    backgroundColor: VintageColors.lightBackground,
-    transform: [{ scale: 1.05 }], // Lekkie powiększenie dla zaznaczonej
-  },
-  
-  activityIconContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 8,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  activityIconContainerSelected: {
-    borderColor: VintageColors.primaryText,
-    borderWidth: 2, // Grubsze obramowanie dla zaznaczonej
-  },
-  
-  activityTypeText: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    fontWeight: '400',
-    textAlign: 'center',
-    letterSpacing: 0.3,
-  },
-  
-  activityTypeTextSelected: {
-    color: VintageColors.primaryText,
-    fontWeight: '600',
-  },
-  
-  // Description
-  descriptionCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  descriptionInput: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    lineHeight: 20,
-    minHeight: 80,
-    textAlignVertical: 'top',
-  },
-  
-  // Duration & Intensity
-  durationIntensityCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-    flexDirection: 'column',
-  },
-
-  durationSection: {
-    flex: 1,
-    marginRight: 12,
-  },
-
-  intensitySection: {
-    flex: 1,
-  },
-  
-  inputLabel: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    fontWeight: '500',
-    marginBottom: 8,
-    letterSpacing: 0.3,
-  },
-  
-  durationInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  durationInput: {
-    flex: 1,
-    height: 50,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    borderRadius: 10,
-    paddingHorizontal: 16,
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    backgroundColor: VintageColors.lightBackground,
-  },
-  
-  durationUnit: {
-    marginLeft: 12,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: VintageColors.lightBackground,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  durationUnitText: {
-    fontSize: 14,
-    color: VintageColors.secondaryText,
-    fontWeight: '400',
-  },
-  
-  intensityButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  
-  intensityButton: {
-    flex: 1,
-    marginHorizontal: 2,
-    paddingVertical: 10,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    backgroundColor: VintageColors.lightBackground,
-    alignItems: 'center',
-  },
-  
-  intensityButtonSelected: {
-    backgroundColor: VintageColors.primaryText,
-    borderColor: VintageColors.primaryText,
-  },
-  
-  intensityText: {
-    fontSize: 13,
-    color: VintageColors.secondaryText,
-    fontWeight: '500',
-  },
-  
-  intensityTextSelected: {
-    color: '#FFFFFF',
-  },
-  
-  // Manual Inputs
-  manualInputsCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 18,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  
-  inputLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  
-  inputIcon: {
-    marginRight: 8,
-    // Dodaj to, aby ikona była na tej samej wysokości co tekst
-    marginTop: 1,
-  },
-  
-  inputLabelText: {
-    fontSize: 15,
-    color: VintageColors.primaryText,
-    fontWeight: '400',
-  },
-  
-  numberInput: {
-    width: 140, // Zwiększona szerokość pól do wpisywania
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    backgroundColor: VintageColors.lightBackground,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    fontSize: 15,
-    color: VintageColors.primaryText,
-    textAlign: 'right',
-    marginLeft: 12,
-    // Dodaj to, aby pole było na tej samej wysokości co etykieta
-    height: 40,
-  },
-  
-  // AI Estimation
-  caloriesCalculation: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: VintageColors.lightBackground,
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  calculationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: VintageColors.cardBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  caloriesCalculationText: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    fontWeight: '400',
-    flex: 1,
-  },
-  
-  aiEstimationCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  aiHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  
-  aiIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: '#C8E6C9',
-  },
-  
-  aiTitle: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: '500',
-  },
-  
-  caloriesDisplay: {
-    alignItems: 'center',
-    marginVertical: 10,
-  },
-  
-  caloriesValue: {
-    fontSize: 36,
-    fontWeight: '300',
-    color: VintageColors.primaryText,
-    marginBottom: 4,
-  },
-  
-  caloriesUnit: {
-    fontSize: 14,
-    color: VintageColors.secondaryText,
-    fontWeight: '400',
-  },
-  
-  caloriesNote: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    textAlign: 'center',
-    marginTop: 8,
-    fontStyle: 'italic',
-    lineHeight: 16,
-  },
-  
-  // Toggle
-  toggleCard: {
-    backgroundColor: VintageColors.cardBackground,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  toggleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  toggleTitle: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: '500',
-    marginLeft: 12,
-  },
-  
-  toggleArrow: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: VintageColors.lightBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  // Activities List
-  activitiesCount: {
-    backgroundColor: VintageColors.lightBackground,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  activitiesCountText: {
-    fontSize: 12,
-    color: VintageColors.primaryText,
-    fontWeight: '600',
-  },
-  
-  activityCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  
-  activityHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    flex: 1,
-  },
-  
-  activityTypeIcon: {
-    width: 36,
-    height: 36,
-    borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  activityCardType: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: '500',
-    marginBottom: 2,
-  },
-  
-  activityTime: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    fontWeight: '300',
-  },
-  
-  activityHeaderRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  
-  activityDuration: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    fontWeight: '500',
-    marginRight: 12,
-  },
-  
-  deleteButton: {
-    padding: 6,
-    borderRadius: 6,
-    backgroundColor: VintageColors.lightBackground,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  activityDescription: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    lineHeight: 20,
-    marginBottom: 12,
-  },
-  
-  activityMetrics: {
-    borderTopWidth: 1,
-    borderTopColor: VintageColors.border,
-    paddingTop: 12,
-  },
-  
-  metricsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-  },
-  
-  metricItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-    marginBottom: 4,
-  },
-  
-  metricText: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    marginLeft: 6,
-    fontWeight: '400',
-  },
-  
-  // Total Stats
-  totalStatsCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-  
-  totalTitle: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: '500',
-    marginBottom: 16,
-  },
-  
-  totalStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
-  },
-  
-  totalStatItem: {
-    alignItems: 'center',
-    flex: 1,
-  },
-  
-  totalStatValue: {
-    fontSize: 20,
-    fontWeight: '300',
-    color: VintageColors.primaryText,
-    marginBottom: 4,
-  },
-  
-  totalStatLabel: {
-    fontSize: 11,
-    color: VintageColors.secondaryText,
-    fontWeight: '400',
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  
-  totalStatDivider: {
-    width: 1,
-    height: 30,
-    backgroundColor: VintageColors.border,
-  },
-  
-  // Save Button
-  saveButton: {
-    backgroundColor: VintageColors.signOutButton,
-    padding: 18,
-    borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
-    borderWidth: 1,
-    borderColor: VintageColors.signOutBorder,
-    shadowColor: VintageColors.signOutButton,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 8,
-    elevation: 6,
-    marginTop: 10,
-    marginBottom: 20,
-  },
-  
-  updateButton: {
-    backgroundColor: '#77b779ff',
-    borderColor: '#77b779ff',
-  },
-  
-  saveButtonIcon: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 12,
-  },
-  
-  saveButtonText: {
-    color: VintageColors.signOutText,
-    fontSize: 16,
-    fontWeight: '500',
-    letterSpacing: 0.5,
-  },
-  
-  // Cancel Button
-  cancelButton: {
-    backgroundColor: VintageColors.lightBackground,
-    padding: 16,
-    borderRadius: 12,
-    alignItems: 'center',
-    marginTop: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  
-  cancelButtonText: {
-    color: VintageColors.primaryText,
-    fontSize: 14,
-    fontWeight: '500',
-  },
-});
 
 export default SportsSection;
