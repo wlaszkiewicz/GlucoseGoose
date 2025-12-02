@@ -322,4 +322,21 @@ export const VintageStyles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 4,
   },
+
+  // Tab Bar Styles
+  tabBarContainer: {
+    backgroundColor: VintageColors.tabBarBackground, 
+    borderTopWidth: 1,
+    borderTopColor: VintageColors.tabBarBorder, 
+    height: 70,
+    paddingBottom: 4,
+    paddingTop: 10,
+    shadowColor: VintageColors.tabBarShadowColor, 
+    shadowOffset: { width: 0, height: -2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 5,
+  },
+
 });
+
