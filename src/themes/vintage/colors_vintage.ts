@@ -34,4 +34,17 @@ export const VintageColors = {
   footerLine: '#F0ECE1',
   footerText: '#A8B8C8',
   footerIcon: '#D1C7B7',
+
+  // Bottom Tab Bar Colors
+  tabBarBackground: '#FFF',
+  tabBarBorder: '#F0ECE1',
+  tabBarActive: '#8B7355',
+  tabBarInactive: '#8B7355',
+  
+  // Tab Bar Text Colors
+  tabBarTextColor: '#8B7355',
+  
+  // Shadow Colors
+  tabBarShadowColor: '#D1C7B7',
+
 };
