@@ -80,7 +80,9 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         1440 // last 24h
       );
 
-      setEntries(bundle.entries);
+      const since = Date.now() - 1440 * 60 * 1000;
+
+      setEntries(bundle.entries.filter((e) => e.date >= since));
       setMeals(bundle.meals ?? []);
       setActivities(bundle.activities ?? []);
       const otherTreatments = bundle.treatments.filter(
