@@ -4,153 +4,181 @@ import React, {
   useState,
   useCallback,
   useRef,
+  useEffect,
   ReactNode,
 } from "react";
+import Constants from "expo-constants";
 import { useAuth } from "./AuthContext";
 import { fetchBundle } from "../utils/fns";
-import Constants from "expo-constants";
-import { NightscoutEntry, NightscoutTreatment } from "../types/nightscout";
+import {
+  NightscoutEntry,
+  NightscoutTreatment,
+  NightscoutBundleResponse,
+} from "../types/nightscout";
 
 interface NightscoutContextType {
   entries: NightscoutEntry[];
   meals: NightscoutTreatment[];
   activities: NightscoutTreatment[];
-  loadInitial: () => Promise<void>;
+  loadFullDay: () => Promise<void>;
+  fetchIncremental: () => Promise<void>;
   startPolling: () => void;
-  fetchUpdates: () => Promise<void>;
   stopPolling: () => void;
-  isLoading: boolean;
   reset: () => void;
+  isLoading: boolean;
   error: string | null;
+  otherEntries?: NightscoutTreatment[];
 }
 
 const NightscoutContext = createContext<NightscoutContextType | null>(null);
 
 export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
-  const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
+  const CLOUD = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
   const { firebaseUser, userData } = useAuth();
   const nightscoutUrl = userData?.nightscoutUrl;
-  const nightscoutSecret = userData?.nightscoutSecret;
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const secret = userData?.nightscoutSecret;
 
   const [entries, setEntries] = useState<NightscoutEntry[]>([]);
   const [meals, setMeals] = useState<NightscoutTreatment[]>([]);
   const [activities, setActivities] = useState<NightscoutTreatment[]>([]);
+  const [otherEntries, setOtherEntries] = useState<NightscoutTreatment[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const [lastTimestamp, setLastTimestamp] = useState<number | null>(null);
-
+  const lastEntryDateRef = useRef<number | null>(null);
   const pollingRef = useRef<NodeJS.Timeout | null>(null);
-
-  //TODO: FOR SOME WEIRD FYCKING READON IT STARTS FETCHING WHEN SOMEONE REGISTERS AND IS ON LOGIN PAGE ????????
-  // idk why tho xd - prob cuz context is loaded at app start and userData gets set when registering so the effect triggers?? but why tho
-  // honestly we can just leave it idc atp
 
   const reset = useCallback(() => {
     setEntries([]);
     setMeals([]);
     setActivities([]);
-    setLastTimestamp(null);
+    setOtherEntries([]);
+    lastEntryDateRef.current = null;
     setError(null);
     setIsLoading(false);
+
     if (pollingRef.current) {
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
   }, []);
 
-  const loadInitial = useCallback(async () => {
-    if (!nightscoutUrl || !firebaseUser) return;
+  const loadFullDay = useCallback(async () => {
+    if (!firebaseUser || !nightscoutUrl) return;
 
-    if (entries.length > 0) return;
+    console.log("Loading full day of Nightscout data...");
 
     setIsLoading(true);
     setError(null);
 
     try {
-      const data = await fetchBundle(
-        CLOUD_FUNCTIONS_HOST,
+      const bundle = await fetchBundle(
+        CLOUD,
         nightscoutUrl,
-        nightscoutSecret,
-        1440 // last 24 hours
+        secret ?? "",
+        1440 // last 24h
       );
 
-      setEntries(data.entries);
-      setMeals(data.meals || []);
-      setActivities(data.activities || []);
-      setLastTimestamp(data.entries[0]?.date ?? null);
+      setEntries(bundle.entries);
+      setMeals(bundle.meals ?? []);
+      setActivities(bundle.activities ?? []);
+      const otherTreatments = bundle.treatments.filter(
+        (t) =>
+          !t.eventType.includes("Meal") && !t.eventType.includes("Activity")
+      );
+      setOtherEntries(otherTreatments);
+
+      lastEntryDateRef.current = bundle.entries[0]?.date ?? null;
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message ?? "Failed to load Nightscout");
     } finally {
       setIsLoading(false);
     }
-  }, [nightscoutUrl, nightscoutSecret, firebaseUser, entries.length]);
+  }, [CLOUD, firebaseUser, nightscoutUrl, secret]);
 
-  const fetchUpdates = useCallback(async () => {
-    if (!nightscoutUrl || !firebaseUser || !lastTimestamp) return;
+  const fetchIncremental = useCallback(async () => {
+    if (!firebaseUser || !nightscoutUrl) return;
+    if (!lastEntryDateRef.current) return;
+
+    const now = Date.now();
+    const last = lastEntryDateRef.current;
+
+    const minutesToFetch = Math.ceil((now - last) / 1000 / 60);
+    if (minutesToFetch <= 0) return;
 
     try {
-      const data = await fetchBundle(
-        CLOUD_FUNCTIONS_HOST,
+      const bundle = await fetchBundle(
+        CLOUD,
         nightscoutUrl,
-        nightscoutSecret,
-        5 // 5 minutes
+        secret ?? "",
+        minutesToFetch
       );
 
-      const newEntries = data.entries;
-      const newMeals = data.meals || [];
-      const newActivities = data.activities || [];
+      const newEntries = bundle.entries;
+      const newMeals = bundle.meals ?? [];
+      const newActivities = bundle.activities ?? [];
+      const newOtherEntries = bundle.treatments.filter(
+        (t) =>
+          !t.eventType.includes("Meal") && !t.eventType.includes("Activity")
+      );
 
-      const getId = (item: any) => item?.id ?? item?._id;
+      const getId = (o: any) => o?._id ?? o?.id;
 
       if (newEntries.length > 0) {
         setEntries((prev) => {
           const existingIds = new Set(prev.map(getId));
-          const filtered = newEntries.filter((e) => !existingIds.has(getId(e)));
-          if (filtered.length === 0) return prev;
-          setLastTimestamp(filtered[0]?.date ?? lastTimestamp);
-          return [...filtered, ...prev];
+          const diff = newEntries.filter((e) => !existingIds.has(getId(e)));
+
+          if (diff.length > 0) {
+            lastEntryDateRef.current = diff[0].date;
+            return [...diff, ...prev];
+          }
+
+          return prev;
         });
       }
 
       if (newMeals.length > 0) {
         setMeals((prev) => {
-          const existingIds = new Set(prev.map(getId));
-          const filtered = newMeals.filter((m) => !existingIds.has(getId(m)));
-          if (filtered.length === 0) return prev;
-          return [...filtered, ...prev];
+          const existing = new Set(prev.map(getId));
+          const diff = newMeals.filter((m) => !existing.has(getId(m)));
+          return diff.length > 0 ? [...diff, ...prev] : prev;
         });
       }
 
       if (newActivities.length > 0) {
         setActivities((prev) => {
-          const existingIds = new Set(prev.map(getId));
-          const filtered = newActivities.filter(
-            (a) => !existingIds.has(getId(a))
-          );
-          if (filtered.length === 0) return prev;
-          return [...filtered, ...prev];
+          const existing = new Set(prev.map(getId));
+          const diff = newActivities.filter((a) => !existing.has(getId(a)));
+          return diff.length > 0 ? [...diff, ...prev] : prev;
+        });
+      }
+      if (newOtherEntries.length > 0) {
+        setOtherEntries((prev) => {
+          const existing = new Set(prev.map(getId));
+          const diff = newOtherEntries.filter((o) => !existing.has(getId(o)));
+          return diff.length > 0 ? [...diff, ...prev] : prev;
         });
       }
     } catch (err: any) {
-      setError(err.message);
+      setError(err.message ?? "Incremental update failed");
     }
-  }, [nightscoutUrl, nightscoutSecret, lastTimestamp, firebaseUser]);
+  }, [CLOUD, firebaseUser, nightscoutUrl, secret]);
 
   const startPolling = useCallback(() => {
-    if (!nightscoutUrl || !firebaseUser) return;
-    if (pollingRef.current) return;
+    if (!firebaseUser || !nightscoutUrl) return;
 
     console.log("Starting Nightscout polling...");
+    if (pollingRef.current) return;
 
-    pollingRef.current = setInterval(fetchUpdates, 5 * 60 * 1000);
-    fetchUpdates();
-  }, [fetchUpdates]);
+    pollingRef.current = setInterval(fetchIncremental, 5 * 60 * 1000);
+
+    fetchIncremental();
+  }, [firebaseUser, nightscoutUrl, fetchIncremental]);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
-      console.log("Stopping Nightscout polling...");
       clearInterval(pollingRef.current);
       pollingRef.current = null;
     }
@@ -162,13 +190,14 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         entries,
         meals,
         activities,
-        loadInitial,
+        loadFullDay,
+        fetchIncremental,
         startPolling,
         stopPolling,
-        fetchUpdates,
-        isLoading,
         reset,
+        isLoading,
         error,
+        otherEntries,
       }}
     >
       {children}
@@ -178,6 +207,6 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
 export const useNightscout = () => {
   const ctx = useContext(NightscoutContext);
-  if (!ctx) throw new Error("useNightscout must be inside provider");
+  if (!ctx) throw new Error("useNightscout must be used inside provider");
   return ctx;
 };
