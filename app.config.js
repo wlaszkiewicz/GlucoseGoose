@@ -15,6 +15,7 @@ export default ({ config }) => ({
       appId: process.env.APP_ID,
       measurementId: process.env.MEASUREMENT_ID,
       cloudFunctionsHost: process.env.CLOUD_FUNCTIONS_HOST,
+      geminiApiKey: process.env.GEMINI_API_KEY,
     },
   },
 });
