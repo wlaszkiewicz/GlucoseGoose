@@ -1,6 +1,7 @@
 import * as functions from "firebase-functions";
 import fetch from "node-fetch";
 import type { Request, Response } from "express";
+import { onRequest } from "firebase-functions/https";
 import { onSchedule } from "firebase-functions/scheduler";
 import type {
   NightscoutEntry,
@@ -8,7 +9,6 @@ import type {
   NightscoutBundleResponse,
   QueryParams,
 } from "../src/types/nightscout";
-import { onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 
 const corsHeaders = {
@@ -243,7 +243,7 @@ export const deleteTreatment = functions.https.onRequest(
   }
 );
 
-export const nightscoutSecret = defineSecret("NIGHTSCOUT_API_SECRET");
+const nightscoutSecret = defineSecret("NIGHTSCOUT_API_SECRET");
 const nightscoutUrl = defineSecret("NIGHTSCOUT_URL");
 let lastBG = 110;
 function simulateBG(timestamp: number) {

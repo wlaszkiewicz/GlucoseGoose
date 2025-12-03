@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import Constants from "expo-constants";
 import { useAuth } from "./AuthContext";
-import { fetchBundle } from "../utils/fns";
+import { fetchBundle } from "../utils/cloud_functions";
 import {
   NightscoutEntry,
   NightscoutTreatment,
