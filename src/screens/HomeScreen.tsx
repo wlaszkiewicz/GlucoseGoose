@@ -15,7 +15,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     entries,
     meals,
     activities,
-    loadInitial,
+    loadFullDay,
     startPolling,
     stopPolling,
     isLoading,
@@ -25,9 +25,11 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   useEffect(() => {
     if (!nightscoutUrl) return;
-    loadInitial();
 
-    startPolling();
+    (async () => {
+      await loadFullDay();
+      startPolling();
+    })();
 
     return () => stopPolling();
   }, [nightscoutUrl]);

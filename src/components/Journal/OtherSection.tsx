@@ -4,10 +4,22 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  Alert,
+  ScrollView,
 } from "react-native";
-import { CommonStyles } from "../../themes/styles";
+import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
+import alert from "../../utils/alert";
+import { VintageStyles } from "../../themes/vintage/styles_vintage";
+import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageStylesOther } from "../../themes/vintage/styles_vintage_other";
+import Constants from "expo-constants";
+import {
+  addTreatment,
+  updateTreatment,
+  deleteTreatment,
+} from "../../utils/fns";
+import { useAuth } from "../../context/AuthContext";
+import { NightscoutTreatment } from "../../types/nightscout";
+import { useNightscout } from "../../context/NightscoutContext";
 
 interface OtherSectionProps {
   selectedDate: Date;
@@ -15,82 +27,385 @@ interface OtherSectionProps {
 
 const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
   const [otherInput, setOtherInput] = useState("");
-  const [dayEntries, setDayEntries] = useState<any[]>([]);
+  const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
+  const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
-  const currentDayEntry = dayEntries.find(
-    (entry) => entry.date === selectedDate.toISOString().split("T")[0]
-  );
+  const { otherEntries, loadFullDay } = useNightscout();
+  const { userData } = useAuth();
 
-  const handleSaveNotes = () => {
+  // Filter today's entries
+  const todayEntries = React.useMemo(() => {
+    if (!otherEntries || otherEntries.length === 0) return [];
+
+    const todayString = selectedDate.toISOString().split("T")[0];
+
+    return otherEntries
+      .filter((entry) => {
+        if (!entry.created_at) return false;
+
+        const entryDate = entry.created_at.split("T")[0];
+        return entryDate === todayString;
+      })
+      .sort((a, b) => {
+        // Sort by most recent first
+        return (
+          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        );
+      });
+  }, [otherEntries, selectedDate]);
+
+  const handleSaveNotes = async () => {
     if (!otherInput.trim()) {
-      Alert.alert("Error", "Please enter some notes");
+      alert("Error", "Please enter some notes");
       return;
     }
 
-    const dateString = selectedDate.toISOString().split("T")[0];
+    if (!userData?.nightscoutUrl) {
+      alert("Error", "Nightscout URL not configured");
+      return;
+    }
 
-    setDayEntries((prev) => {
-      const existingDayIndex = prev.findIndex(
-        (entry: any) => entry.date === dateString
-      );
+    try {
+      const treatmentData: NightscoutTreatment = {
+        eventType: "Note",
+        created_at: new Date().toISOString(),
+        notes: otherInput.trim(),
+      };
 
-      if (existingDayIndex >= 0) {
-        const updated = [...prev];
-        updated[existingDayIndex] = {
-          ...updated[existingDayIndex],
-          notes: otherInput,
-        };
-        return updated;
+      let success;
+
+      if (editingNoteId) {
+        // Update existing note
+        treatmentData._id = editingNoteId;
+        success = await updateTreatment(
+          CLOUD_FUNCTIONS_HOST,
+          userData.nightscoutUrl,
+          userData.nightscoutSecret ?? "",
+          treatmentData
+        );
       } else {
-        return [
-          ...prev,
-          {
-            date: dateString,
-            notes: otherInput,
-          },
-        ];
+        // Add new note
+        success = await addTreatment(
+          CLOUD_FUNCTIONS_HOST,
+          userData.nightscoutUrl,
+          userData.nightscoutSecret ?? "",
+          treatmentData
+        );
       }
-    });
 
-    setOtherInput("");
-    Alert.alert("Success", "Notes saved!");
+      if (!success) {
+        alert("Error", `Failed to ${editingNoteId ? "update" : "save"} notes`);
+        return;
+      }
+
+      await loadFullDay();
+
+      setOtherInput("");
+      setEditingNoteId(null);
+      alert("Success", `Notes ${editingNoteId ? "updated" : "saved"}!`);
+    } catch (error: any) {
+      alert(
+        "Error",
+        `Failed to save notes: ${error.message || "Unknown error"}`
+      );
+    }
   };
 
-  return (
-    <View style={CommonStyles.journalContainer}>
-      <Text style={CommonStyles.sectionLabel}>
-        Notes (mood, sleep, medication, etc.)
-      </Text>
-      <TextInput
-        style={CommonStyles.textInputLarge}
-        placeholder="How are you feeling today? Any notes about sleep, stress, or medication?"
-        value={otherInput}
-        onChangeText={setOtherInput}
-        multiline
-        numberOfLines={5}
-      />
+  const handleDeleteNote = async (noteId: string) => {
+    if (!userData?.nightscoutUrl) {
+      alert("Error", "Nightscout URL not configured");
+      return;
+    }
 
-      {currentDayEntry?.notes && (
-        <View style={CommonStyles.previousEntry}>
-          <Text style={CommonStyles.previousEntryTitle}>Today's Notes:</Text>
-          <Text style={CommonStyles.previousEntryText}>
-            {currentDayEntry.notes}
-          </Text>
+    alert("Delete Note", "Are you sure you want to delete this note?", [
+      {
+        text: "Cancel",
+        style: "cancel",
+      },
+      {
+        text: "Delete",
+        style: "destructive",
+        onPress: async () => {
+          try {
+            if (!userData.nightscoutUrl) {
+              alert("Error", "User data not available");
+              return;
+            }
+            const success = await deleteTreatment(
+              CLOUD_FUNCTIONS_HOST,
+              userData.nightscoutUrl,
+              userData.nightscoutSecret ?? "",
+              noteId
+            );
+
+            if (!success) {
+              alert("Error", "Failed to delete note");
+              return;
+            }
+
+            await loadFullDay();
+
+            if (editingNoteId === noteId) {
+              setOtherInput("");
+              setEditingNoteId(null);
+            }
+
+            alert("Success", "Note deleted!");
+          } catch (error: any) {
+            alert(
+              "Error",
+              `Failed to delete note: ${error.message || "Unknown error"}`
+            );
+          }
+        },
+      },
+    ]);
+  };
+
+  const handleEditNote = (note: NightscoutTreatment) => {
+    if (!note._id) {
+      alert("Error", "Cannot edit note without ID");
+      return;
+    }
+
+    setEditingNoteId(note._id);
+    setOtherInput(note.notes || "");
+  };
+
+  const handleAddMood = () => {
+    alert("Info", "Mood tracking will be implemented soon");
+  };
+
+  const handleAddMedication = () => {
+    alert("Info", "Medication tracking will be implemented soon");
+  };
+
+  const handleAddSleep = () => {
+    alert("Info", "Sleep tracking will be implemented soon");
+  };
+
+  const clearForm = () => {
+    setOtherInput("");
+    setEditingNoteId(null);
+  };
+
+  const renderNotesInput = () => (
+    <View style={VintageStylesOther.sectionContainer}>
+      <View style={VintageStyles.sectionHeader}>
+        <Text style={VintageStyles.sectionTitle}>Daily Notes</Text>
+        <View style={VintageStyles.featherAccent}>
+          <Feather name="edit-3" size={16} color={VintageColors.primaryText} />
         </View>
-      )}
+      </View>
 
-      <TouchableOpacity
-        style={CommonStyles.saveButton}
-        onPress={handleSaveNotes}
-      >
-        <Text style={CommonStyles.saveButtonText}>Save Notes</Text>
-      </TouchableOpacity>
+      <View style={VintageStylesOther.notesCard}>
+        <TextInput
+          style={VintageStylesOther.notesInput}
+          placeholder="How are you feeling today? Any notes about sleep, stress, medication, or general well-being?"
+          value={otherInput}
+          onChangeText={setOtherInput}
+          multiline
+          numberOfLines={5}
+          placeholderTextColor={VintageColors.secondaryText}
+        />
+      </View>
     </View>
   );
-};
 
-const styles = StyleSheet.create({
-  // Empty - using CommonStyles only
-});
+  const renderActionButtons = () => {
+    const actionButtons = [
+      {
+        id: "mood",
+        label: "Mood",
+        icon: "happy",
+        iconType: "ionicons",
+        color: VintageColors.iconYellow,
+        onPress: handleAddMood,
+      },
+      {
+        id: "medication",
+        label: "Medication",
+        icon: "pills",
+        iconType: "fontawesome5",
+        color: VintageColors.iconBlue,
+        onPress: handleAddMedication,
+      },
+      {
+        id: "sleep",
+        label: "Sleep",
+        icon: "moon",
+        iconType: "ionicons",
+        color: VintageColors.iconPurple,
+        onPress: handleAddSleep,
+      },
+    ];
+
+    return (
+      <View style={VintageStylesOther.sectionContainer}>
+        <View style={VintageStylesOther.actionButtonsRow}>
+          {actionButtons.map((button) => (
+            <TouchableOpacity
+              key={button.id}
+              style={VintageStylesOther.actionButtonCard}
+              onPress={button.onPress}
+            >
+              <View
+                style={[
+                  VintageStylesOther.actionButtonIconContainer,
+                  { backgroundColor: button.color },
+                ]}
+              >
+                {button.iconType === "ionicons" ? (
+                  <Ionicons
+                    name={button.icon as any}
+                    size={20}
+                    color={VintageColors.primaryText}
+                  />
+                ) : (
+                  <FontAwesome5
+                    name={button.icon as any}
+                    size={18}
+                    color={VintageColors.primaryText}
+                  />
+                )}
+              </View>
+              <Text style={VintageStylesOther.actionButtonLabel}>
+                {button.label}
+              </Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      </View>
+    );
+  };
+
+  const renderSavedNotes = () => {
+    if (!todayEntries || todayEntries.length === 0) {
+      return (
+        <View style={VintageStylesOther.sectionContainer}>
+          <View style={VintageStylesOther.noNotesCard}>
+            <View style={VintageStylesOther.noNotesIconContainer}>
+              <Feather
+                name="file-text"
+                size={28}
+                color={VintageColors.secondaryText}
+              />
+            </View>
+            <Text style={VintageStylesOther.noNotesTitle}>No Notes Yet</Text>
+            <Text style={VintageStylesOther.noNotesText}>
+              Add your daily notes about mood, sleep, medication, or anything
+              else you'd like to track.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={VintageStylesOther.sectionContainer}>
+        <View style={VintageStyles.sectionHeader}>
+          <Text style={VintageStyles.sectionTitle}>Today's Notes</Text>
+          <View style={VintageStylesOther.mealsCount}>
+            <Text style={VintageStylesOther.mealsCountText}>
+              {todayEntries.length}
+            </Text>
+          </View>
+        </View>
+
+        {todayEntries.map((entry) => (
+          <TouchableOpacity
+            key={entry._id || entry.created_at}
+            style={VintageStylesOther.savedNotesCard}
+            onPress={() => handleEditNote(entry)}
+          >
+            <View style={VintageStylesOther.mealHeader}>
+              <View style={VintageStylesOther.mealHeaderLeft}>
+                <View style={VintageStylesOther.mealTypeIcon}>
+                  <Feather
+                    name="file-text"
+                    size={18}
+                    color={VintageColors.primaryText}
+                  />
+                </View>
+                <View>
+                  <Text style={VintageStylesOther.mealCardType}>Note</Text>
+                  <Text style={VintageStylesOther.mealTime}>
+                    {new Date(entry.created_at).toLocaleTimeString([], {
+                      hour: "2-digit",
+                      minute: "2-digit",
+                    })}
+                  </Text>
+                </View>
+              </View>
+              <View style={VintageStylesOther.mealHeaderRight}>
+                <TouchableOpacity
+                  onPress={(e) => {
+                    e.stopPropagation();
+                    if (entry._id) {
+                      handleDeleteNote(entry._id);
+                    }
+                  }}
+                  style={VintageStylesOther.actionButton}
+                >
+                  <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Text style={VintageStylesOther.mealDescription}>
+              {entry.notes || "No content"}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    );
+  };
+
+  const renderSaveButton = () => (
+    <View style={VintageStylesOther.sectionContainer}>
+      <TouchableOpacity
+        style={[
+          VintageStylesOther.saveButton,
+          editingNoteId && { backgroundColor: "#77b779ff" },
+        ]}
+        onPress={handleSaveNotes}
+        disabled={!otherInput.trim()}
+      >
+        <View style={VintageStylesOther.saveButtonIcon}>
+          <Feather
+            name={editingNoteId ? "save" : "plus"}
+            size={20}
+            color="#FFFFFF"
+          />
+        </View>
+        <Text style={VintageStylesOther.saveButtonText}>
+          {editingNoteId ? "Update Note" : "Save Note"}
+        </Text>
+      </TouchableOpacity>
+
+      {editingNoteId && (
+        <TouchableOpacity
+          style={VintageStylesOther.cancelButton}
+          onPress={clearForm}
+        >
+          <Text style={VintageStylesOther.cancelButtonText}>Cancel Edit</Text>
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+
+  return (
+    <ScrollView
+      style={VintageStylesOther.container}
+      showsVerticalScrollIndicator={false}
+      contentContainerStyle={{ paddingBottom: 40 }}
+    >
+      {renderNotesInput()}
+      {renderActionButtons()}
+      {renderSaveButton()}
+      {renderSavedNotes()}
+      <View style={VintageStyles.spacing60} />
+    </ScrollView>
+  );
+};
 
 export default OtherSection;
