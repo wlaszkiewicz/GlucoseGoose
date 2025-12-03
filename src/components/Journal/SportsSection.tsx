@@ -20,8 +20,14 @@ import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors_vintage";
 import { VintageStylesSports } from "../../themes/vintage/styles_vintage_sports";
+import {
+  calculateCaloriesBurned,
+  estimateDistance,
+  getIntensityDescription,
+  type UserProfile
+} from "../../utils/calorieCalculations";
 
-type ActivityType =
+export type ActivityType =
   | "Walking"
   | "Running"
   | "Cycling"
@@ -47,11 +53,11 @@ const activityTypes: ActivityType[] = [
 ];
 
 interface ActivityMetrics {
-  duration: number; // in minutes
+  duration: number;
   intensity?: "Low" | "Medium" | "High";
   caloriesBurned?: number;
   heartRate?: number;
-  distance?: number; // in km
+  distance?: number;
   notes?: string;
 }
 
@@ -60,26 +66,26 @@ interface ActivitySectionProps {
 }
 
 const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
-  const [selectedActivityType, setSelectedActivityType] =
-    useState<ActivityType>("Walking");
+  const [selectedActivityType, setSelectedActivityType] = useState<ActivityType>("Walking");
   const [activityDescription, setActivityDescription] = useState("");
   const [isCalculatingCalories, setIsCalculatingCalories] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
-  const [editingActivityId, setEditingActivityId] = useState<string | null>(
-    null
-  );
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+  const [calculationDetails, setCalculationDetails] = useState<{
+    metValue: number;
+    weightUsed: number;
+    formula: string;
+    bmr?: number;
+  } | null>(null);
 
   const [manualDuration, setManualDuration] = useState("");
-  const [manualIntensity, setManualIntensity] = useState<
-    "Low" | "Medium" | "High"
-  >("Medium");
+  const [manualIntensity, setManualIntensity] = useState<"Low" | "Medium" | "High">("Medium");
   const [manualCaloriesBurned, setManualCaloriesBurned] = useState("");
   const [manualHeartRate, setManualHeartRate] = useState("");
   const [manualDistance, setManualDistance] = useState("");
 
   const { firebaseUser, userData } = useAuth();
-  const { activities: nightscoutActivities, loadFullDay: fetchUpdates } =
-    useNightscout();
+  const { activities: nightscoutActivities, loadFullDay: fetchUpdates } = useNightscout();
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
   const todayActivities = useMemo(() => {
@@ -132,38 +138,41 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   const calculateCaloriesWithAI = async (
     activityType: ActivityType,
     duration: number,
-    intensity: string
-  ): Promise<number> => {
+    intensity: "Low" | "Medium" | "High"
+  ): Promise<{ calories: number; estimatedDistance?: number; details: any }> => {
     setIsCalculatingCalories(true);
+    setCalculationDetails(null);
 
     return new Promise((resolve) => {
       setTimeout(() => {
+        const userProfile: UserProfile = {
+          weight: userData?.weight,
+          height: userData?.height,
+          age: userData?.age,
+          gender: userData?.gender as 'male' | 'female'
+        };
+
+        const weight = userData?.weight;
+        
+        const calculation = calculateCaloriesBurned({
+          activityType,
+          duration,
+          intensity,
+          weight,
+          userProfile
+        });
+        
+        const estimatedDistance = estimateDistance(activityType, duration, intensity);
+        
+        setCalculationDetails(calculation.details);
         setIsCalculatingCalories(false);
-
-        const baseCalories: Record<ActivityType, number> = {
-          Walking: 4,
-          Running: 10,
-          Cycling: 8,
-          Swimming: 7,
-          Yoga: 3,
-          "Weight Training": 6,
-          Hiking: 5,
-          Dancing: 6,
-          "Team Sports": 7,
-          Other: 5,
-        };
-
-        const intensityMultiplier: Record<string, number> = {
-          Low: 0.8,
-          Medium: 1.0,
-          High: 1.3,
-        };
-
-        const caloriesPerMinute = baseCalories[activityType] || 5;
-        const multiplier = intensityMultiplier[intensity] || 1.0;
-
-        resolve(Math.round(caloriesPerMinute * duration * multiplier));
-      }, 1500);
+        
+        resolve({
+          calories: calculation.calories,
+          estimatedDistance: estimatedDistance || undefined,
+          details: calculation.details
+        });
+      }, 800);
     });
   };
 
@@ -182,7 +191,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     setManualCaloriesBurned(metrics.caloriesBurned?.toString() || "");
     setManualHeartRate(metrics.heartRate?.toString() || "");
     setManualDistance(metrics.distance?.toString() || "");
-    setShowManualInput(true);
+    setShowManualInput(false);
+    setCalculationDetails(null);
   };
 
   const clearForm = () => {
@@ -194,6 +204,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     setManualDistance("");
     setShowManualInput(false);
     setEditingActivityId(null);
+    setCalculationDetails(null);
   };
 
   const handleDeleteActivity = async (activity: NightscoutTreatment) => {
@@ -288,13 +299,28 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     let caloriesBurned = manualCaloriesBurned
       ? parseInt(manualCaloriesBurned)
       : 0;
+    let distance = manualDistance ? parseFloat(manualDistance) : undefined;
 
-    if (!manualCaloriesBurned && !isCalculatingCalories) {
-      caloriesBurned = await calculateCaloriesWithAI(
-        selectedActivityType,
-        parseInt(manualDuration),
-        manualIntensity
-      );
+    if (!manualCaloriesBurned || !manualDistance) {
+      try {
+        const result = await calculateCaloriesWithAI(
+          selectedActivityType,
+          parseInt(manualDuration),
+          manualIntensity
+        );
+        
+        if (!manualCaloriesBurned) {
+          caloriesBurned = result.calories;
+          setManualCaloriesBurned(result.calories.toString());
+        }
+        
+        if (!manualDistance && result.estimatedDistance) {
+          distance = result.estimatedDistance;
+          setManualDistance(result.estimatedDistance.toString());
+        }
+      } catch (error) {
+        console.error("Error calculating with AI:", error);
+      }
     }
 
     const treatmentData: NightscoutTreatment = {
@@ -305,7 +331,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       calories: caloriesBurned,
       caloriesBurned: caloriesBurned,
       heartRate: manualHeartRate ? parseInt(manualHeartRate) : undefined,
-      distance: manualDistance ? parseFloat(manualDistance) : undefined,
+      distance: distance,
       created_at: new Date().toISOString(),
     };
 
@@ -367,19 +393,24 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
         !editingActivityId
       ) {
         try {
-          const calories = await calculateCaloriesWithAI(
+          const result = await calculateCaloriesWithAI(
             selectedActivityType,
             parseInt(manualDuration),
             manualIntensity
           );
-          setManualCaloriesBurned(calories.toString());
+          
+          setManualCaloriesBurned(result.calories.toString());
+          
+          if (result.estimatedDistance && !manualDistance) {
+            setManualDistance(result.estimatedDistance.toString());
+          }
         } catch (error) {
-          console.error("Error calculating calories:", error);
+          console.error("Error calculating with AI:", error);
         }
       }
     };
 
-    const timeoutId = setTimeout(analyzeActivityWithAI, 500);
+    const timeoutId = setTimeout(analyzeActivityWithAI, 1000);
     return () => clearTimeout(timeoutId);
   }, [
     activityDescription,
@@ -412,6 +443,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       setManualCaloriesBurned("");
       setManualHeartRate("");
       setManualDistance("");
+      setCalculationDetails(null);
     }
   };
 
@@ -462,7 +494,19 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                 VintageStylesSports.activityTypeButton,
                 isSelected && VintageStylesSports.activityTypeButtonSelected,
               ]}
-              onPress={() => setSelectedActivityType(activityType)}
+              onPress={() => {
+                setSelectedActivityType(activityType);
+                setCalculationDetails(null);
+                if (!showManualInput && manualDuration) {
+                  calculateCaloriesWithAI(activityType, parseInt(manualDuration), manualIntensity)
+                    .then(result => {
+                      setManualCaloriesBurned(result.calories.toString());
+                      if (result.estimatedDistance) {
+                        setManualDistance(result.estimatedDistance.toString());
+                      }
+                    });
+                }
+              }}
             >
               <View
                 style={[
@@ -533,7 +577,19 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
               style={VintageStylesSports.durationInput}
               placeholder="0"
               value={manualDuration}
-              onChangeText={setManualDuration}
+              onChangeText={(text) => {
+                setManualDuration(text);
+                setCalculationDetails(null);
+                if (!showManualInput && text && parseInt(text) > 0) {
+                  calculateCaloriesWithAI(selectedActivityType, parseInt(text), manualIntensity)
+                    .then(result => {
+                      setManualCaloriesBurned(result.calories.toString());
+                      if (result.estimatedDistance) {
+                        setManualDistance(result.estimatedDistance.toString());
+                      }
+                    });
+                }
+              }}
               keyboardType="numeric"
               placeholderTextColor={VintageColors.secondaryText}
             />
@@ -555,7 +611,19 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                   manualIntensity === intensity &&
                     VintageStylesSports.intensityButtonSelected,
                 ]}
-                onPress={() => setManualIntensity(intensity)}
+                onPress={() => {
+                  setManualIntensity(intensity);
+                  setCalculationDetails(null);
+                  if (!showManualInput && manualDuration) {
+                    calculateCaloriesWithAI(selectedActivityType, parseInt(manualDuration), intensity)
+                      .then(result => {
+                        setManualCaloriesBurned(result.calories.toString());
+                        if (result.estimatedDistance) {
+                          setManualDistance(result.estimatedDistance.toString());
+                        }
+                      });
+                  }
+                }}
               >
                 <Text
                   style={[
@@ -640,6 +708,72 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     </View>
   );
 
+  const renderCalculationDetails = () => {
+    if (!calculationDetails) return null;
+    
+    const weightNote = userData?.weight ? "" : " (default weight)";
+    const metInfo = `${calculationDetails.metValue} MET`;
+    const metDescription = getIntensityDescription(calculationDetails.metValue);
+
+    return (
+      <View style={VintageStylesSports.calculationDetailsCard}>
+        <View style={VintageStylesSports.calculationHeader}>
+          <Ionicons name="calculator-outline" size={18} color="#4CAF50" />
+          <Text style={VintageStylesSports.calculationTitle}>
+            Calculation Details
+          </Text>
+        </View>
+        
+        <View style={VintageStylesSports.calculationGrid}>
+          <View style={VintageStylesSports.calculationItem}>
+            <Text style={VintageStylesSports.calculationLabel}>MET Value</Text>
+            <Text style={VintageStylesSports.calculationValue}>
+              {metInfo}
+            </Text>
+            <Text style={VintageStylesSports.calculationNote}>
+              {metDescription}
+            </Text>
+          </View>
+          
+          <View style={VintageStylesSports.calculationItem}>
+            <Text style={VintageStylesSports.calculationLabel}>Weight Used</Text>
+            <Text style={VintageStylesSports.calculationValue}>
+              {calculationDetails.weightUsed}kg{weightNote}
+            </Text>
+            <Text style={VintageStylesSports.calculationNote}>
+              {userData?.weight ? "Your weight" : "Default 70kg"}
+            </Text>
+          </View>
+        </View>
+        
+        <View style={VintageStylesSports.formulaContainer}>
+          <Text style={VintageStylesSports.formulaLabel}>Formula:</Text>
+          <Text style={VintageStylesSports.formulaText}>
+            Calories = {calculationDetails.formula}
+          </Text>
+        </View>
+        
+        {calculationDetails.bmr && (
+          <View style={VintageStylesSports.advancedInfo}>
+            <Ionicons name="information-circle-outline" size={14} color="#666" />
+            <Text style={VintageStylesSports.advancedInfoText}>
+              Includes BMR adjustment ({calculationDetails.bmr.toFixed(0)} kcal/day)
+            </Text>
+          </View>
+        )}
+        
+        {userData?.age && userData?.gender && (
+          <View style={VintageStylesSports.advancedInfo}>
+            <Ionicons name="information-circle-outline" size={14} color="#666" />
+            <Text style={VintageStylesSports.advancedInfoText}>
+              Adjusted for your {userData.age}y/o {userData.gender} profile
+            </Text>
+          </View>
+        )}
+      </View>
+    );
+  };
+
   const renderAIEstimation = () => (
     <View style={VintageStylesSports.sectionContainer}>
       {isCalculatingCalories && (
@@ -663,7 +797,10 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             <View style={VintageStylesSports.aiIconContainer}>
               <Ionicons name="sparkles" size={20} color="#4CAF50" />
             </View>
-            <Text style={VintageStylesSports.aiTitle}>AI Estimation</Text>
+            <Text style={VintageStylesSports.aiTitle}>AI Calculation</Text>
+            <Text style={VintageStylesSports.aiSubtitle}>
+              Based on scientific MET values
+            </Text>
           </View>
           <View style={VintageStylesSports.caloriesDisplay}>
             <Text style={VintageStylesSports.caloriesValue}>
@@ -674,10 +811,11 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             </Text>
           </View>
           <Text style={VintageStylesSports.caloriesNote}>
-            Based on {manualDuration} minutes of{" "}
-            {selectedActivityType.toLowerCase()} at{" "}
+            {manualDuration} min of {selectedActivityType.toLowerCase()} at{" "}
             {manualIntensity.toLowerCase()} intensity
           </Text>
+          
+          {renderCalculationDetails()}
         </View>
       )}
     </View>
@@ -857,7 +995,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             color={VintageColors.primaryText}
           />
           <Text style={VintageStylesSports.toggleTitle}>
-            {showManualInput ? "Manual Input" : "AI Calculation"}
+            {showManualInput ? "Manual Input" : "Scientific Calculation"}
           </Text>
         </View>
         <View style={VintageStylesSports.toggleArrow}>
@@ -871,7 +1009,6 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     </View>
   );
 
-  // Render Log Activity Button
   const renderLogActivityButton = () => (
     <View style={VintageStylesSports.sectionContainer}>
       <TouchableOpacity
@@ -909,6 +1046,26 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     </View>
   );
 
+  const renderWeightWarning = () => {
+    if (userData?.weight) return null;
+    
+    return (
+      <View style={VintageStylesSports.sectionContainer}>
+        <View style={VintageStylesSports.weightWarningCard}>
+          <Ionicons name="warning-outline" size={20} color="#FFA000" />
+          <View style={VintageStylesSports.weightWarningContent}>
+            <Text style={VintageStylesSports.weightWarningTitle}>
+              Improve Accuracy
+            </Text>
+            <Text style={VintageStylesSports.weightWarningText}>
+              Add your weight in profile settings for more accurate calorie calculations
+            </Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   return (
     <ScrollView
       style={VintageStylesSports.container}
@@ -917,12 +1074,12 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       {renderActivityTypeSelector()}
       {renderActivityDescription()}
       {renderDurationInput()}
-
+      
+      {renderWeightWarning()}
       {renderInputToggle()}
       {showManualInput ? renderManualInputs() : renderAIEstimation()}
 
       {renderLogActivityButton()}
-
       {renderTodayActivities()}
 
       <View style={VintageStyles.spacing60} />
