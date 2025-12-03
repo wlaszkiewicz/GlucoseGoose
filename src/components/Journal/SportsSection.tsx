@@ -12,7 +12,7 @@ import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
-} from "../../utils/fns";
+} from "../../utils/cloud_functions";
 import Constants from "expo-constants";
 import { useAuth } from "../../context/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
