@@ -1,12 +1,5 @@
 import React, { useState } from "react";
-import {
-  ScrollView,
-  View,
-  Text,
-  TouchableOpacity,
-  Platform,
-  Dimensions,
-} from "react-native";
+import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { getPlatformStyles } from "../themes/styles";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
@@ -38,33 +31,54 @@ const JournalScreen = () => {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
-    setShowCalendar(false);
   };
 
   const platformStyles = getPlatformStyles();
 
   const getCategoryIcon = (category: Category, isSelected: boolean) => {
-    const iconColor = isSelected ? '#FFFFFF' : VintageColors.primaryText;
+    const iconColor = isSelected ? "#FFFFFF" : VintageColors.primaryText;
     const iconSize = 26;
 
     switch (category) {
       case "Food":
-        return <Ionicons name="restaurant-outline" size={iconSize} color={iconColor} />;
+        return (
+          <Ionicons
+            name="restaurant-outline"
+            size={iconSize}
+            color={iconColor}
+          />
+        );
       case "Sports":
-        return <Ionicons name="fitness-outline" size={iconSize} color={iconColor} />;
+        return (
+          <Ionicons name="fitness-outline" size={iconSize} color={iconColor} />
+        );
       case "Other":
-        return <Ionicons name="ellipsis-horizontal-outline" size={iconSize} color={iconColor} />;
+        return (
+          <Ionicons
+            name="ellipsis-horizontal-outline"
+            size={iconSize}
+            color={iconColor}
+          />
+        );
       default:
-        return <Ionicons name="help-circle-outline" size={iconSize} color={iconColor} />;
+        return (
+          <Ionicons
+            name="help-circle-outline"
+            size={iconSize}
+            color={iconColor}
+          />
+        );
     }
   };
 
   const getCategoryColor = (isSelected: boolean) => {
-    return isSelected ? '#774622ff' : '#D2B48C'; 
+    return isSelected ? "#774622ff" : "#D2B48C";
   };
 
   return (
-    <SafeAreaView style={[platformStyles.container, VintageStylesJournal.container]}>
+    <SafeAreaView
+      style={[platformStyles.container, VintageStylesJournal.container]}
+    >
       <ScrollView
         contentContainerStyle={VintageStylesJournal.scrollContent}
         showsVerticalScrollIndicator={false}
@@ -86,7 +100,11 @@ const JournalScreen = () => {
               onPress={() => setShowCalendar(true)}
             >
               <View style={VintageStylesJournal.dateIconContainer}>
-                <Feather name="calendar" size={20} color={VintageColors.primaryText} />
+                <Feather
+                  name="calendar"
+                  size={20}
+                  color={VintageColors.primaryText}
+                />
               </View>
               <View style={VintageStylesJournal.dateTextContainer}>
                 <Text style={VintageStylesJournal.dateText}>
@@ -97,7 +115,11 @@ const JournalScreen = () => {
                 </Text>
               </View>
               <View style={VintageStylesJournal.dateArrow}>
-                <Feather name="chevron-right" size={20} color={VintageColors.secondaryText} />
+                <Feather
+                  name="chevron-right"
+                  size={20}
+                  color={VintageColors.secondaryText}
+                />
               </View>
             </TouchableOpacity>
           </View>
@@ -108,22 +130,25 @@ const JournalScreen = () => {
           {categories.map((cat) => {
             const isSelected = selectedCategory === cat;
             const backgroundColor = getCategoryColor(isSelected);
-            
+
             return (
               <TouchableOpacity
                 key={cat}
                 style={[
                   VintageStylesJournal.categoryTab,
                   isSelected && VintageStylesJournal.categoryTabSelected,
-                  { borderColor: backgroundColor }
+                  { borderColor: backgroundColor },
                 ]}
                 onPress={() => setSelectedCategory(cat)}
               >
-                <View style={[
-                  VintageStylesJournal.categoryIconContainer,
-                  { backgroundColor },
-                  isSelected && VintageStylesJournal.categoryIconContainerSelected,
-                ]}>
+                <View
+                  style={[
+                    VintageStylesJournal.categoryIconContainer,
+                    { backgroundColor },
+                    isSelected &&
+                      VintageStylesJournal.categoryIconContainerSelected,
+                  ]}
+                >
                   {getCategoryIcon(cat, isSelected)}
                 </View>
                 <Text

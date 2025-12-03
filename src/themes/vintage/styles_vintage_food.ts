@@ -1,4 +1,3 @@
-// styles_vintage_food.ts
 import { StyleSheet } from "react-native";
 import { VintageColors } from "./colors_vintage";
 
@@ -151,40 +150,11 @@ export const VintageStylesFood = StyleSheet.create({
     width: "100%",
   },
 
-  // AI Estimation
-  caloriesCalculation: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: VintageColors.lightBackground,
+  // Photo Upload Styles
+  photoCard: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 12,
     padding: 16,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-
-  calculationIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: VintageColors.cardBackground,
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-
-  caloriesCalculationText: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    fontWeight: "400",
-    flex: 1,
-  },
-
-  aiEstimationCard: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 20,
     borderWidth: 1,
     borderColor: VintageColors.border,
     shadowColor: VintageColors.lightBorder,
@@ -194,167 +164,325 @@ export const VintageStylesFood = StyleSheet.create({
     elevation: 2,
   },
 
-  aiHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  aiIconContainer: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#E8F5E9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: "#C8E6C9",
-  },
-
-  aiTitle: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: "500",
-  },
-
-  nutritionPreview: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    justifyContent: "space-between",
-  },
-
-  nutritionItem: {
-    alignItems: "center",
-    width: "48%",
+  photoImage: {
+    width: "100%",
+    height: 200,
+    borderRadius: 8,
     marginBottom: 12,
-    padding: 12,
-    backgroundColor: VintageColors.lightBackground,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
   },
 
-  nutritionValue: {
-    fontSize: 24,
-    fontWeight: "300",
-    color: VintageColors.primaryText,
-    marginBottom: 4,
-  },
-
-  nutritionUnit: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    fontWeight: "400",
-  },
-  aiEstimationCardHorizontal: {
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    padding: 20,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-
-  aiHeaderHorizontal: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 16,
-  },
-
-  aiIconContainerHorizontal: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: "#E8F5E9",
-    justifyContent: "center",
-    alignItems: "center",
-    marginRight: 12,
-    borderWidth: 1,
-    borderColor: "#C8E6C9",
-  },
-
-  aiTitleHorizontal: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: "500",
-  },
-
-  nutritionRow: {
+  photoActions: {
     flexDirection: "row",
     justifyContent: "space-between",
-    flexWrap: "wrap",
-  },
-
-  nutritionRowItem: {
     alignItems: "center",
-    padding: 12,
-    backgroundColor: VintageColors.lightBackground,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    minWidth: 70,
-    marginHorizontal: 4,
-    marginBottom: 8,
-    flex: 1,
   },
 
-  nutritionRowValue: {
-    fontSize: 20,
-    fontWeight: "600",
-    color: VintageColors.primaryText,
-    marginBottom: 4,
-  },
-
-  nutritionRowUnit: {
-    fontSize: 11,
-    color: VintageColors.secondaryText,
-    fontWeight: "400",
-    textAlign: "center",
-    letterSpacing: 0.3,
-  },
-
-  // For smaller screens or many items, use a scrollable row
-  nutritionRowScroll: {
+  photoActionButton: {
     flexDirection: "row",
-    paddingVertical: 8,
-  },
-
-  nutritionScrollView: {
-    marginTop: 8,
-  },
-
-  // Compact version for when there are many nutrients
-  nutritionCompactItem: {
     alignItems: "center",
-    padding: 10,
+    padding: 8,
     backgroundColor: VintageColors.lightBackground,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: VintageColors.border,
-    marginRight: 8,
-    minWidth: 65,
   },
 
-  nutritionCompactValue: {
-    fontSize: 18,
-    fontWeight: "600",
+  photoActionText: {
+    fontSize: 12,
+    color: "#FF6B6B",
+    marginLeft: 6,
+    fontWeight: "500",
+  },
+
+  analyzingIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 8,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  analyzingText: {
+    fontSize: 12,
     color: VintageColors.primaryText,
+    marginLeft: 6,
+    fontWeight: "500",
+  },
+
+  uploadCard: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 12,
+    padding: 24,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    shadowColor: VintageColors.lightBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    alignItems: "center",
+  },
+
+  uploadIconContainer: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  uploadTitle: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+
+  uploadSubtitle: {
+    fontSize: 14,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    marginBottom: 20,
+    lineHeight: 20,
+  },
+
+  uploadButtons: {
+    flexDirection: "row",
+    justifyContent: "center",
+    width: "100%",
+  },
+
+  uploadButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    flex: 1,
+    justifyContent: "center",
+  },
+
+  uploadButtonText: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+
+  // AI Analysis Styles
+  aiAnalysisCard: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 12,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    shadowColor: VintageColors.lightBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+
+  aiAnalysisHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  aiAnalysisIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "#C8E6C9",
+  },
+
+  aiAnalysisTitle: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+  },
+
+  aiAnalysisConfidence: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    marginTop: 2,
+  },
+
+  confidenceBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+  },
+
+  confidenceDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    marginRight: 6,
+  },
+
+  detectedFoods: {
+    marginBottom: 20,
+    paddingBottom: 16,
+    borderBottomWidth: 1,
+    borderBottomColor: VintageColors.border,
+  },
+
+  detectedFoodsTitle: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+
+  foodItem: {
+    backgroundColor: VintageColors.lightBackground,
+    padding: 10,
+    borderRadius: 8,
+    marginBottom: 6,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  foodItemName: {
+    fontSize: 13,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
     marginBottom: 2,
   },
 
-  nutritionCompactUnit: {
-    fontSize: 10,
+  foodItemDetails: {
+    fontSize: 11,
     color: VintageColors.secondaryText,
-    fontWeight: "400",
-    textAlign: "center",
   },
 
-  // Toggle
+  aiTotals: {},
+
+  aiTotalsTitle: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 12,
+  },
+
+  aiTotalsGrid: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    justifyContent: "space-between",
+    marginTop: 12,
+  },
+
+  aiTotalItem: {
+    alignItems: "center",
+    marginBottom: 16,
+    padding: 7,
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    width: "30%",
+  },
+
+  aiTotalIconContainer: {
+    width: 25,
+    height: 25,
+    borderRadius: 14,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  aiTotalValue: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+
+  aiTotalLabel: {
+    fontSize: 11,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  aiDisclaimer: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: VintageColors.lightBackground,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginTop: 16,
+    marginBottom: 12,
+  },
+
+  aiDisclaimerText: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    marginLeft: 8,
+    flex: 1,
+    fontStyle: "italic",
+    lineHeight: 16,
+  },
+
+  editAiButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 12,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginTop: 16,
+  },
+
+  editAiButtonText: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+
+  backToAIButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginBottom: 16,
+  },
+
+  backToAIText: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+
+  // Toggle Card
   toggleCard: {
     backgroundColor: VintageColors.cardBackground,
     flexDirection: "row",
@@ -522,30 +650,100 @@ export const VintageStylesFood = StyleSheet.create({
     fontWeight: "500",
     marginBottom: 16,
   },
+  totalHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 16,
+  },
+
+  totalIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
 
   totalStats: {
     flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-around",
     flexWrap: "wrap",
+    minHeight: 80,
   },
 
   totalStatItem: {
-    marginRight: 16,
-    marginBottom: 8,
+    alignItems: "center",
+    paddingHorizontal: 8,
+    minWidth: 70,
+    maxWidth: 100,
+    flex: 1,
+    paddingVertical: 10,
+  },
+
+  totalStatContent: {
+    alignItems: "center",
   },
 
   totalStatValue: {
-    fontSize: 14,
+    fontSize: 20,
     fontWeight: "600",
     color: VintageColors.primaryText,
-    marginBottom: 2,
+    marginBottom: 6,
+    textAlign: "center",
+  },
+
+  totalStatLabelContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  totalStatIcon: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 4,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
   },
 
   totalStatLabel: {
     fontSize: 11,
     color: VintageColors.secondaryText,
-    fontWeight: "400",
+    fontWeight: "500",
     textTransform: "uppercase",
-    letterSpacing: 0.5,
+    letterSpacing: 0.3,
+    textAlign: "center",
+  },
+
+  totalStatDivider: {
+    width: 1,
+    height: 50,
+    backgroundColor: VintageColors.border,
+    marginHorizontal: 12,
+  },
+
+  noDataContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+    paddingVertical: 20,
+  },
+
+  noDataText: {
+    fontSize: 14,
+    color: VintageColors.secondaryText,
+    marginTop: 8,
+    fontStyle: "italic",
+    textAlign: "center",
   },
 
   // Save Button
@@ -606,20 +804,11 @@ export const VintageStylesFood = StyleSheet.create({
     fontWeight: "500",
   },
 
-  // Action Buttons Row
-  actionButtonsRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginVertical: 20,
-  },
-
-  actionButtonCard: {
-    flex: 1,
-    marginHorizontal: 8,
+  // Analyzing Card
+  analyzingCard: {
     backgroundColor: VintageColors.cardBackground,
-    padding: 16,
     borderRadius: 12,
-    alignItems: "center",
+    padding: 20,
     borderWidth: 1,
     borderColor: VintageColors.border,
     shadowColor: VintageColors.lightBorder,
@@ -627,16 +816,39 @@ export const VintageStylesFood = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
+    flexDirection: "row",
+    alignItems: "center",
   },
 
-  actionButtonIcon: {
+  analyzingIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 16,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  analyzingTitle: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 4,
+  },
+
+  analyzingSubtitle: {
+    fontSize: 14,
+    color: VintageColors.secondaryText,
     marginBottom: 8,
   },
 
-  actionButtonLabel: {
-    fontSize: 13,
-    color: VintageColors.primaryText,
-    fontWeight: "400",
-    textAlign: "center",
+  analyzingHint: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontStyle: "italic",
+    lineHeight: 16,
   },
 });
