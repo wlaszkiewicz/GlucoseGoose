@@ -310,6 +310,13 @@ export const VintageStylesSports = StyleSheet.create({
     fontWeight: '500',
   },
   
+  aiSubtitle: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    marginLeft: 8,
+    fontStyle: 'italic',
+  },
+  
   caloriesDisplay: {
     alignItems: 'center',
     marginVertical: 10,
@@ -335,6 +342,103 @@ export const VintageStylesSports = StyleSheet.create({
     marginTop: 8,
     fontStyle: 'italic',
     lineHeight: 16,
+  },
+  
+  // Calculation Details
+  calculationDetailsCard: {
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 10,
+    padding: 16,
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  
+  calculationHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  
+  calculationTitle: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: '500',
+    marginLeft: 8,
+  },
+  
+  calculationGrid: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  
+  calculationItem: {
+    flex: 1,
+    marginHorizontal: 4,
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  
+  calculationLabel: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontWeight: '400',
+    marginBottom: 4,
+  },
+  
+  calculationValue: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: '500',
+    marginBottom: 2,
+  },
+  
+  calculationNote: {
+    fontSize: 11,
+    color: VintageColors.secondaryText,
+    fontStyle: 'italic',
+  },
+  
+  formulaContainer: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 8,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  
+  formulaLabel: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontWeight: '400',
+    marginBottom: 4,
+  },
+  
+  formulaText: {
+    fontSize: 13,
+    color: VintageColors.primaryText,
+    fontWeight: '400',
+    fontFamily: 'monospace',
+  },
+  
+  advancedInfo: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 12,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: VintageColors.border,
+  },
+  
+  advancedInfoText: {
+    fontSize: 11,
+    color: '#666',
+    marginLeft: 6,
+    fontStyle: 'italic',
   },
   
   // Toggle
@@ -375,6 +479,35 @@ export const VintageStylesSports = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: VintageColors.border,
+  },
+  
+  // Weight Warning
+  weightWarningCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FFF3E0',
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: '#FFCC80',
+  },
+  
+  weightWarningContent: {
+    flex: 1,
+    marginLeft: 12,
+  },
+  
+  weightWarningTitle: {
+    fontSize: 14,
+    color: '#FF9800',
+    fontWeight: '500',
+    marginBottom: 4,
+  },
+  
+  weightWarningText: {
+    fontSize: 12,
+    color: '#FF9800',
+    lineHeight: 16,
   },
   
   // Activities List

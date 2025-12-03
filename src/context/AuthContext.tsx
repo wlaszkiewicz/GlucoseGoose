@@ -18,6 +18,10 @@ export interface UserData {
   createdAt: number;
   role: string;
   [key: string]: any;
+  weight?: number;
+  height?: number;
+  age?: number;
+  gender?: string;
 }
 
 interface AuthContextType {
