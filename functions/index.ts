@@ -40,6 +40,8 @@ export const getNightscoutBundle = functions.https.onRequest(
     const sinceISO = new Date(sinceTimestamp).toISOString();
     const baseUrl = url.replace(/\/$/, "");
 
+    const count = minutes / 5; // number of entries to fetch
+
     const headers: Record<string, string> = secret
       ? { "api-secret": secret }
       : {};
@@ -48,7 +50,7 @@ export const getNightscoutBundle = functions.https.onRequest(
       // Fetch Entries
 
       const entriesRes = await fetch(
-        `${baseUrl}/api/v1/entries.json?find[date][$gte]=${sinceTimestamp}`,
+        `${baseUrl}/api/v1/entries.json?count=${count}`,
         { headers }
       );
       const entries: NightscoutEntry[] = await entriesRes.json();

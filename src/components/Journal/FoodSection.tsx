@@ -158,7 +158,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       }
 
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -186,7 +186,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ["images"],
         allowsEditing: true,
         aspect: [4, 3],
         quality: 0.8,
@@ -195,7 +195,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
-        setMealDescription("Meal photo uploaded");
+        setMealDescription("Meal photo uploaded, analyzing...");
         await handleAnalyzePhoto(result.assets[0].base64);
       }
     } catch (error) {
@@ -358,7 +358,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
   const handleSaveMeal = async () => {
     if (!mealDescription.trim()) {
-      alert("Error", "Please describe your meal or upload a photo");
+      alert("Error", "Please describe your meal in detail or upload a photo");
       return;
     }
 
@@ -557,7 +557,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       <View style={VintageStylesFood.descriptionCard}>
         <TextInput
           style={VintageStylesFood.descriptionInput}
-          placeholder="Describe your meal or take a photo for AI analysis"
+          placeholder="Describe your meal in detail (e.g., ingredients, portion size) or take a photo for AI analysis"
           value={mealDescription}
           onChangeText={setMealDescription}
           multiline
