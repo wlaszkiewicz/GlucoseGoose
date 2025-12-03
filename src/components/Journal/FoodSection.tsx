@@ -5,10 +5,8 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
 } from "react-native";
-import { CommonStyles } from "../../themes/styles";
-import { Ionicons } from "@expo/vector-icons";
+import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useNightscout } from "../../context/NightscoutContext";
 import {
   addTreatment,
@@ -19,6 +17,9 @@ import Constants from "expo-constants";
 import { useAuth } from "../../context/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
 import alert from "../../utils/alert";
+import { VintageStyles } from "../../themes/vintage/styles_vintage";
+import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageStylesFood } from "../../themes/vintage/styles_vintage_food";
 
 type MealType =
   | "Breakfast"
@@ -42,8 +43,8 @@ interface NutritionInfo {
   carbs: number;
   protein: number;
   fat: number;
-  sugar?: number;
-  fiber?: number;
+  sugar: number;
+  fiber: number;
 }
 
 interface FoodSectionProps {
@@ -58,19 +59,17 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   const [showManualInput, setShowManualInput] = useState(false);
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
 
-  const [manualCalories, setManualCalories] = useState("");
-  const [manualCarbs, setManualCarbs] = useState("");
-  const [manualProtein, setManualProtein] = useState("");
-  const [manualFat, setManualFat] = useState("");
-  const [manualSugar, setManualSugar] = useState("");
-  const [manualFiber, setManualFiber] = useState("");
+  const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo>({
+    calories: 0,
+    carbs: 0,
+    protein: 0,
+    fat: 0,
+    sugar: 0,
+    fiber: 0,
+  });
 
   const { firebaseUser, userData } = useAuth();
-  const {
-    meals: nightscoutMeals,
-    isLoading: isNightscoutLoading,
-    fetchUpdates,
-  } = useNightscout();
+  const { meals: nightscoutMeals, loadFullDay: fetchUpdates } = useNightscout();
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
   const todayMeals = useMemo(() => {
@@ -82,27 +81,36 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     );
   }, [nightscoutMeals, selectedDate]);
 
-  const extractNutritionFromMeal = (meal: any): NutritionInfo => {
+  const extractNutritionFromMeal = (
+    meal: NightscoutTreatment
+  ): NutritionInfo => {
     return {
       calories: meal.calories || 0,
       carbs: meal.carbs || 0,
       protein: meal.protein || 0,
       fat: meal.fat || 0,
-      sugar: meal.sugar,
-      fiber: meal.fiber,
+      sugar: meal.sugar || 0,
+      fiber: meal.fiber || 0,
     };
+  };
+
+  const getMealTypeFromEvent = (eventType: string): MealType => {
+    const type = eventType.replace("Meal: ", "");
+    return mealTypes.includes(type as MealType)
+      ? (type as MealType)
+      : "Breakfast";
   };
 
   const totalNutrition = useMemo(() => {
     return todayMeals.reduce(
       (total: NutritionInfo, meal: any) => {
         const nutrition = extractNutritionFromMeal(meal);
-        total.calories += nutrition.calories || 0;
-        total.carbs += nutrition.carbs || 0;
-        total.protein += nutrition.protein || 0;
-        total.fat += nutrition.fat || 0;
-        total.sugar = (total.sugar || 0) + (nutrition.sugar || 0);
-        total.fiber = (total.fiber || 0) + (nutrition.fiber || 0);
+        total.calories += nutrition.calories;
+        total.carbs += nutrition.carbs;
+        total.protein += nutrition.protein;
+        total.fat += nutrition.fat;
+        total.sugar += nutrition.sugar;
+        total.fiber += nutrition.fiber;
         return total;
       },
       {
@@ -115,13 +123,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       }
     );
   }, [todayMeals]);
-
-  const getMealTypeFromEvent = (eventType: string): MealType => {
-    const type = eventType.replace("Meal: ", "");
-    return mealTypes.includes(type as MealType)
-      ? (type as MealType)
-      : "Breakfast";
-  };
 
   const calculateNutritionWithAI = async (
     description: string
@@ -153,23 +154,20 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     setMealDescription(meal.notes || "");
 
     const nutrition = extractNutritionFromMeal(meal);
-    setManualCalories(nutrition.calories.toString());
-    setManualCarbs(nutrition.carbs.toString());
-    setManualProtein(nutrition.protein.toString());
-    setManualFat(nutrition.fat.toString());
-    setManualSugar(nutrition.sugar?.toString() || "");
-    setManualFiber(nutrition.fiber?.toString() || "");
+    setNutritionInfo(nutrition);
     setShowManualInput(true);
   };
 
   const clearForm = () => {
     setMealDescription("");
-    setManualCalories("");
-    setManualCarbs("");
-    setManualProtein("");
-    setManualFat("");
-    setManualSugar("");
-    setManualFiber("");
+    setNutritionInfo({
+      calories: 0,
+      carbs: 0,
+      protein: 0,
+      fat: 0,
+      sugar: 0,
+      fiber: 0,
+    });
     setShowManualInput(false);
     setEditingMealId(null);
   };
@@ -216,6 +214,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
               console.error("Failed to delete meal:", meal);
               return;
             }
+            await fetchUpdates();
             alert("Success", `${mealType} deleted successfully!`);
 
             if (editingMealId === meal._id) {
@@ -248,24 +247,15 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       return;
     }
 
-    let nutrition: NutritionInfo = {
-      calories: manualCalories ? parseInt(manualCalories) : 0,
-      carbs: manualCarbs ? parseInt(manualCarbs) : 0,
-      protein: manualProtein ? parseInt(manualProtein) : 0,
-      fat: manualFat ? parseInt(manualFat) : 0,
-      sugar: manualSugar ? parseInt(manualSugar) : undefined,
-      fiber: manualFiber ? parseInt(manualFiber) : undefined,
-    };
-
     const treatmentData: NightscoutTreatment = {
       eventType: `Meal: ${selectedMealType}`,
       notes: mealDescription,
-      carbs: nutrition?.carbs || 0,
-      protein: nutrition?.protein,
-      fat: nutrition?.fat,
-      sugar: nutrition?.sugar,
-      fiber: nutrition?.fiber,
-      calories: nutrition?.calories,
+      carbs: nutritionInfo?.carbs || 0,
+      protein: nutritionInfo?.protein || 0,
+      fat: nutritionInfo?.fat || 0,
+      sugar: nutritionInfo?.sugar || 0,
+      fiber: nutritionInfo?.fiber || 0,
+      calories: nutritionInfo?.calories || 0,
       created_at: new Date().toISOString(),
     };
 
@@ -324,12 +314,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       ) {
         try {
           const nutrition = await calculateNutritionWithAI(mealDescription);
-          setManualCalories(nutrition.calories.toString());
-          setManualCarbs(nutrition.carbs.toString());
-          setManualProtein(nutrition.protein.toString());
-          setManualFat(nutrition.fat.toString());
-          setManualSugar(nutrition.sugar?.toString() || "");
-          setManualFiber(nutrition.fiber?.toString() || "");
+          setNutritionInfo(nutrition);
         } catch (error) {
           console.error("Error calculating nutrition:", error);
         }
@@ -352,15 +337,26 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     return icons[mealType];
   };
 
+  const getMealColor = (mealType: MealType): string => {
+    const colors: Record<MealType, string> = {
+      Breakfast: VintageColors.iconPink,
+      "Morning Snack": VintageColors.iconYellow,
+      Lunch: VintageColors.iconBlue,
+      "Afternoon Snack": VintageColors.iconPurple,
+      Dinner: VintageColors.iconGreen,
+      "Evening Snack": VintageColors.iconPink,
+    };
+    return colors[mealType];
+  };
+
   const toggleManualInput = () => {
     setShowManualInput(!showManualInput);
     if (!showManualInput) {
-      setManualCalories("");
-      setManualCarbs("");
-      setManualProtein("");
-      setManualFat("");
-      setManualSugar("");
-      setManualFiber("");
+      if (mealDescription.trim().length > 10) {
+        calculateNutritionWithAI(mealDescription).then((nutrition) => {
+          setNutritionInfo(nutrition);
+        });
+      }
     }
   };
 
@@ -373,301 +369,554 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   };
 
   const renderMealTypeSelector = () => (
-    <>
-      <Text style={CommonStyles.sectionLabel}>Select Meal Type</Text>
+    <View style={VintageStylesFood.sectionContainer}>
+      <View style={VintageStyles.sectionHeader}>
+        <Text style={VintageStyles.sectionTitle}>Select Meal Type</Text>
+        <View style={VintageStyles.featherAccent}>
+          <FontAwesome5
+            name="utensils"
+            size={16}
+            color={VintageColors.primaryText}
+          />
+        </View>
+      </View>
+
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
-        style={styles.mealTypeScroll}
-        contentContainerStyle={styles.mealTypeScrollContent}
+        style={VintageStylesFood.mealTypeScroll}
+        contentContainerStyle={VintageStylesFood.mealTypeScrollContent}
       >
-        {mealTypes.map((mealType) => (
-          <TouchableOpacity
-            key={mealType}
-            style={[
-              CommonStyles.mealTypeButton,
-              selectedMealType === mealType &&
-                CommonStyles.mealTypeButtonSelected,
-            ]}
-            onPress={() => setSelectedMealType(mealType)}
-          >
-            <Ionicons
-              name={getMealIcon(mealType) as any}
-              size={20}
-              color={selectedMealType === mealType ? "white" : "#007AFF"}
-            />
-            <Text
-              style={[
-                CommonStyles.mealTypeText,
-                selectedMealType === mealType &&
-                  CommonStyles.mealTypeTextSelected,
-              ]}
-            >
-              {mealType}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    </>
-  );
+        {mealTypes.map((mealType) => {
+          const isSelected = selectedMealType === mealType;
+          const iconColor = VintageColors.primaryText;
+          const backgroundColor = getMealColor(mealType);
 
-  const renderMealDescription = () => (
-    <View style={styles.mealDescriptionSection}>
-      <Text style={CommonStyles.sectionLabel}>
-        What did you eat for {selectedMealType.toLowerCase()}?
-      </Text>
-      <TextInput
-        style={CommonStyles.textInputLarge}
-        placeholder="Describe your food in detail (e.g., '2 eggs, toast with butter, orange juice')"
-        value={mealDescription}
-        onChangeText={setMealDescription}
-        multiline
-        numberOfLines={4}
-      />
+          return (
+            <TouchableOpacity
+              key={mealType}
+              style={[
+                VintageStylesFood.mealTypeButton,
+                isSelected && VintageStylesFood.mealTypeButtonSelected,
+              ]}
+              onPress={() => setSelectedMealType(mealType)}
+            >
+              <View
+                style={[
+                  VintageStylesFood.mealIconContainer,
+                  { backgroundColor },
+                  isSelected && VintageStylesFood.mealIconContainerSelected,
+                ]}
+              >
+                <Ionicons
+                  name={getMealIcon(mealType) as any}
+                  size={20}
+                  color={iconColor}
+                />
+              </View>
+              <Text
+                style={[
+                  VintageStylesFood.mealTypeText,
+                  isSelected && VintageStylesFood.mealTypeTextSelected,
+                ]}
+              >
+                {mealType}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
     </View>
   );
 
-  const renderManualInputs = () => (
-    <View style={styles.manualInputGrid}>
-      <View style={CommonStyles.inputRow}>
-        <Text style={CommonStyles.nutritionLabel}>Calories (kcal)</Text>
+  const renderMealDescription = () => (
+    <View style={VintageStylesFood.sectionContainer}>
+      <View style={VintageStyles.sectionHeader}>
+        <Text style={VintageStyles.sectionTitle}>Meal Description</Text>
+        <View style={VintageStyles.featherAccent}>
+          <Feather name="edit-3" size={16} color={VintageColors.primaryText} />
+        </View>
+      </View>
+
+      <View style={VintageStylesFood.descriptionCard}>
         <TextInput
-          style={CommonStyles.numberInput}
-          placeholder="0"
-          value={manualCalories}
-          onChangeText={setManualCalories}
-          keyboardType="numeric"
+          style={VintageStylesFood.descriptionInput}
+          placeholder="Describe your food in detail (e.g., '2 eggs, toast with butter, orange juice')"
+          value={mealDescription}
+          onChangeText={setMealDescription}
+          multiline
+          numberOfLines={4}
+          placeholderTextColor={VintageColors.secondaryText}
         />
       </View>
-      <View style={CommonStyles.inputRow}>
-        <Text style={CommonStyles.nutritionLabel}>Carbs (g)*</Text>
-        <TextInput
-          style={CommonStyles.numberInput}
-          placeholder="0"
-          value={manualCarbs}
-          onChangeText={setManualCarbs}
-          keyboardType="numeric"
-        />
-      </View>
-      <View style={CommonStyles.inputRow}>
-        <Text style={CommonStyles.nutritionLabel}>Protein (g)</Text>
-        <TextInput
-          style={CommonStyles.numberInput}
-          placeholder="0"
-          value={manualProtein}
-          onChangeText={setManualProtein}
-          keyboardType="numeric"
-        />
-      </View>
-      <View style={CommonStyles.inputRow}>
-        <Text style={CommonStyles.nutritionLabel}>Fat (g)</Text>
-        <TextInput
-          style={CommonStyles.numberInput}
-          placeholder="0"
-          value={manualFat}
-          onChangeText={setManualFat}
-          keyboardType="numeric"
-        />
-      </View>
-      <View style={CommonStyles.inputRow}>
-        <Text style={CommonStyles.nutritionLabel}>Sugar (g)*</Text>
-        <TextInput
-          style={CommonStyles.numberInput}
-          placeholder="0"
-          value={manualSugar}
-          onChangeText={setManualSugar}
-          keyboardType="numeric"
-        />
-      </View>
-      <View style={CommonStyles.inputRow}>
-        <Text style={CommonStyles.nutritionLabel}>Fiber (g)</Text>
-        <TextInput
-          style={CommonStyles.numberInput}
-          placeholder="0"
-          value={manualFiber}
-          onChangeText={setManualFiber}
-          keyboardType="numeric"
-        />
+    </View>
+  );
+
+  const renderNutritionInputs = () => (
+    <View style={VintageStylesFood.sectionContainer}>
+      <View style={VintageStylesFood.nutritionCard}>
+        <View style={VintageStylesFood.nutritionGrid}>
+          <View style={VintageStylesFood.nutritionInputRow}>
+            <View style={VintageStylesFood.inputLabelContainer}>
+              <Ionicons
+                name="flame"
+                size={16}
+                color={VintageColors.primaryText}
+                style={VintageStylesFood.inputIcon}
+              />
+              <Text style={VintageStylesFood.inputLabel}>Calories</Text>
+            </View>
+            <TextInput
+              style={VintageStylesFood.numberInput}
+              placeholder="0"
+              value={nutritionInfo.calories.toString()}
+              onChangeText={(text) =>
+                setNutritionInfo({
+                  ...nutritionInfo,
+                  calories: parseInt(text),
+                })
+              }
+              keyboardType="numeric"
+              placeholderTextColor={VintageColors.secondaryText}
+            />
+          </View>
+
+          <View style={VintageStylesFood.nutritionInputRow}>
+            <View style={VintageStylesFood.inputLabelContainer}>
+              <Ionicons
+                name="nutrition"
+                size={16}
+                color={VintageColors.primaryText}
+                style={VintageStylesFood.inputIcon}
+              />
+              <Text style={VintageStylesFood.inputLabel}>Carbs (g)*</Text>
+            </View>
+            <TextInput
+              style={VintageStylesFood.numberInput}
+              placeholder="0"
+              value={nutritionInfo.carbs.toString()}
+              onChangeText={(text) =>
+                setNutritionInfo({
+                  ...nutritionInfo,
+                  carbs: parseInt(text),
+                })
+              }
+              keyboardType="numeric"
+              placeholderTextColor={VintageColors.secondaryText}
+            />
+          </View>
+
+          <View style={VintageStylesFood.nutritionInputRow}>
+            <View style={VintageStylesFood.inputLabelContainer}>
+              <Ionicons
+                name="barbell"
+                size={16}
+                color={VintageColors.primaryText}
+                style={VintageStylesFood.inputIcon}
+              />
+              <Text style={VintageStylesFood.inputLabel}>Protein (g)</Text>
+            </View>
+            <TextInput
+              style={VintageStylesFood.numberInput}
+              placeholder="0"
+              value={nutritionInfo.protein.toString()}
+              onChangeText={(text) =>
+                setNutritionInfo({
+                  ...nutritionInfo,
+                  protein: parseInt(text),
+                })
+              }
+              keyboardType="numeric"
+              placeholderTextColor={VintageColors.secondaryText}
+            />
+          </View>
+
+          <View style={VintageStylesFood.nutritionInputRow}>
+            <View style={VintageStylesFood.inputLabelContainer}>
+              <Ionicons
+                name="water"
+                size={16}
+                color={VintageColors.primaryText}
+                style={VintageStylesFood.inputIcon}
+              />
+              <Text style={VintageStylesFood.inputLabel}>Fat (g)</Text>
+            </View>
+            <TextInput
+              style={VintageStylesFood.numberInput}
+              placeholder="0"
+              value={nutritionInfo.fat.toString()}
+              onChangeText={(text) =>
+                setNutritionInfo({ ...nutritionInfo, fat: parseInt(text) })
+              }
+              keyboardType="numeric"
+              placeholderTextColor={VintageColors.secondaryText}
+            />
+          </View>
+
+          <View style={VintageStylesFood.nutritionInputRow}>
+            <View style={VintageStylesFood.inputLabelContainer}>
+              <Ionicons
+                name="ice-cream"
+                size={16}
+                color={VintageColors.primaryText}
+                style={VintageStylesFood.inputIcon}
+              />
+              <Text style={VintageStylesFood.inputLabel}>Sugar (g)*</Text>
+            </View>
+            <TextInput
+              style={VintageStylesFood.numberInput}
+              placeholder="0"
+              value={nutritionInfo.sugar.toString()}
+              onChangeText={(text) =>
+                setNutritionInfo({
+                  ...nutritionInfo,
+                  sugar: parseInt(text),
+                })
+              }
+              keyboardType="numeric"
+              placeholderTextColor={VintageColors.secondaryText}
+            />
+          </View>
+
+          <View style={VintageStylesFood.nutritionInputRow}>
+            <View style={VintageStylesFood.inputLabelContainer}>
+              <Ionicons
+                name="leaf"
+                size={16}
+                color={VintageColors.primaryText}
+                style={VintageStylesFood.inputIcon}
+              />
+              <Text style={VintageStylesFood.inputLabel}>Fiber (g)</Text>
+            </View>
+            <TextInput
+              style={VintageStylesFood.numberInput}
+              placeholder="0"
+              value={nutritionInfo.fiber.toString()}
+              onChangeText={(text) =>
+                setNutritionInfo({
+                  ...nutritionInfo,
+                  fiber: parseInt(text),
+                })
+              }
+              keyboardType="numeric"
+              placeholderTextColor={VintageColors.secondaryText}
+            />
+          </View>
+        </View>
       </View>
     </View>
   );
 
   const renderAIEstimation = () => (
-    <>
+    <View style={VintageStylesFood.sectionContainer}>
       {isCalculatingCalories && (
-        <View style={CommonStyles.caloriesCalculation}>
-          <Ionicons name="sparkles" size={20} color="#007AFF" />
-          <Text style={CommonStyles.caloriesCalculationText}>
-            AI is analyzing your meal...
+        <View style={VintageStylesFood.caloriesCalculation}>
+          <View style={VintageStylesFood.calculationIcon}>
+            <Ionicons
+              name="sparkles"
+              size={24}
+              color={VintageColors.primaryText}
+            />
+          </View>
+          <Text style={VintageStylesFood.caloriesCalculationText}>
+            Analyzing your meal with AI...
           </Text>
         </View>
       )}
 
-      {manualCalories && !isCalculatingCalories && (
-        <View style={CommonStyles.aiEstimation}>
-          <View style={CommonStyles.aiHeader}>
-            <Ionicons name="sparkles" size={20} color="#4CAF50" />
-            <Text style={CommonStyles.aiTitle}>AI Estimation</Text>
+      {nutritionInfo.calories > 0 && !isCalculatingCalories && (
+        <View style={VintageStylesFood.aiEstimationCardHorizontal}>
+          <View style={VintageStylesFood.aiHeaderHorizontal}>
+            <View style={VintageStylesFood.aiIconContainerHorizontal}>
+              <Ionicons name="sparkles" size={20} color="#4CAF50" />
+            </View>
+            <Text style={VintageStylesFood.aiTitleHorizontal}>
+              AI Estimation
+            </Text>
           </View>
-          <View style={CommonStyles.nutritionPreview}>
-            <View style={CommonStyles.nutritionItem}>
-              <Text style={CommonStyles.nutritionValue}>{manualCalories}</Text>
-              <Text style={CommonStyles.nutritionUnit}>kcal</Text>
+          <View style={VintageStylesFood.nutritionRow}>
+            <View style={VintageStylesFood.nutritionRowItem}>
+              <Text style={VintageStylesFood.nutritionRowValue}>
+                {nutritionInfo.calories}
+              </Text>
+              <Text style={VintageStylesFood.nutritionRowUnit}>kcal</Text>
             </View>
-            <View style={CommonStyles.nutritionItem}>
-              <Text style={CommonStyles.nutritionValue}>{manualCarbs}</Text>
-              <Text style={CommonStyles.nutritionUnit}>carbs (g)</Text>
+            <View style={VintageStylesFood.nutritionRowItem}>
+              <Text style={VintageStylesFood.nutritionRowValue}>
+                {nutritionInfo.carbs}
+              </Text>
+              <Text style={VintageStylesFood.nutritionRowUnit}>carbs</Text>
             </View>
-            <View style={CommonStyles.nutritionItem}>
-              <Text style={CommonStyles.nutritionValue}>{manualProtein}</Text>
-              <Text style={CommonStyles.nutritionUnit}>protein (g)</Text>
+            <View style={VintageStylesFood.nutritionRowItem}>
+              <Text style={VintageStylesFood.nutritionRowValue}>
+                {nutritionInfo.protein}
+              </Text>
+              <Text style={VintageStylesFood.nutritionRowUnit}>protein</Text>
             </View>
-            <View style={CommonStyles.nutritionItem}>
-              <Text style={CommonStyles.nutritionValue}>{manualFat}</Text>
-              <Text style={CommonStyles.nutritionUnit}>fat (g)</Text>
+            <View style={VintageStylesFood.nutritionRowItem}>
+              <Text style={VintageStylesFood.nutritionRowValue}>
+                {nutritionInfo.fat}
+              </Text>
+              <Text style={VintageStylesFood.nutritionRowUnit}>fat</Text>
             </View>
+            {nutritionInfo.sugar && nutritionInfo.sugar > 0 && (
+              <View style={VintageStylesFood.nutritionRowItem}>
+                <Text style={VintageStylesFood.nutritionRowValue}>
+                  {nutritionInfo.sugar}
+                </Text>
+                <Text style={VintageStylesFood.nutritionRowUnit}>sugar</Text>
+              </View>
+            )}
+            {nutritionInfo.fiber && nutritionInfo.fiber > 0 && (
+              <View style={VintageStylesFood.nutritionRowItem}>
+                <Text style={VintageStylesFood.nutritionRowValue}>
+                  {nutritionInfo.fiber}
+                </Text>
+                <Text style={VintageStylesFood.nutritionRowUnit}>fiber</Text>
+              </View>
+            )}
           </View>
         </View>
       )}
-    </>
+    </View>
   );
 
   const renderTodayMeals = () => {
     if (!todayMeals || todayMeals.length === 0) return null;
 
     return (
-      <View style={CommonStyles.mealsSummary}>
-        <Text style={CommonStyles.summaryTitle}>Today's Meals</Text>
+      <View style={VintageStylesFood.sectionContainer}>
+        <View style={VintageStyles.sectionHeader}>
+          <Text style={VintageStyles.sectionTitle}>Today's Meals</Text>
+          <View style={VintageStylesFood.mealsCount}>
+            <Text style={VintageStylesFood.mealsCountText}>
+              {todayMeals.length}
+            </Text>
+          </View>
+        </View>
+
         {todayMeals.map((meal) => {
           const nutrition = extractNutritionFromMeal(meal);
-          const mealType = getMealTypeFromEvent(meal.eventType || "");
+          const mealType = getMealTypeFromEvent(meal.eventType);
+          const mealColor = getMealColor(mealType);
 
           return (
-            <View key={meal._id || meal.id} style={CommonStyles.mealItem}>
-              <View style={CommonStyles.mealHeader}>
-                <View
-                  style={{
-                    flexDirection: "row",
-                    alignItems: "center",
-                    flex: 1,
-                  }}
-                >
-                  <Ionicons
-                    name={getMealIcon(mealType) as any}
-                    size={16}
-                    color="#007AFF"
-                  />
-                  <Text style={CommonStyles.mealType}>{mealType}</Text>
+            <TouchableOpacity
+              key={meal._id || meal.id}
+              style={VintageStylesFood.mealCard}
+              onPress={() => loadMealForEditing(meal)}
+            >
+              <View style={VintageStylesFood.mealHeader}>
+                <View style={VintageStylesFood.mealHeaderLeft}>
+                  <View
+                    style={[
+                      VintageStylesFood.mealTypeIcon,
+                      { backgroundColor: mealColor },
+                    ]}
+                  >
+                    <Ionicons
+                      name={getMealIcon(mealType) as any}
+                      size={18}
+                      color={VintageColors.primaryText}
+                    />
+                  </View>
+                  <View>
+                    <Text style={VintageStylesFood.mealCardType}>
+                      {mealType}
+                    </Text>
+                    <Text style={VintageStylesFood.mealTime}>
+                      {new Date(meal.created_at).toLocaleTimeString([], {
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </Text>
+                  </View>
                 </View>
-                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={VintageStylesFood.mealHeaderRight}>
                   {nutrition.calories > 0 && (
-                    <Text style={CommonStyles.mealCalories}>
+                    <Text style={VintageStylesFood.mealCalories}>
                       {nutrition.calories} kcal
                     </Text>
                   )}
                   <TouchableOpacity
-                    onPress={() => loadMealForEditing(meal)}
-                    style={styles.actionButton}
-                  >
-                    <Ionicons name="create-outline" size={18} color="#666" />
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    onPress={() => handleDeleteMeal(meal)}
-                    style={styles.actionButton}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      handleDeleteMeal(meal);
+                    }}
+                    style={VintageStylesFood.actionButton}
                   >
                     <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
                   </TouchableOpacity>
                 </View>
               </View>
-              <Text style={CommonStyles.mealDescription}>
+              <Text style={VintageStylesFood.mealDescription}>
                 {meal.notes || "No description"}
               </Text>
               {(nutrition.carbs > 0 ||
                 nutrition.protein > 0 ||
                 nutrition.fat > 0) && (
-                <View style={CommonStyles.mealNutrition}>
-                  <Text style={CommonStyles.nutritionDetail}>
+                <View style={VintageStylesFood.mealNutrition}>
+                  <Text style={VintageStylesFood.nutritionDetail}>
                     C: {nutrition.carbs}g | P: {nutrition.protein}g | F:{" "}
-                    {nutrition.fat}g
-                    {nutrition.sugar && ` | Sugar: ${nutrition.sugar}g`}
+                    {nutrition.fat}g | Sugar: {nutrition.sugar}g | Fiber:{" "}
+                    {nutrition.fiber}g
                   </Text>
                 </View>
               )}
-              <Text style={CommonStyles.nutritionDetail}>
-                Time: {new Date(meal.created_at).toLocaleString()}
-              </Text>
-            </View>
+            </TouchableOpacity>
           );
         })}
-        <View style={CommonStyles.totalNutrition}>
-          <Text style={CommonStyles.totalTitle}>Daily Total:</Text>
-          <Text style={CommonStyles.totalDetail}>
-            {totalNutrition.calories} kcal | C: {totalNutrition.carbs}g | P:{" "}
-            {totalNutrition.protein}g | F: {totalNutrition.fat}g
-            {(totalNutrition.sugar ?? 0) > 0 &&
-              ` | Sugar: ${totalNutrition.sugar ?? 0}g`}
+
+        <View style={VintageStylesFood.totalNutritionCard}>
+          <Text style={VintageStylesFood.totalTitle}>
+            Daily Nutrition Summary
           </Text>
+          <View style={VintageStylesFood.totalStats}>
+            {totalNutrition.calories > 0 && (
+              <View style={VintageStylesFood.totalStatItem}>
+                <Text style={VintageStylesFood.totalStatValue}>
+                  {totalNutrition.calories}
+                </Text>
+                <Text style={VintageStylesFood.totalStatLabel}>calories</Text>
+              </View>
+            )}
+            {totalNutrition.carbs > 0 && (
+              <View style={VintageStylesFood.totalStatItem}>
+                <Text style={VintageStylesFood.totalStatValue}>
+                  {totalNutrition.carbs}
+                </Text>
+                <Text style={VintageStylesFood.totalStatLabel}>carbs (g)</Text>
+              </View>
+            )}
+            {totalNutrition.protein > 0 && (
+              <View style={VintageStylesFood.totalStatItem}>
+                <Text style={VintageStylesFood.totalStatValue}>
+                  {totalNutrition.protein}
+                </Text>
+                <Text style={VintageStylesFood.totalStatLabel}>
+                  protein (g)
+                </Text>
+              </View>
+            )}
+            {totalNutrition.fat > 0 && (
+              <View style={VintageStylesFood.totalStatItem}>
+                <Text style={VintageStylesFood.totalStatValue}>
+                  {totalNutrition.fat}
+                </Text>
+                <Text style={VintageStylesFood.totalStatLabel}>fat (g)</Text>
+              </View>
+            )}
+            {totalNutrition.sugar > 0 && (
+              <View style={VintageStylesFood.totalStatItem}>
+                <Text style={VintageStylesFood.totalStatValue}>
+                  {totalNutrition.sugar}
+                </Text>
+                <Text style={VintageStylesFood.totalStatLabel}>sugar (g)</Text>
+              </View>
+            )}
+            {totalNutrition.fiber > 0 && (
+              <View style={VintageStylesFood.totalStatItem}>
+                <Text style={VintageStylesFood.totalStatValue}>
+                  {totalNutrition.fiber}
+                </Text>
+                <Text style={VintageStylesFood.totalStatLabel}>fiber (g)</Text>
+              </View>
+            )}
+            {totalNutrition.calories === 0 &&
+            totalNutrition.carbs === 0 &&
+            totalNutrition.protein === 0 &&
+            totalNutrition.fat === 0 &&
+            totalNutrition.sugar === 0 &&
+            totalNutrition.fiber === 0 ? (
+              <Text style={VintageStylesFood.totalStatLabel}>
+                No nutrition data for today
+              </Text>
+            ) : null}
+          </View>
         </View>
       </View>
     );
   };
 
-  return (
-    <View style={CommonStyles.journalContainer}>
-      {renderMealTypeSelector()}
-
-      {/* Meal Description */}
-      {renderMealDescription()}
-
-      {/* Nutrition Input Section */}
-      <View style={styles.nutritionSection}>
-        <View style={CommonStyles.nutritionHeader}>
-          <Text style={CommonStyles.sectionLabel}>Nutrition Information</Text>
-          <TouchableOpacity
-            onPress={toggleManualInput}
-            style={CommonStyles.toggleButton}
-          >
-            <Text style={CommonStyles.toggleButtonText}>
-              {showManualInput ? "Use AI Analysis" : "Enter Manually"}
-            </Text>
-          </TouchableOpacity>
+  const renderInputToggle = () => (
+    <View style={VintageStylesFood.sectionContainer}>
+      <TouchableOpacity
+        style={VintageStylesFood.toggleCard}
+        onPress={toggleManualInput}
+      >
+        <View style={VintageStylesFood.toggleHeader}>
+          <Feather
+            name={showManualInput ? "edit-3" : "cpu"}
+            size={20}
+            color={VintageColors.primaryText}
+          />
+          <Text style={VintageStylesFood.toggleTitle}>
+            {showManualInput ? "Manual Input" : "AI Calculation"}
+          </Text>
         </View>
+        <View style={VintageStylesFood.toggleArrow}>
+          <Feather
+            name={showManualInput ? "chevron-up" : "chevron-down"}
+            size={20}
+            color={VintageColors.secondaryText}
+          />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
 
-        {showManualInput ? renderManualInputs() : renderAIEstimation()}
-      </View>
-
-      {/* Action Buttons */}
-      <View style={CommonStyles.buttonRow}>
+  const renderActionButtons = () => (
+    <View style={VintageStylesFood.sectionContainer}>
+      <View style={VintageStylesFood.actionButtonsRow}>
         <TouchableOpacity
-          style={CommonStyles.iconButton}
+          style={VintageStylesFood.actionButtonCard}
           onPress={handlePhotoUpload}
         >
-          <Ionicons name="camera" size={24} color="#007AFF" />
-          <Text style={CommonStyles.iconButtonText}>Add Photo</Text>
+          <View style={VintageStylesFood.actionButtonIcon}>
+            <Ionicons
+              name="camera"
+              size={24}
+              color={VintageColors.primaryText}
+            />
+          </View>
+          <Text style={VintageStylesFood.actionButtonLabel}>Add Photo</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
-          style={CommonStyles.iconButton}
+          style={VintageStylesFood.actionButtonCard}
           onPress={handleQRScan}
         >
-          <Ionicons name="qr-code" size={24} color="#007AFF" />
-          <Text style={CommonStyles.iconButtonText}>Scan Food</Text>
+          <View style={VintageStylesFood.actionButtonIcon}>
+            <Ionicons
+              name="qr-code"
+              size={24}
+              color={VintageColors.primaryText}
+            />
+          </View>
+          <Text style={VintageStylesFood.actionButtonLabel}>Scan Food</Text>
         </TouchableOpacity>
       </View>
+    </View>
+  );
 
-      {/* Today's Meals Summary */}
-      {renderTodayMeals()}
-
-      {/* Save/Update Button */}
+  const renderSaveMealButton = () => (
+    <View style={VintageStylesFood.sectionContainer}>
       <TouchableOpacity
         style={[
-          CommonStyles.saveButton,
-          editingMealId && { backgroundColor: "#4CAF50" },
+          VintageStylesFood.saveButton,
+          editingMealId && VintageStylesFood.updateButton,
         ]}
         onPress={handleSaveMeal}
         disabled={isCalculatingCalories}
       >
-        <Text style={CommonStyles.saveButtonText}>
+        <View style={VintageStylesFood.saveButtonIcon}>
+          {editingMealId ? (
+            <Feather name="save" size={20} color="#FFFFFF" />
+          ) : (
+            <Feather name="plus" size={20} color="#FFFFFF" />
+          )}
+        </View>
+        <Text style={VintageStylesFood.saveButtonText}>
           {isCalculatingCalories
             ? "Analyzing..."
             : editingMealId
@@ -676,55 +925,32 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         </Text>
       </TouchableOpacity>
 
-      {/* Cancel Edit Button */}
       {editingMealId && (
         <TouchableOpacity
-          style={[
-            CommonStyles.saveButton,
-            { backgroundColor: "#FF6B6B", marginTop: 8 },
-          ]}
+          style={VintageStylesFood.cancelButton}
           onPress={clearForm}
         >
-          <Text style={CommonStyles.saveButtonText}>Cancel Edit</Text>
+          <Text style={VintageStylesFood.cancelButtonText}>Cancel Edit</Text>
         </TouchableOpacity>
       )}
     </View>
   );
-};
 
-const styles = StyleSheet.create({
-  mealTypeScroll: {
-    marginBottom: 24,
-  },
-  mealTypeScrollContent: {
-    paddingHorizontal: 4,
-    paddingVertical: 8,
-  },
-  mealDescriptionSection: {
-    marginBottom: 24,
-  },
-  nutritionSection: {
-    marginBottom: 24,
-  },
-  manualInputGrid: {
-    backgroundColor: "#F8F9FA",
-    padding: 20,
-    borderRadius: 12,
-    borderWidth: 2,
-    borderColor: "#E9ECEF",
-  },
-  requiredHint: {
-    fontSize: 12,
-    color: "#FF6B6B",
-    fontStyle: "italic",
-    marginTop: 8,
-    textAlign: "center",
-  },
-  actionButton: {
-    padding: 6,
-    marginLeft: 8,
-    borderRadius: 4,
-  },
-});
+  return (
+    <ScrollView
+      style={VintageStylesFood.container}
+      showsVerticalScrollIndicator={false}
+    >
+      {renderMealTypeSelector()}
+      {renderMealDescription()}
+      {renderInputToggle()}
+      {showManualInput ? renderNutritionInputs() : renderAIEstimation()}
+      {renderActionButtons()}
+      {renderSaveMealButton()}
+      {renderTodayMeals()}
+      <View style={VintageStyles.spacing60} />
+    </ScrollView>
+  );
+};
 
 export default FoodSection;
