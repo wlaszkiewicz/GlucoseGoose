@@ -9,13 +9,15 @@ import {
   Image,
   ScrollView,
 } from "react-native";
-import { getPlatformStyles, CommonStyles } from "../themes/styles";
+import { getPlatformStyles } from "../themes/styles";
 import { useWindowDimensions } from "react-native";
 import { LoginScreenProps } from "../types/navigation";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { loginWithEmailOrUsername } from "../services/authService";
 import { ActivityIndicator } from "react-native";
+import { VintageColors } from "../themes/vintage/colors_vintage";
+import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
@@ -56,7 +58,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
 
       cleanup();
-      navigation.navigate("Home");
+      navigation.navigate("Home" as never);
     } catch (e) {
       setErrors((prev) => ({
         ...prev,
@@ -87,95 +89,104 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "white" }}>
+    <SafeAreaView style={VintageStylesAuth.container}>
       <ScrollView
-        style={platformStyles.container}
-        contentContainerStyle={platformStyles.scrollContent}
+        contentContainerStyle={VintageStylesAuth.scrollContent}
         showsVerticalScrollIndicator={false}
       >
-        <View style={platformStyles.mainContainer}>
-          {/* Goose Header */}
-          <View style={CommonStyles.header}>
-            <Image
-              source={require("../../assets/logo-placeholder.png")}
-              style={CommonStyles.gooseIcon}
-            />
-            <Text style={CommonStyles.appTitle}>GlucoseGoose</Text>
-            <Text style={CommonStyles.subtitle}>Your CGM Companion</Text>
+        <View style={VintageStylesAuth.mainContainer}>
+          {/* Vintage Header */}
+          <View style={VintageStylesAuth.headerSection}>
+            <View style={VintageStylesAuth.header}>
+              <View style={VintageStylesAuth.headerDecoration}>
+                <View style={VintageStylesAuth.headerLine} />
+                <Text style={VintageStylesAuth.headerTitle}>GlucoseGoose</Text>
+                <View style={VintageStylesAuth.headerLine} />
+              </View>
+              <Image
+                source={require("../../assets/goose1.png")}
+                style={VintageStylesAuth.gooseIcon}
+              />
+            </View>
           </View>
 
           {/* Welcome Section */}
-          <View style={styles.welcomeSection}>
-            <Text style={styles.welcomeText}>
-              Sign in to access your glucose data, patterns, and AI-powered
-              insights.
-            </Text>
+          <View style={VintageStylesAuth.welcomeSection}>
+            <Text style={VintageStylesAuth.welcomeTitle}>Welcome Back</Text>
           </View>
 
           {/* Login Form */}
-          <View style={styles.formContainer}>
-            <View style={CommonStyles.inputGroup}>
-              <Text style={CommonStyles.inputLabel}>Username or Email</Text>
+          <View style={VintageStylesAuth.formContainer}>
+            <View style={VintageStylesAuth.inputGroup}>
+              <Text style={VintageStylesAuth.inputLabel}>
+                Username or Email
+              </Text>
               <TextInput
                 ref={identifierRef}
-                style={CommonStyles.input}
+                style={VintageStylesAuth.input}
                 placeholder="Enter your username or email"
-                placeholderTextColor="#A0A0A0"
+                placeholderTextColor={VintageColors.secondaryText}
                 autoCapitalize="none"
                 onChangeText={setIdentifier}
                 value={identifier}
               />
               {errors.identifier && (
-                <Text style={styles.errorText}>{errors.identifier}</Text>
+                <Text style={VintageStylesAuth.errorText}>
+                  {errors.identifier}
+                </Text>
               )}
             </View>
 
-            <View style={CommonStyles.inputGroup}>
-              <Text style={CommonStyles.inputLabel}>Password</Text>
+            <View style={VintageStylesAuth.inputGroup}>
+              <Text style={VintageStylesAuth.inputLabel}>Password</Text>
               <TextInput
                 ref={passwordRef}
                 onChangeText={setPassword}
                 value={password}
-                style={CommonStyles.input}
+                style={VintageStylesAuth.input}
                 placeholder="Enter your password"
-                placeholderTextColor="#A0A0A0"
+                placeholderTextColor={VintageColors.secondaryText}
                 secureTextEntry={true}
               />
               {errors.password && (
-                <Text style={styles.errorText}>{errors.password}</Text>
+                <Text style={VintageStylesAuth.errorText}>
+                  {errors.password}
+                </Text>
               )}
             </View>
 
             {errors.firebase && (
-              <Text style={styles.errorText}>{errors.firebase}</Text>
+              <Text style={VintageStylesAuth.errorText}>{errors.firebase}</Text>
             )}
 
-            {/*Login Button */}
+            {/* Login Button */}
             <TouchableOpacity
-              style={CommonStyles.primaryButton}
+              style={VintageStylesAuth.primaryButton}
               onPress={handleLogin}
               disabled={loading}
             >
               {loading ? (
                 <ActivityIndicator color="white" />
               ) : (
-                <Text style={CommonStyles.buttonText}>Sign In</Text>
+                <Text style={VintageStylesAuth.buttonText}>Sign In</Text>
               )}
             </TouchableOpacity>
 
-            <TouchableOpacity style={styles.forgotLink}>
-              <Text style={CommonStyles.linkText}>Forgot your password?</Text>
+            <TouchableOpacity style={VintageStylesAuth.forgotLink}>
+              <Text style={VintageStylesAuth.linkText}>
+                Forgot your password?
+              </Text>
             </TouchableOpacity>
           </View>
 
-          {/* Help Section */}
-          <View style={styles.helpSection}>
-            <View style={styles.signupContainer}>
-              <Text style={styles.signupText}>Don't have an account? </Text>
-              <TouchableOpacity onPress={() => navigation.navigate("Register")}>
-                <Text style={CommonStyles.linkText}>Sign up here</Text>
-              </TouchableOpacity>
-            </View>
+          {/* Sign Up Section */}
+          <View style={VintageStylesAuth.signupContainer}>
+            <Text style={VintageStylesAuth.signupText}>
+              Don't have an account?{" "}
+            </Text>
+            <TouchableOpacity onPress={() => navigation.navigate("Register")}>
+              <Text style={VintageStylesAuth.linkText}>Sign up here</Text>
+            </TouchableOpacity>
           </View>
         </View>
 
@@ -184,47 +195,5 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  welcomeSection: {
-    alignItems: "center",
-    marginBottom: 32,
-  },
-  welcomeTitle: {
-    fontSize: 24,
-    fontWeight: "bold",
-    color: "#333",
-    marginBottom: 12,
-    textAlign: "center",
-  },
-  welcomeText: {
-    fontSize: 16,
-    color: "#555",
-    textAlign: "center",
-    lineHeight: 22,
-  },
-  formContainer: {
-    alignItems: "center",
-    width: "100%",
-    marginBottom: 40,
-  },
-  forgotLink: {
-    paddingVertical: 8,
-  },
-  helpSection: {
-    alignItems: "center",
-    width: "100%",
-  },
-  signupContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 20,
-  },
-  signupText: {
-    fontSize: 14,
-    color: "#666",
-  },
-  errorText: { color: "red", marginBottom: 8, alignSelf: "flex-start" },
-});
 
 export default LoginScreen;
