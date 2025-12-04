@@ -21,12 +21,11 @@ export const VintageStylesAuth = StyleSheet.create({
 
   headerSection: {
     alignItems: "center",
-    marginBottom: 40,
+    marginBottom: 30,
   },
 
   header: {
     alignItems: "center",
-    marginBottom: 16,
   },
 
   headerDecoration: {
@@ -51,7 +50,27 @@ export const VintageStylesAuth = StyleSheet.create({
   gooseIcon: {
     width: 80,
     height: 80,
-    marginBottom: 12,
+  },
+  avatarContainer: {
+    position: "relative",
+    alignItems: "center",
+  },
+
+  gooseAvatarCircle: {
+    width: 160,
+    height: 160,
+    borderRadius: 100,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 3,
+    borderColor: VintageColors.cardBackground,
+    position: "relative",
+  },
+
+  gooseAvatarImage: {
+    width: 140,
+    height: 140,
+    borderRadius: 70,
   },
 
   appTitle: {
@@ -78,7 +97,7 @@ export const VintageStylesAuth = StyleSheet.create({
   welcomeTitle: {
     fontSize: 20,
     color: VintageColors.primaryText,
-    marginBottom: 12,
+    marginBottom: 20,
     textAlign: "center",
   },
 
@@ -153,8 +172,7 @@ export const VintageStylesAuth = StyleSheet.create({
   },
 
   forgotLink: {
-    paddingVertical: 12,
-    marginTop: 12,
+    marginTop: 30,
   },
 
   signupContainer: {
@@ -163,10 +181,9 @@ export const VintageStylesAuth = StyleSheet.create({
     justifyContent: "center",
     marginTop: 20,
     padding: 16,
-    backgroundColor: "#FFFFFF",
     borderRadius: 12,
     borderWidth: 1,
-    borderColor: VintageColors.border,
+    borderColor: VintageColors.background,
     width: "100%",
   },
 
