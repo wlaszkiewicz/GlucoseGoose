@@ -4,18 +4,24 @@ import {
 } from "../types/nightscout";
 
 import { GoogleGenAI } from "@google/genai";
+import { getAuth } from "firebase/auth";
 
 export async function fetchBundle(
   cloudHost: string,
   nsUrl: string,
-  secret?: string,
-  minutes: number = 1440 // default 24h
+  secret: string = "",
+  minutes: number = 1440, // default 24h,
+  token: string
 ): Promise<NightscoutBundleResponse> {
-  const query = `https://${cloudHost}/getNightscoutBundle?url=${nsUrl}&secret=${
-    secret || ""
-  }&minutes=${minutes}`;
+  const query = `https://${cloudHost}/getNightscoutBundle?url=${nsUrl}&secret=${secret}&minutes=${minutes}`;
 
-  const res = await fetch(query);
+  const res = await fetch(query, {
+    method: "GET",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+  });
 
   if (!res.ok) {
     throw new Error(`Error fetching bundle: ${res.status} ${res.statusText}`);
@@ -28,8 +34,9 @@ export async function fetchBundle(
 export async function addTreatment(
   cloudHost: string,
   nsUrl: string,
-  secret: string,
-  treatment: NightscoutTreatment
+  secret: string = "",
+  treatment: NightscoutTreatment,
+  token: string
 ) {
   treatment.enteredBy = "GlucoseGoose App";
   const res = await fetch(
@@ -37,6 +44,7 @@ export async function addTreatment(
     {
       method: "POST",
       headers: {
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(treatment),
@@ -50,8 +58,9 @@ export async function addTreatment(
 export async function updateTreatment(
   cloudHost: string,
   nsUrl: string,
-  secret: string,
-  treatment: NightscoutTreatment
+  secret: string = "",
+  treatment: NightscoutTreatment,
+  token: string
 ) {
   treatment.enteredBy = "GlucoseGoose App";
   const res = await fetch(
@@ -59,6 +68,7 @@ export async function updateTreatment(
     {
       method: "PUT",
       headers: {
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify(treatment),
@@ -72,14 +82,16 @@ export async function updateTreatment(
 export async function deleteTreatment(
   cloudHost: string,
   nsUrl: string,
-  secret: string,
-  treatment_id: string
+  secret: string = "",
+  treatment_id: string,
+  token: string
 ) {
   const res = await fetch(
     `https://${cloudHost}/deleteTreatment?url=${nsUrl}&secret=${secret}&id=${treatment_id}`,
     {
       method: "DELETE",
       headers: {
+        Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",
       },
     }
