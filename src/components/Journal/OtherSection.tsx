@@ -31,9 +31,8 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
   const { otherEntries, loadFullDay } = useNightscout();
-  const { userData } = useAuth();
+  const { firebaseUser, userData } = useAuth();
 
-  // Filter today's entries
   const todayEntries = React.useMemo(() => {
     if (!otherEntries || otherEntries.length === 0) return [];
 
@@ -47,7 +46,6 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
         return entryDate === todayString;
       })
       .sort((a, b) => {
-        // Sort by most recent first
         return (
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         );
@@ -66,6 +64,14 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
     }
 
     try {
+      if (!userData.nightscoutUrl) {
+        alert("Error", "User data not available");
+        return;
+      }
+      if (!firebaseUser) {
+        alert("Error", "User not authenticated");
+        return;
+      }
       const treatmentData: NightscoutTreatment = {
         eventType: "Note",
         created_at: new Date().toISOString(),
@@ -75,13 +81,13 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
       let success;
 
       if (editingNoteId) {
-        // Update existing note
         treatmentData._id = editingNoteId;
         success = await updateTreatment(
           CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
+          await firebaseUser.getIdToken()
         );
       } else {
         // Add new note
@@ -89,7 +95,8 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
           CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
+          await firebaseUser.getIdToken()
         );
       }
 
@@ -116,6 +123,10 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
       alert("Error", "Nightscout URL not configured");
       return;
     }
+    if (!firebaseUser) {
+      alert("Error", "User not authenticated");
+      return;
+    }
 
     alert("Delete Note", "Are you sure you want to delete this note?", [
       {
@@ -135,7 +146,8 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
               CLOUD_FUNCTIONS_HOST,
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              noteId
+              noteId,
+              await firebaseUser.getIdToken()
             );
 
             if (!success) {
