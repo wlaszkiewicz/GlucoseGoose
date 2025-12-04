@@ -326,12 +326,14 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         onPress: async () => {
           try {
             if (!userData.nightscoutUrl) return;
+            const token = await firebaseUser.getIdToken();
 
             const success = await deleteTreatment(
               CLOUD_FUNCTIONS_HOST,
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              meal._id!
+              meal._id!,
+              token
             );
 
             if (!success) {
@@ -396,14 +398,16 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
           CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
+          await firebaseUser.getIdToken()
         );
       } else {
         success = await addTreatment(
           CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
+          await firebaseUser.getIdToken()
         );
       }
 

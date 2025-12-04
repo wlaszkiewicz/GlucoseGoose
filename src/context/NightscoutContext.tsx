@@ -77,7 +77,8 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         CLOUD,
         nightscoutUrl,
         secret ?? "",
-        1440 // last 24h
+        1440, // last 24h,
+        await firebaseUser.getIdToken()
       );
 
       const since = Date.now() - 1440 * 60 * 1000;
@@ -114,7 +115,8 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         CLOUD,
         nightscoutUrl,
         secret ?? "",
-        minutesToFetch
+        minutesToFetch,
+        await firebaseUser.getIdToken()
       );
 
       const newEntries = bundle.entries;

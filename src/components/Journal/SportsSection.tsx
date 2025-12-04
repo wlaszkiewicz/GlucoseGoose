@@ -24,7 +24,7 @@ import {
   calculateCaloriesBurned,
   estimateDistance,
   getIntensityDescription,
-  type UserProfile
+  type UserProfile,
 } from "../../utils/calorieCalculations";
 
 export type ActivityType =
@@ -66,11 +66,14 @@ interface ActivitySectionProps {
 }
 
 const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
-  const [selectedActivityType, setSelectedActivityType] = useState<ActivityType>("Walking");
+  const [selectedActivityType, setSelectedActivityType] =
+    useState<ActivityType>("Walking");
   const [activityDescription, setActivityDescription] = useState("");
   const [isCalculatingCalories, setIsCalculatingCalories] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
-  const [editingActivityId, setEditingActivityId] = useState<string | null>(null);
+  const [editingActivityId, setEditingActivityId] = useState<string | null>(
+    null
+  );
   const [calculationDetails, setCalculationDetails] = useState<{
     metValue: number;
     weightUsed: number;
@@ -79,13 +82,16 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   } | null>(null);
 
   const [manualDuration, setManualDuration] = useState("");
-  const [manualIntensity, setManualIntensity] = useState<"Low" | "Medium" | "High">("Medium");
+  const [manualIntensity, setManualIntensity] = useState<
+    "Low" | "Medium" | "High"
+  >("Medium");
   const [manualCaloriesBurned, setManualCaloriesBurned] = useState("");
   const [manualHeartRate, setManualHeartRate] = useState("");
   const [manualDistance, setManualDistance] = useState("");
 
   const { firebaseUser, userData } = useAuth();
-  const { activities: nightscoutActivities, loadFullDay: fetchUpdates } = useNightscout();
+  const { activities: nightscoutActivities, loadFullDay: fetchUpdates } =
+    useNightscout();
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
   const todayActivities = useMemo(() => {
@@ -139,7 +145,11 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     activityType: ActivityType,
     duration: number,
     intensity: "Low" | "Medium" | "High"
-  ): Promise<{ calories: number; estimatedDistance?: number; details: any }> => {
+  ): Promise<{
+    calories: number;
+    estimatedDistance?: number;
+    details: any;
+  }> => {
     setIsCalculatingCalories(true);
     setCalculationDetails(null);
 
@@ -149,28 +159,32 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
           weight: userData?.weight,
           height: userData?.height,
           age: userData?.age,
-          gender: userData?.gender as 'male' | 'female'
+          gender: userData?.gender as "male" | "female",
         };
 
         const weight = userData?.weight;
-        
+
         const calculation = calculateCaloriesBurned({
           activityType,
           duration,
           intensity,
           weight,
-          userProfile
+          userProfile,
         });
-        
-        const estimatedDistance = estimateDistance(activityType, duration, intensity);
-        
+
+        const estimatedDistance = estimateDistance(
+          activityType,
+          duration,
+          intensity
+        );
+
         setCalculationDetails(calculation.details);
         setIsCalculatingCalories(false);
-        
+
         resolve({
           calories: calculation.calories,
           estimatedDistance: estimatedDistance || undefined,
-          details: calculation.details
+          details: calculation.details,
         });
       }, 800);
     });
@@ -244,7 +258,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                 CLOUD_FUNCTIONS_HOST,
                 userData.nightscoutUrl,
                 userData.nightscoutSecret ?? "",
-                activity._id!
+                activity._id!,
+                await firebaseUser.getIdToken()
               );
 
               if (!success) {
@@ -308,12 +323,12 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
           parseInt(manualDuration),
           manualIntensity
         );
-        
+
         if (!manualCaloriesBurned) {
           caloriesBurned = result.calories;
           setManualCaloriesBurned(result.calories.toString());
         }
-        
+
         if (!manualDistance && result.estimatedDistance) {
           distance = result.estimatedDistance;
           setManualDistance(result.estimatedDistance.toString());
@@ -343,14 +358,16 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
           CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
+          await firebaseUser.getIdToken()
         );
       } else {
         success = await addTreatment(
           CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
+          await firebaseUser.getIdToken()
         );
       }
 
@@ -398,9 +415,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             parseInt(manualDuration),
             manualIntensity
           );
-          
+
           setManualCaloriesBurned(result.calories.toString());
-          
+
           if (result.estimatedDistance && !manualDistance) {
             setManualDistance(result.estimatedDistance.toString());
           }
@@ -498,13 +515,16 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                 setSelectedActivityType(activityType);
                 setCalculationDetails(null);
                 if (!showManualInput && manualDuration) {
-                  calculateCaloriesWithAI(activityType, parseInt(manualDuration), manualIntensity)
-                    .then(result => {
-                      setManualCaloriesBurned(result.calories.toString());
-                      if (result.estimatedDistance) {
-                        setManualDistance(result.estimatedDistance.toString());
-                      }
-                    });
+                  calculateCaloriesWithAI(
+                    activityType,
+                    parseInt(manualDuration),
+                    manualIntensity
+                  ).then((result) => {
+                    setManualCaloriesBurned(result.calories.toString());
+                    if (result.estimatedDistance) {
+                      setManualDistance(result.estimatedDistance.toString());
+                    }
+                  });
                 }
               }}
             >
@@ -581,13 +601,16 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                 setManualDuration(text);
                 setCalculationDetails(null);
                 if (!showManualInput && text && parseInt(text) > 0) {
-                  calculateCaloriesWithAI(selectedActivityType, parseInt(text), manualIntensity)
-                    .then(result => {
-                      setManualCaloriesBurned(result.calories.toString());
-                      if (result.estimatedDistance) {
-                        setManualDistance(result.estimatedDistance.toString());
-                      }
-                    });
+                  calculateCaloriesWithAI(
+                    selectedActivityType,
+                    parseInt(text),
+                    manualIntensity
+                  ).then((result) => {
+                    setManualCaloriesBurned(result.calories.toString());
+                    if (result.estimatedDistance) {
+                      setManualDistance(result.estimatedDistance.toString());
+                    }
+                  });
                 }
               }}
               keyboardType="numeric"
@@ -615,13 +638,16 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                   setManualIntensity(intensity);
                   setCalculationDetails(null);
                   if (!showManualInput && manualDuration) {
-                    calculateCaloriesWithAI(selectedActivityType, parseInt(manualDuration), intensity)
-                      .then(result => {
-                        setManualCaloriesBurned(result.calories.toString());
-                        if (result.estimatedDistance) {
-                          setManualDistance(result.estimatedDistance.toString());
-                        }
-                      });
+                    calculateCaloriesWithAI(
+                      selectedActivityType,
+                      parseInt(manualDuration),
+                      intensity
+                    ).then((result) => {
+                      setManualCaloriesBurned(result.calories.toString());
+                      if (result.estimatedDistance) {
+                        setManualDistance(result.estimatedDistance.toString());
+                      }
+                    });
                   }
                 }}
               >
@@ -710,7 +736,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
 
   const renderCalculationDetails = () => {
     if (!calculationDetails) return null;
-    
+
     const weightNote = userData?.weight ? "" : " (default weight)";
     const metInfo = `${calculationDetails.metValue} MET`;
     const metDescription = getIntensityDescription(calculationDetails.metValue);
@@ -723,20 +749,20 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             Calculation Details
           </Text>
         </View>
-        
+
         <View style={VintageStylesSports.calculationGrid}>
           <View style={VintageStylesSports.calculationItem}>
             <Text style={VintageStylesSports.calculationLabel}>MET Value</Text>
-            <Text style={VintageStylesSports.calculationValue}>
-              {metInfo}
-            </Text>
+            <Text style={VintageStylesSports.calculationValue}>{metInfo}</Text>
             <Text style={VintageStylesSports.calculationNote}>
               {metDescription}
             </Text>
           </View>
-          
+
           <View style={VintageStylesSports.calculationItem}>
-            <Text style={VintageStylesSports.calculationLabel}>Weight Used</Text>
+            <Text style={VintageStylesSports.calculationLabel}>
+              Weight Used
+            </Text>
             <Text style={VintageStylesSports.calculationValue}>
               {calculationDetails.weightUsed}kg{weightNote}
             </Text>
@@ -745,26 +771,35 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             </Text>
           </View>
         </View>
-        
+
         <View style={VintageStylesSports.formulaContainer}>
           <Text style={VintageStylesSports.formulaLabel}>Formula:</Text>
           <Text style={VintageStylesSports.formulaText}>
             Calories = {calculationDetails.formula}
           </Text>
         </View>
-        
+
         {calculationDetails.bmr && (
           <View style={VintageStylesSports.advancedInfo}>
-            <Ionicons name="information-circle-outline" size={14} color="#666" />
+            <Ionicons
+              name="information-circle-outline"
+              size={14}
+              color="#666"
+            />
             <Text style={VintageStylesSports.advancedInfoText}>
-              Includes BMR adjustment ({calculationDetails.bmr.toFixed(0)} kcal/day)
+              Includes BMR adjustment ({calculationDetails.bmr.toFixed(0)}{" "}
+              kcal/day)
             </Text>
           </View>
         )}
-        
+
         {userData?.age && userData?.gender && (
           <View style={VintageStylesSports.advancedInfo}>
-            <Ionicons name="information-circle-outline" size={14} color="#666" />
+            <Ionicons
+              name="information-circle-outline"
+              size={14}
+              color="#666"
+            />
             <Text style={VintageStylesSports.advancedInfoText}>
               Adjusted for your {userData.age}y/o {userData.gender} profile
             </Text>
@@ -814,7 +849,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
             {manualDuration} min of {selectedActivityType.toLowerCase()} at{" "}
             {manualIntensity.toLowerCase()} intensity
           </Text>
-          
+
           {renderCalculationDetails()}
         </View>
       )}
@@ -1048,7 +1083,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
 
   const renderWeightWarning = () => {
     if (userData?.weight) return null;
-    
+
     return (
       <View style={VintageStylesSports.sectionContainer}>
         <View style={VintageStylesSports.weightWarningCard}>
@@ -1058,7 +1093,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
               Improve Accuracy
             </Text>
             <Text style={VintageStylesSports.weightWarningText}>
-              Add your weight in profile settings for more accurate calorie calculations
+              Add your weight in profile settings for more accurate calorie
+              calculations
             </Text>
           </View>
         </View>
@@ -1074,7 +1110,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       {renderActivityTypeSelector()}
       {renderActivityDescription()}
       {renderDurationInput()}
-      
+
       {renderWeightWarning()}
       {renderInputToggle()}
       {showManualInput ? renderManualInputs() : renderAIEstimation()}

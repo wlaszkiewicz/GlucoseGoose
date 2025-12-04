@@ -1,15 +1,14 @@
 import * as functions from "firebase-functions";
 import fetch from "node-fetch";
 import type { Request, Response } from "express";
-import { onRequest } from "firebase-functions/https";
 import { onSchedule } from "firebase-functions/scheduler";
-import type {
-  NightscoutEntry,
-  NightscoutTreatment,
-  NightscoutBundleResponse,
-  QueryParams,
-} from "../src/types/nightscout";
 import { defineSecret } from "firebase-functions/params";
+import { getAuth } from "firebase-admin/auth";
+import { initializeApp, applicationDefault } from "firebase-admin/app";
+
+initializeApp({
+  credential: applicationDefault(),
+});
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -17,8 +16,27 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
 
+async function verifyUser(req: Request, res: Response) {
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ")
+    ? authHeader.split(" ")[1]
+    : null;
+
+  if (!token) {
+    res.status(401).json({ error: "Missing auth token" });
+    return null;
+  }
+
+  try {
+    return await getAuth().verifyIdToken(token);
+  } catch (err) {
+    res.status(401).json({ error: "Invalid auth token" });
+    return null;
+  }
+}
+
 export const getNightscoutBundle = functions.https.onRequest(
-  async (req: Request & { query: QueryParams }, res: Response) => {
+  async (req: Request, res: Response) => {
     if (req.method === "OPTIONS") {
       res.set(corsHeaders);
       res.status(204).send("");
@@ -27,9 +45,12 @@ export const getNightscoutBundle = functions.https.onRequest(
 
     res.set(corsHeaders);
 
-    const url = req.query.url;
-    const secret = req.query.secret;
-    const minutes = parseInt(req.query.minutes || "1440");
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const url = req.query.url as string;
+    const secret = req.query.secret as string;
+    const minutes = parseInt((req.query.minutes as string) || "1440");
 
     if (!url) {
       res.status(400).json({ error: "Missing Nightscout URL" });
@@ -40,61 +61,46 @@ export const getNightscoutBundle = functions.https.onRequest(
     const sinceISO = new Date(sinceTimestamp).toISOString();
     const baseUrl = url.replace(/\/$/, "");
 
-    const count = minutes / 5; // number of entries to fetch
+    const count = minutes / 5;
 
     const headers: Record<string, string> = secret
       ? { "api-secret": secret }
       : {};
 
     try {
-      // Fetch Entries
-
       const entriesRes = await fetch(
         `${baseUrl}/api/v1/entries.json?count=${count}`,
         { headers }
       );
-      const entries: NightscoutEntry[] = await entriesRes.json();
-
-      // Fetch Treatments
+      const entries = await entriesRes.json();
 
       const treatmentsRes = await fetch(
         `${baseUrl}/api/v1/treatments?find[created_at][$gte]=${sinceISO}`,
         { headers }
       );
-      const treatments: NightscoutTreatment[] = await treatmentsRes.json();
-
-      //  Extract Meals
+      const treatments = await treatmentsRes.json();
 
       const meals = treatments.filter(
-        (t) =>
+        (t: any) =>
           typeof t.eventType === "string" &&
           t.eventType.toLowerCase().includes("meal")
       );
 
-      // Extract Activities
-
       const activities = treatments.filter(
-        (t) =>
+        (t: any) =>
           typeof t.eventType === "string" &&
           t.eventType.toLowerCase().includes("activity")
       );
 
-      const response: NightscoutBundleResponse = {
+      res.json({
         timestamp: Date.now(),
         entries,
-        treatments, // all treatments
+        treatments,
         meals,
         activities,
-      };
-
-      res.json(response);
-      return;
-    } catch (error: any) {
-      console.error("Nightscout fetch error:", error);
-      res.status(500).json({
-        error: error.message || "Unexpected error",
       });
-      return;
+    } catch (error: any) {
+      res.status(500).json({ error: error.message });
     }
   }
 );
@@ -109,43 +115,38 @@ export const addTreatment = functions.https.onRequest(
 
     res.set(corsHeaders);
 
-    const { url, secret } = req.query;
-    const treatment: NightscoutTreatment = req.body;
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const url = req.query.url as string;
+    const secret = req.query.secret as string;
+    const treatment = req.body;
 
     if (!url || !treatment) {
       res.status(400).json({ error: "Missing url or treatment" });
       return;
     }
 
-    const baseUrl = (url as string).replace(/\/$/, "");
-
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    if (secret) {
-      headers["api-secret"] = secret as string;
-    }
+    if (secret) headers["api-secret"] = secret;
 
     try {
-      const r = await fetch(`${baseUrl}/api/v1/treatments`, {
+      const r = await fetch(`${url}/api/v1/treatments`, {
         method: "POST",
         headers,
         body: JSON.stringify(treatment),
       });
 
       if (!r.ok) {
-        const text = await r.text();
-        res.status(r.status).json({ error: text });
+        res.status(r.status).json({ error: await r.text() });
         return;
       }
 
-      const respJson = await r.json();
-      res.json(respJson);
+      res.json(await r.json());
     } catch (err: any) {
-      res.status(500).json({
-        error: err.message || "Failed to post treatment",
-      });
+      res.status(500).json({ error: err.message });
     }
   }
 );
@@ -160,42 +161,38 @@ export const updateTreatment = functions.https.onRequest(
 
     res.set(corsHeaders);
 
-    const { url, secret } = req.query;
-    const treatment: NightscoutTreatment = req.body;
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const url = req.query.url as string;
+    const secret = req.query.secret as string;
+    const treatment = req.body;
 
     if (!url || !treatment) {
       res.status(400).json({ error: "Missing url or treatment" });
       return;
     }
-    const baseUrl = (url as string).replace(/\/$/, "");
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",
     };
-
-    if (secret) {
-      headers["api-secret"] = secret as string;
-    }
+    if (secret) headers["api-secret"] = secret;
 
     try {
-      const r = await fetch(`${baseUrl}/api/v1/treatments/`, {
+      const r = await fetch(`${url}/api/v1/treatments`, {
         method: "PUT",
         headers,
         body: JSON.stringify(treatment),
       });
 
       if (!r.ok) {
-        const text = await r.text();
-        res.status(r.status).json({ error: text });
+        res.status(r.status).json({ error: await r.text() });
         return;
       }
 
-      const respJson = await r.json();
-      res.json(respJson);
+      res.json(await r.json());
     } catch (err: any) {
-      res.status(500).json({
-        error: err.message || "Failed to update treatment",
-      });
+      res.status(500).json({ error: err.message });
     }
   }
 );
@@ -210,70 +207,57 @@ export const deleteTreatment = functions.https.onRequest(
 
     res.set(corsHeaders);
 
-    const { url, secret, id } = req.query;
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const url = req.query.url as string;
+    const secret = req.query.secret as string;
+    const id = req.query.id as string;
 
     if (!url || !id) {
-      res.status(400).json({ error: "Missing url or treatment id" });
+      res.status(400).json({ error: "Missing url or id" });
       return;
     }
 
-    const baseUrl = (url as string).replace(/\/$/, "");
-
     const headers: Record<string, string> = {};
-    if (secret) {
-      headers["api-secret"] = secret as string;
-    }
+    if (secret) headers["api-secret"] = secret;
 
     try {
-      const r = await fetch(`${baseUrl}/api/v1/treatments/${id}`, {
+      const r = await fetch(`${url}/api/v1/treatments/${id}`, {
         method: "DELETE",
         headers,
       });
 
       if (!r.ok) {
-        const text = await r.text();
-        res.status(r.status).json({ error: text });
+        res.status(r.status).json({ error: await r.text() });
         return;
       }
 
       res.json({ success: true, id });
     } catch (err: any) {
-      res.status(500).json({
-        error: err.message || "Failed to delete treatment",
-      });
+      res.status(500).json({ error: err.message });
     }
   }
 );
 
 const nightscoutSecret = defineSecret("NIGHTSCOUT_API_SECRET");
 const nightscoutUrl = defineSecret("NIGHTSCOUT_URL");
+
 let lastBG = 110;
-function simulateBG(timestamp: number) {
-  const base = 110;
-  const variation = 20;
 
-  const period = 24 * 60 * 60 * 1000;
-  const timeFraction = (timestamp % period) / period;
-
-  const sineValue = Math.sin(timeFraction * 2 * Math.PI);
-  const randomNoise = (Math.random() - 0.5) * 10;
-
-  return Math.round(base + sineValue * variation + randomNoise);
-}
-
-function getDirection(current: number, previous: number) {
-  const delta = current - previous;
-  if (delta > 5) return "FortyFiveUp";
-  if (delta < -5) return "FortyFiveDown";
-  return "Flat";
+function simulateBG(t: number) {
+  return Math.round(
+    110 +
+      Math.sin(((t % (86400 * 1000)) / (86400 * 1000)) * 2 * Math.PI) * 20 +
+      (Math.random() - 0.5) * 10
+  );
 }
 
 export const simulateGlucose = onSchedule(
   { secrets: [nightscoutSecret, nightscoutUrl], schedule: "every 5 minutes" },
-  async (event) => {
+  async () => {
     const url = nightscoutUrl.value();
     const secret = nightscoutSecret.value();
-
     const baseUrl = url.replace(/\/$/, "");
 
     const now = new Date();
@@ -285,7 +269,12 @@ export const simulateGlucose = onSchedule(
       sysTime: now.toISOString(),
       device: "xDrip-DexcomG5",
       sgv: bg,
-      direction: getDirection(bg, lastBG),
+      direction:
+        bg - lastBG > 5
+          ? "FortyFiveUp"
+          : bg - lastBG < -5
+          ? "FortyFiveDown"
+          : "Flat",
       delta: bg - lastBG,
       noise: 1,
       rssi: 100,
@@ -296,7 +285,7 @@ export const simulateGlucose = onSchedule(
 
     lastBG = bg;
 
-    const r = await fetch(`${baseUrl}/api/v1/entries`, {
+    await fetch(`${baseUrl}/api/v1/entries`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -304,12 +293,5 @@ export const simulateGlucose = onSchedule(
       },
       body: JSON.stringify([entry]),
     });
-
-    if (!r.ok) {
-      console.error("Failed to post fake entry:", await r.text());
-      return;
-    }
-
-    console.log("Simulated glucose entry posted:", bg);
   }
 );
