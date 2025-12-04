@@ -655,6 +655,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     );
   };
 
+  // Calculate y-axis labels
+  const yAxisLabels = useMemo(() => {
+    const range = glucoseRange.max - glucoseRange.min;
+    const step = Math.max(20, Math.round(range / 5));
+    const labels = [];
+
+    for (let val = glucoseRange.min; val <= glucoseRange.max; val += step) {
+      labels.push(Math.round(val));
+    }
+
+    return labels;
+  }, [glucoseRange]);
+
   return (
     <SafeAreaView
       style={VintageStylesHome.container}
@@ -828,12 +841,56 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
               </View>
 
               <View style={{ height: 300, position: "relative" }}>
+                {/* Y-axis labels - fixed on left side */}
+                <View
+                  style={{
+                    position: "absolute",
+                    left: 0,
+                    top: 0,
+                    bottom: 40, // Leave space for x-axis
+                    width: 50,
+                    zIndex: 50,
+                    backgroundColor: "transparent",
+                  }}
+                >
+                  {yAxisLabels.map((value) => {
+                    const y =
+                      220 -
+                      ((value - glucoseRange.min) /
+                        (glucoseRange.max - glucoseRange.min)) *
+                        180;
+                    return (
+                      <View
+                        key={`y-label-${value}`}
+                        style={{
+                          position: "absolute",
+                          left: 0,
+                          top: y - 10, // Adjust to center text
+                          width: 50,
+                          alignItems: "flex-end",
+                          paddingRight: 8,
+                        }}
+                      >
+                        <Text
+                          style={{
+                            fontSize: 11,
+                            color: "#8B7355",
+                            fontWeight: "500",
+                          }}
+                        >
+                          {value}
+                        </Text>
+                      </View>
+                    );
+                  })}
+                </View>
+
                 {/* Horizontal ScrollView for the chart */}
                 <Animated.ScrollView
                   horizontal
                   ref={chartScrollRef}
                   showsHorizontalScrollIndicator={true}
-                  style={{ height: 280 }}
+                  style={{ height: 280, marginLeft: 50 }} // Add margin for y-axis labels
                   contentContainerStyle={{ paddingRight: 20 }}
                   onScroll={Animated.event(
                     [{ nativeEvent: { contentOffset: { x: scrollX } } }],
@@ -846,17 +903,19 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                     height={260}
                     style={VintageStylesHome.chartSvgContainer}
                   >
+                    {/* Y-axis line - moved right by 50px to account for labels */}
                     <Line
-                      x1="60"
+                      x1="10" // Adjusted from 60 to 10 (60 - 50)
                       y1="20"
-                      x2="60"
+                      x2="10" // Adjusted from 60 to 10
                       y2="220"
                       stroke="#D2B48C"
                       strokeWidth="1.5"
                     />
 
+                    {/* X-axis line */}
                     <Line
-                      x1="60"
+                      x1="10" // Adjusted from 60 to 10
                       y1="220"
                       x2={chartWidth - 40}
                       y2="220"
@@ -864,47 +923,9 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                       strokeWidth="1.5"
                     />
 
-                    {(() => {
-                      const range = glucoseRange.max - glucoseRange.min;
-                      const step = Math.max(20, Math.round(range / 5));
-                      const labels = [];
-                      for (
-                        let val = glucoseRange.min;
-                        val <= glucoseRange.max;
-                        val += step
-                      ) {
-                        labels.push(Math.round(val));
-                      }
-                      return labels.map((value) => {
-                        const y =
-                          220 - ((value - glucoseRange.min) / range) * 180;
-                        return (
-                          <React.Fragment key={value}>
-                            <SvgText
-                              x="50"
-                              y={y + 4}
-                              fontSize="11"
-                              fill="#8B7355"
-                              textAnchor="end"
-                              fontWeight="500"
-                            >
-                              {value}
-                            </SvgText>
-                            <Line
-                              x1="58"
-                              y1={y}
-                              x2="60"
-                              y2={y}
-                              stroke="#E0D6C9"
-                              strokeWidth="1"
-                            />
-                          </React.Fragment>
-                        );
-                      });
-                    })()}
-
+                    {/* Horizontal grid lines and glucose range lines */}
                     <Line
-                      x1="60"
+                      x1="10" // Adjusted from 60 to 10
                       y1={
                         220 -
                         ((70 - glucoseRange.min) /
@@ -924,7 +945,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                       opacity={0.7}
                     />
                     <Line
-                      x1="60"
+                      x1="10" // Adjusted from 60 to 10
                       y1={
                         220 -
                         ((180 - glucoseRange.min) /
@@ -944,13 +965,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                       opacity={0.7}
                     />
 
+                    {/* Glucose lines */}
                     {filteredEntries.map((entry, index) => {
                       if (index === 0) return null;
                       const prevEntry = filteredEntries[index - 1];
 
                       const spacing = 35;
-                      const x1 = 60 + (index - 1) * spacing;
-                      const x2 = 60 + index * spacing;
+                      const x1 = 10 + (index - 1) * spacing; // Adjusted from 60 to 10
+                      const x2 = 10 + index * spacing; // Adjusted from 60 to 10
 
                       const y1 =
                         220 -
@@ -977,9 +999,10 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                       );
                     })}
 
+                    {/* Glucose points and time labels */}
                     {filteredEntries.map((entry, index) => {
                       const spacing = 35;
-                      const x = 60 + index * spacing;
+                      const x = 10 + index * spacing; // Adjusted from 60 to 10
                       const y =
                         220 -
                         ((entry.sgv - glucoseRange.min) /
@@ -1029,12 +1052,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                         event.eventType
                       );
 
+                      // Adjust x position for the new chart offset
+                      const adjustedX = event.x - 50; // Since we moved from 60 to 10 (60-50=10)
+
                       return (
                         <React.Fragment key={`event-line-${event._id}`}>
                           <Line
-                            x1={event.x}
+                            x1={adjustedX}
                             y1="20"
-                            x2={event.x}
+                            x2={adjustedX}
                             y2="220"
                             stroke={eventColor}
                             strokeWidth="1"
@@ -1043,7 +1069,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                           />
                           {/* Event time label in SVG */}
                           <SvgText
-                            x={event.x}
+                            x={adjustedX}
                             y="250"
                             fontSize="8"
                             fill={eventColor}
@@ -1062,12 +1088,15 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
                 {eventPositions.map((event) => {
                   const eventColor = getEventColor(event.type, event.eventType);
 
+                  // Adjust x position for the new chart offset and center the icon
+                  const adjustedX = event.x - 50 - 16; // -50 for chart offset, -16 to center icon
+
                   return (
                     <Animated.View
                       key={`event-button-${event._id}`}
                       style={{
                         position: "absolute",
-                        left: event.x - 16, // Center the icon: subtract half of width (32/2 = 16)
+                        left: adjustedX + 50, // Add back 50 for the margin we added to ScrollView
                         top: 75,
                         width: 32,
                         height: 32,
