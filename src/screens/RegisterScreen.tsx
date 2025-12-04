@@ -18,6 +18,7 @@ import { ActivityIndicator } from "react-native";
 import sha1 from "js-sha1";
 import { VintageColors } from "../themes/vintage/colors_vintage";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
+const gooseImage = require("../../assets/goose1.png");
 
 const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -153,16 +154,23 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                 <Text style={VintageStylesAuth.headerTitle}>GlucoseGoose</Text>
                 <View style={VintageStylesAuth.headerLine} />
               </View>
-              <Image
-                source={require("../../assets/goose1.png")}
-                style={VintageStylesAuth.gooseIcon}
-              />
+              <View style={VintageStylesAuth.avatarContainer}>
+                <View style={VintageStylesAuth.gooseAvatarCircle}>
+                  <Image
+                    source={gooseImage}
+                    style={VintageStylesAuth.gooseAvatarImage}
+                    resizeMode="cover"
+                  />
+                </View>
+              </View>
             </View>
           </View>
 
           {/* Welcome Section */}
           <View style={VintageStylesAuth.welcomeSection}>
-            <Text style={VintageStylesAuth.welcomeTitle}>Join Us!</Text>
+            <Text style={[VintageStylesAuth.welcomeTitle, { marginBottom: 4 }]}>
+              Join Us!
+            </Text>
           </View>
 
           {/* Registration Form */}

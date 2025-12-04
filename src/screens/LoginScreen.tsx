@@ -18,6 +18,7 @@ import { loginWithEmailOrUsername } from "../services/authService";
 import { ActivityIndicator } from "react-native";
 import { VintageColors } from "../themes/vintage/colors_vintage";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
+const gooseImage = require("../../assets/goose1.png");
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
@@ -103,16 +104,21 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 <Text style={VintageStylesAuth.headerTitle}>GlucoseGoose</Text>
                 <View style={VintageStylesAuth.headerLine} />
               </View>
-              <Image
-                source={require("../../assets/goose1.png")}
-                style={VintageStylesAuth.gooseIcon}
-              />
+              <View style={VintageStylesAuth.avatarContainer}>
+                <View style={VintageStylesAuth.gooseAvatarCircle}>
+                  <Image
+                    source={gooseImage}
+                    style={VintageStylesAuth.gooseAvatarImage}
+                    resizeMode="cover"
+                  />
+                </View>
+              </View>
             </View>
           </View>
 
           {/* Welcome Section */}
           <View style={VintageStylesAuth.welcomeSection}>
-            <Text style={VintageStylesAuth.welcomeTitle}>Welcome Back</Text>
+            <Text style={VintageStylesAuth.welcomeTitle}>Welcome Back!</Text>
           </View>
 
           {/* Login Form */}
