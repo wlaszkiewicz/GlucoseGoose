@@ -23,6 +23,7 @@ import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors_vintage";
 import { VintageStylesFood } from "../../themes/vintage/styles_vintage_food";
+import { analyzeMealCloud } from "../../utils/cloud_functions";
 
 type MealType =
   | "Breakfast"
@@ -205,17 +206,21 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   };
 
   const handleAnalyzePhoto = async (imageBase64: string) => {
-    if (!userData?.geminiKey) {
-      alert("Error", "AI API key not configured");
-      return;
-    }
-
     setIsAnalyzing(true);
     setAiAnalysis(null);
     setShowManualInput(false);
 
     try {
-      const result = await analyzeMeal(imageBase64, userData.geminiKey);
+      if (!firebaseUser) {
+        alert("Error", "You must be logged in to analyze meals.");
+        return;
+      }
+
+      const result = await analyzeMealCloud(
+        imageBase64,
+        CLOUD_FUNCTIONS_HOST,
+        await firebaseUser.getIdToken()
+      );
 
       if (result.error) {
         alert("AI Analysis Error", result.error);
@@ -223,7 +228,8 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       }
 
       result.totals.total_weight_grams = result.food_items.reduce(
-        (total: number, item: any) => total + (item.weight_grams || 0),
+        (total: number, item: any) =>
+          total + (item.estimated_weight_grams || 0),
         0
       );
 
