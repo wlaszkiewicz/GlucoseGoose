@@ -4,8 +4,11 @@ import {
   deleteUser,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import { doc, setDoc } from "firebase/firestore";
-import { collection, query, where, getDocs } from "firebase/firestore";
+import { deleteDoc, doc, setDoc } from "firebase/firestore";
+import { getEmailFromUsername } from "../utils/cloud_functions";
+import Constants from "expo-constants";
+
+const CLOUD_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
 export async function registerUser(
   email: string,
@@ -25,11 +28,19 @@ export async function registerUser(
       ...(extra || {}),
     });
 
+    await setDoc(doc(db, "public_users", user.uid), {
+      username_lower: extra.username.toLowerCase(),
+    });
+
     return { success: true, user };
   } catch (error: any) {
     console.log("Registration error:", error);
 
     if (auth.currentUser) {
+      await deleteDoc(doc(db, "users", auth.currentUser.uid)).catch(() => {});
+      await deleteDoc(doc(db, "public_users", auth.currentUser.uid)).catch(
+        () => {}
+      );
       await deleteUser(auth.currentUser).catch(() => {});
     }
 
@@ -45,13 +56,11 @@ export async function loginWithEmailOrUsername(
     let email = identifier;
 
     if (!identifier.includes("@")) {
-      const q = query(
-        collection(db, "users"),
-        where("username", "==", identifier)
-      );
-      const snapshot = await getDocs(q);
+      email = await getEmailFromUsername(CLOUD_HOST, identifier);
 
-      if (snapshot.empty) {
+      console.log("Fetched email for username:", email);
+
+      if (!email) {
         return {
           success: false,
           error: {
@@ -60,8 +69,6 @@ export async function loginWithEmailOrUsername(
           },
         };
       }
-
-      email = snapshot.docs[0].data().email;
     }
 
     const result = await signInWithEmailAndPassword(auth, email, password);
@@ -102,6 +109,6 @@ export function getFriendlyFirebaseError(code: string): string {
     case "auth/too-many-requests":
       return "Too many attempts. Please wait a moment and try again.";
     default:
-      return "Something went wrong. Please try again.";
+      return `Something went wrong. Please try again: ${code}`;
   }
 }

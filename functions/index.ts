@@ -5,16 +5,60 @@ import { onSchedule } from "firebase-functions/scheduler";
 import { defineSecret } from "firebase-functions/params";
 import { getAuth } from "firebase-admin/auth";
 import { initializeApp, applicationDefault } from "firebase-admin/app";
+import { getFirestore } from "firebase-admin/firestore";
 
 initializeApp({
   credential: applicationDefault(),
 });
+
+const db = getFirestore();
+const auth = getAuth();
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Methods": "GET, OPTIONS, POST, PUT, DELETE",
   "Access-Control-Allow-Headers": "Content-Type, Authorization",
 };
+
+export const getEmailFromUsername = functions.https.onRequest(
+  async (req, res) => {
+    if (req.method === "OPTIONS") {
+      res.set(corsHeaders);
+      res.status(204).send("");
+      return;
+    }
+
+    res.set(corsHeaders);
+
+    const username = (req.query.username as string)?.trim()?.toLowerCase();
+    if (!username) {
+      res.status(400).json({ error: "Missing 'username'" });
+      return;
+    }
+
+    try {
+      const snap = await db
+        .collection("public_users")
+        .where("username_lower", "==", username)
+        .limit(1)
+        .get();
+
+      if (snap.empty) {
+        res.status(404).json({ error: "User not found" });
+        return;
+      }
+
+      const uid = snap.docs[0].id;
+
+      const userRecord = await auth.getUser(uid);
+
+      res.json({ email: userRecord.email });
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+      console.error("Error fetching email from username:", err);
+    }
+  }
+);
 
 async function verifyUser(req: Request, res: Response) {
   const authHeader = req.headers.authorization || "";
@@ -235,6 +279,146 @@ export const deleteTreatment = functions.https.onRequest(
 
       res.json({ success: true, id });
     } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
+const geminiAPIKey = defineSecret("GEMINI_API_KEY");
+
+export const analyzeMeal = functions.https.onRequest(
+  async (req: Request, res: Response) => {
+    if (req.method === "OPTIONS") {
+      res.set(corsHeaders);
+      res.status(204).send("");
+      return;
+    }
+
+    res.set(corsHeaders);
+
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const { imageBase64 } = req.body;
+    if (!imageBase64) {
+      res.status(400).json({ error: "Missing 'imageBase64' in body" });
+      return;
+    }
+    const prompt = `
+You are an expert nutrition AI. A user will send a photograph of a meal.
+You MUST estimate the nutritional composition based on what you visually see.
+
+Return ONLY valid JSON. No extra text.
+
+SCHEMA:
+{
+  "food_items": [
+    {
+      "name": "",
+      "estimated_weight_grams": 0,
+      "calories": 0,
+      "protein_grams": 0,
+      "carbs_grams": 0,
+      "fat_grams": 0,
+      "fiber_grams": 0
+    }
+  ],
+  "totals": {
+    "calories": 0,
+    "protein_grams": 0,
+    "carbs_grams": 0,
+    "fat_grams": 0,
+    "fiber_grams": 0
+  },
+  "confidence": ""
+}
+
+RULES:
+- "confidence" should be: low, medium, or high.
+- If unsure, be conservative and use "low".
+- Weight must be numeric.
+- If food is unclear, still name something reasonable.
+- DO NOT include text outside of the JSON.
+`;
+
+    const body = {
+      content: [
+        {
+          type: "text",
+          text: prompt,
+        },
+        {
+          type: "image",
+          image: {
+            mime_type: "image/jpeg",
+            data: imageBase64,
+          },
+        },
+      ],
+    };
+
+    try {
+      const body = {
+        contents: [
+          {
+            parts: [
+              {
+                inline_data: {
+                  mime_type: "image/jpeg",
+                  data: imageBase64,
+                },
+              },
+              {
+                text: prompt,
+              },
+            ],
+          },
+        ],
+      };
+
+      const response = await fetch(
+        "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "x-goog-api-key": geminiAPIKey.value(),
+          },
+          body: JSON.stringify(body),
+        }
+      );
+
+      if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`AI API failed: ${response.status} ${errText}`);
+      }
+
+      const data = await response.json();
+      const outputText =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
+
+      console.log("AI Output Text:", outputText);
+      console.log("Full AI Response:", JSON.stringify(data, null, 2));
+
+      if (!outputText) {
+        throw new Error("AI returned empty response");
+      }
+
+      let parsed;
+      try {
+        parsed = JSON.parse(
+          outputText
+            .replace(/^```json/, "")
+            .replace(/```$/, "")
+            .trim()
+        );
+      } catch {
+        parsed = { error: "AI returned invalid JSON", raw: outputText };
+      }
+
+      res.json(parsed);
+    } catch (err: any) {
+      console.error("Error in analyzeMeal:", err);
       res.status(500).json({ error: err.message });
     }
   }

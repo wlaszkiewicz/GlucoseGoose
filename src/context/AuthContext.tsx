@@ -15,7 +15,6 @@ export interface UserData {
   username?: string;
   nightscoutUrl?: string;
   nightscoutSecret?: string;
-  geminiKey?: string;
   createdAt: number;
   role: string;
   [key: string]: any;
