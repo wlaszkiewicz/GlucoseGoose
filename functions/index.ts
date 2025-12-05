@@ -430,9 +430,16 @@ const nightscoutUrl = defineSecret("NIGHTSCOUT_URL");
 let lastBG = 110;
 
 function simulateBG(t: number) {
+  const amplitude = 62.5;
+  const center = 127.5;
+  const frequency = 5; // cycles per day
+
   return Math.round(
-    110 +
-      Math.sin(((t % (86400 * 1000)) / (86400 * 1000)) * 2 * Math.PI) * 20 +
+    center +
+      Math.sin(
+        ((t % (86400 * 1000)) / (86400 * 1000)) * 2 * Math.PI * frequency
+      ) *
+        amplitude +
       (Math.random() - 0.5) * 10
   );
 }

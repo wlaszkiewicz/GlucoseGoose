@@ -15,7 +15,6 @@ import {
   updateTreatment,
   deleteTreatment,
 } from "../../utils/cloud_functions";
-import { analyzeMeal } from "../../utils/cloud_functions";
 import Constants from "expo-constants";
 import { useAuth } from "../../context/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
@@ -24,52 +23,22 @@ import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors_vintage";
 import { VintageStylesFood } from "../../themes/vintage/styles_vintage_food";
 import { analyzeMealCloud } from "../../utils/cloud_functions";
-
-type MealType =
-  | "Breakfast"
-  | "Morning Snack"
-  | "Lunch"
-  | "Afternoon Snack"
-  | "Dinner"
-  | "Evening Snack";
-
-const mealTypes: MealType[] = [
-  "Breakfast",
-  "Morning Snack",
-  "Lunch",
-  "Afternoon Snack",
-  "Dinner",
-  "Evening Snack",
-];
-
-interface NutritionInfo {
-  calories: number;
-  carbs: number;
-  protein: number;
-  fat: number;
-  fiber: number;
-}
-
-interface AIAnalysisResult {
-  food_items: Array<{
-    name: string;
-    estimated_weight_grams: number;
-    calories: number;
-    protein_grams: number;
-    carbs_grams: number;
-    fat_grams: number;
-    fiber_grams: number;
-  }>;
-  totals: {
-    calories: number;
-    protein_grams: number;
-    carbs_grams: number;
-    fat_grams: number;
-    fiber_grams: number;
-    total_weight_grams: number;
-  };
-  confidence: "low" | "medium" | "high";
-}
+import {
+  getMealTypeFromEvent,
+  getTodaysMealsNutrition,
+  extractNutritionFromMeal,
+  getMealIcon,
+  getMealColor,
+  getConfidenceColor,
+  getConfidenceText,
+} from "../../utils/meals";
+import { pickImage, takePhoto } from "../../utils/photo_upload";
+import {
+  AIAnalysisResult,
+  MealType,
+  NutritionInfo,
+  mealTypes,
+} from "../../types/events";
 
 interface FoodSectionProps {
   selectedDate: Date;
@@ -106,66 +75,17 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     );
   }, [nightscoutMeals, selectedDate]);
 
-  const extractNutritionFromMeal = (
-    meal: NightscoutTreatment
-  ): NutritionInfo => {
-    return {
-      calories: meal.calories || 0,
-      carbs: meal.carbs || 0,
-      protein: meal.protein || 0,
-      fat: meal.fat || 0,
-      fiber: meal.fiber || 0,
-    };
-  };
-
-  const getMealTypeFromEvent = (eventType: string): MealType => {
-    const type = eventType.replace("Meal: ", "");
-    return mealTypes.includes(type as MealType)
-      ? (type as MealType)
-      : "Breakfast";
-  };
-
   const totalNutrition = useMemo(() => {
-    return todayMeals.reduce(
-      (total: NutritionInfo, meal: any) => {
-        const nutrition = extractNutritionFromMeal(meal);
-        total.calories = parseFloat(
-          (total.calories + nutrition.calories).toFixed(2)
-        );
-        total.carbs = parseFloat((total.carbs + nutrition.carbs).toFixed(2));
-        total.protein = parseFloat(
-          (total.protein + nutrition.protein).toFixed(2)
-        );
-        total.fat = parseFloat((total.fat + nutrition.fat).toFixed(2));
-        total.fiber = parseFloat((total.fiber + nutrition.fiber).toFixed(2));
-        return total;
-      },
-      {
-        calories: 0,
-        carbs: 0,
-        protein: 0,
-        fat: 0,
-        fiber: 0,
-      }
-    );
+    return getTodaysMealsNutrition(todayMeals);
   }, [todayMeals]);
 
   const handleTakePhoto = async () => {
     try {
-      const { status } = await ImagePicker.requestCameraPermissionsAsync();
-      if (status !== "granted") {
-        alert("Error", "Camera permission is required to take photos");
+      const result = await takePhoto();
+
+      if (!result) {
         return;
       }
-
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-        base64: true,
-      });
-
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
         setMealDescription("Meal photo uploaded");
@@ -179,20 +99,10 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
   const handlePickImage = async () => {
     try {
-      const { status } =
-        await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (status !== "granted") {
-        alert("Error", "Photo library permission is required");
+      const result = await pickImage();
+      if (!result) {
         return;
       }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
-        allowsEditing: true,
-        aspect: [4, 3],
-        quality: 0.8,
-        base64: true,
-      });
 
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
@@ -441,56 +351,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         "Error",
         `Failed to save meal: ${error?.message || "Unknown error"}`
       );
-    }
-  };
-
-  const getMealIcon = (mealType: MealType) => {
-    const icons: Record<MealType, string> = {
-      Breakfast: "cafe",
-      "Morning Snack": "nutrition",
-      Lunch: "fast-food",
-      "Afternoon Snack": "ice-cream",
-      Dinner: "restaurant",
-      "Evening Snack": "moon",
-    };
-    return icons[mealType];
-  };
-
-  const getMealColor = (mealType: MealType): string => {
-    const colors: Record<MealType, string> = {
-      Breakfast: VintageColors.iconPink,
-      "Morning Snack": VintageColors.iconYellow,
-      Lunch: VintageColors.iconBlue,
-      "Afternoon Snack": VintageColors.iconPurple,
-      Dinner: VintageColors.iconGreen,
-      "Evening Snack": VintageColors.iconPink,
-    };
-    return colors[mealType];
-  };
-
-  const getConfidenceColor = (confidence: string) => {
-    switch (confidence) {
-      case "high":
-        return "#4CAF50";
-      case "medium":
-        return "#FF9800";
-      case "low":
-        return "#FF6B6B";
-      default:
-        return VintageColors.secondaryText;
-    }
-  };
-
-  const getConfidenceText = (confidence: string) => {
-    switch (confidence) {
-      case "high":
-        return "High Confidence";
-      case "medium":
-        return "Medium Confidence";
-      case "low":
-        return "Low Confidence";
-      default:
-        return "Unknown Confidence";
     }
   };
 
