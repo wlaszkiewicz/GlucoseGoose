@@ -2,55 +2,13 @@ import { StyleSheet } from "react-native";
 import { VintageColors } from "./colors_vintage";
 
 export const VintageStylesHome = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: VintageColors.lightBackground,
-  },
-
-  scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 40,
-  },
-
-  // Header Section - Matching Journal exactly
-  headerSection: {
-    marginBottom: 24,
-    paddingTop: 40, // Added for proper spacing
-  },
-
-  headerDecoration: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    width: "100%",
-    paddingHorizontal: 20,
-  },
-
-  headerLine: {
-    height: 1,
-    backgroundColor: VintageColors.headerLine,
-    flex: 1,
-    maxWidth: 60,
-  },
-
-  headerTitle: {
-    fontSize: 28,
-    fontWeight: "300", // Changed to 300 to match original
-    color: VintageColors.headerTitle,
-    marginHorizontal: 15,
-    textAlign: "center",
-    letterSpacing: 2,
-  },
-
-  // Current Glucose Card
   currentGlucoseCard: {
     backgroundColor: VintageColors.cardBackground,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
     padding: 16,
-    marginHorizontal: 20,
-    marginBottom: 15,
+    marginBottom: 10,
     shadowColor: VintageColors.lightBorder,
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.05,
@@ -61,7 +19,7 @@ export const VintageStylesHome = StyleSheet.create({
   currentGlucoseHeader: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 12,
+    marginBottom: 16,
   },
 
   glucoseStatusIcon: {
@@ -79,26 +37,40 @@ export const VintageStylesHome = StyleSheet.create({
 
   currentGlucoseTitle: {
     fontSize: 16,
-    fontWeight: "700", // Changed back to 700 to match original
+    fontWeight: "700",
     color: VintageColors.primaryText,
   },
 
+  // New layout with three columns
   currentGlucoseContent: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
+    alignItems: "flex-start",
   },
 
+  // Glucose Column
   glucoseValueContainer: {
     flex: 1,
+    alignItems: "flex-start",
+  },
+
+  glucoseRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 2,
+  },
+
+  arrowContainer: {
+    marginTop: 4,
   },
 
   glucoseValueLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: VintageColors.secondaryText,
-    marginBottom: 2,
+    marginBottom: 4,
     textTransform: "uppercase",
-    fontWeight: "300",
+    fontWeight: "500",
+    letterSpacing: 0.5,
   },
 
   glucoseValue: {
@@ -113,45 +85,128 @@ export const VintageStylesHome = StyleSheet.create({
     marginTop: 2,
   },
 
+  // Delta Column
+  glucoseDeltaContainer: {
+    flex: 1,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  glucoseDelta: {
+    fontSize: 24,
+    fontWeight: "700",
+    marginBottom: 2,
+  },
+
+  glucoseDeltaLabel: {
+    fontSize: 12,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+  },
+
+  // Time Column
   glucoseTimeContainer: {
+    flex: 1,
     alignItems: "flex-end",
   },
 
   glucoseTimeLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: VintageColors.secondaryText,
-    marginBottom: 2,
+    marginBottom: 4,
     textTransform: "uppercase",
-    fontWeight: "300",
+    fontWeight: "500",
+    letterSpacing: 0.5,
   },
 
   glucoseTime: {
-    fontSize: 20,
+    fontSize: 24,
     fontWeight: "600",
-    color: VintageColors.primaryText,
+  },
+
+  glucoseMinutes: {
+    // borderColor: VintageColors.accent,
+    // borderWidth: 1,
+    // borderRadius: 4,
+    // paddingHorizontal: 6,
+    // paddingVertical: 2,
+    fontSize: 10,
+    fontWeight: "500",
+    marginTop: 4,
   },
 
   glucoseDate: {
+    fontSize: 10,
+    color: VintageColors.secondaryText,
+    fontWeight: "500",
+    marginTop: 4,
+  },
+
+  glucoseValueRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+
+  glucoseTrendContainer: {
+    marginLeft: 12,
+    alignItems: "center",
+  },
+
+  glucoseDeltaText: {
+    fontSize: 11,
+    fontWeight: "700",
+    color: VintageColors.primaryText,
+    marginTop: 2,
+  },
+
+  glucoseTimeRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+  },
+
+  glucoseTimeValue: {
+    fontSize: 20,
+    fontWeight: "600",
+    marginRight: 8,
+  },
+
+  glucoseTimeAgoBadge: {
+    backgroundColor: VintageColors.lightBackground,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
+  },
+
+  glucoseTimeAgoText: {
+    fontSize: 9,
+    fontWeight: "600",
+  },
+
+  glucoseDateText: {
     fontSize: 10,
     color: VintageColors.secondaryText,
     marginTop: 4,
     fontWeight: "300",
   },
 
-  // Time Filter Buttons - Updated to match Journal styling
   timeFilterContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginVertical: 8, // Changed from marginBottom to marginVertical
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginVertical: 8,
     marginHorizontal: 20,
+    paddingVertical: 8,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
   },
 
   timeFilterButton: {
-    paddingHorizontal: 20,
     paddingVertical: 10,
-    marginHorizontal: 5, // Changed from 6 to 5
+    marginHorizontal: 5,
     backgroundColor: "#FFFFFF",
-    borderRadius: 25,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#D2B48C",
     shadowColor: "#000",
@@ -164,8 +219,8 @@ export const VintageStylesHome = StyleSheet.create({
   },
 
   timeFilterButtonSelected: {
-    backgroundColor: VintageColors.primaryText,
-    borderColor: VintageColors.primaryText,
+    backgroundColor: VintageColors.accent,
+    borderColor: VintageColors.accentDark,
   },
 
   timeFilterButtonDisabled: {
@@ -174,7 +229,7 @@ export const VintageStylesHome = StyleSheet.create({
 
   timeFilterText: {
     fontWeight: "600",
-    fontSize: 13, // Changed from 14 to 13
+    fontSize: 14,
     color: VintageColors.primaryText,
   },
 
@@ -182,10 +237,23 @@ export const VintageStylesHome = StyleSheet.create({
     color: "white",
   },
 
+  timeFilterLabelContainer: {
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 4,
+  },
+
+  timeFilterLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+    letterSpacing: 0.5,
+  },
+
   // Chart Section
   chartContainer: {
     marginTop: 15,
-    paddingHorizontal: 20,
     marginBottom: 24,
   },
 
@@ -204,30 +272,6 @@ export const VintageStylesHome = StyleSheet.create({
     textAlign: "center",
   },
 
-  // Added event count badge
-  eventCountBadge: {
-    position: "absolute",
-    right: 0,
-    backgroundColor: "rgba(119, 70, 34, 0.1)",
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-  },
-
-  eventCountText: {
-    fontSize: 11,
-    color: VintageColors.primaryText,
-    fontWeight: "600",
-  },
-
-  chartScrollContainer: {
-    height: 280,
-  },
-
-  chartContent: {
-    paddingRight: 20,
-  },
-
   chartSvgContainer: {
     backgroundColor: "#FFFFFF",
     borderRadius: 12,
@@ -238,104 +282,6 @@ export const VintageStylesHome = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 4,
     elevation: 2,
-  },
-
-  // Events Section
-  eventsContainer: {
-    paddingHorizontal: 20,
-    paddingBottom: 30,
-  },
-
-  eventsHeader: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-
-  eventsTitle: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: VintageColors.primaryText,
-  },
-
-  eventCard: {
-    padding: 16,
-    marginBottom: 12,
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 6,
-    elevation: 2,
-  },
-
-  eventContent: {
-    flexDirection: "row",
-    alignItems: "flex-start",
-  },
-
-  eventIconContainer: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    marginRight: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-
-  eventInfo: {
-    flex: 1,
-  },
-
-  eventHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-    marginBottom: 6,
-  },
-
-  eventName: {
-    fontWeight: "500",
-    color: VintageColors.primaryText,
-    fontSize: 16,
-    flex: 1,
-  },
-
-  eventTime: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    marginLeft: 8,
-    fontWeight: "300",
-  },
-
-  eventTypeBadge: {
-    backgroundColor: "rgba(139, 115, 85, 0.1)",
-    paddingHorizontal: 8,
-    paddingVertical: 2,
-    borderRadius: 4,
-    alignSelf: "flex-start",
-    marginBottom: 6,
-  },
-
-  eventTypeText: {
-    fontSize: 10,
-    fontWeight: "600",
-  },
-
-  eventDetails: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    marginTop: 2,
-    lineHeight: 20,
-    fontWeight: "400",
   },
 
   // Error Display

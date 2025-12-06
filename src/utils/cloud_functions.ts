@@ -4,7 +4,21 @@ import {
 } from "../types/nightscout";
 
 import { GoogleGenAI } from "@google/genai";
-import { getAuth } from "firebase/auth";
+
+export async function getEmailFromUsername(
+  cloudHost: string,
+  username: string
+) {
+  const res = await fetch(
+    `https://${cloudHost}/getEmailFromUsername?username=${username.toLowerCase()}`
+  );
+
+  if (!res.ok) throw new Error("Failed to get email from username");
+  console.log("getEmailFromUsername response:", res);
+  const data = await res.json();
+  console.log("getEmailFromUsername response data:", data);
+  return data.email as string;
+}
 
 export async function fetchBundle(
   cloudHost: string,
@@ -161,11 +175,27 @@ RULES:
     .replace(/```$/, "")
     .trim();
 
-  let parsed;
-
   try {
     return JSON.parse(output);
   } catch {
     return { error: "AI returned invalid JSON", raw: output };
   }
+}
+
+export async function analyzeMealCloud(
+  imageBase64: string,
+  cloudHost: string,
+  token: string
+) {
+  const res = await fetch(`https://${cloudHost}/analyzeMeal`, {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ imageBase64 }),
+  });
+
+  if (!res.ok) throw new Error("Failed to analyze meal: " + res.statusText);
+  return res.json();
 }

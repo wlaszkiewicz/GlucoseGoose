@@ -4,9 +4,18 @@ import { VintageColors } from "./colors_vintage";
 export const VintageStyles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: VintageColors.background,
-    paddingHorizontal: 24,
-    paddingTop: 60,
+    backgroundColor: VintageColors.lightBackground,
+    paddingTop: 40,
+  },
+
+  scrollContent: {
+    flexGrow: 1,
+    paddingHorizontal: 16,
+  },
+
+  headerSection: {
+    marginBottom: 24,
+    paddingTop: 8,
   },
 
   header: {
@@ -18,7 +27,6 @@ export const VintageStyles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 8,
   },
 
   headerLine: {
@@ -36,23 +44,9 @@ export const VintageStyles = StyleSheet.create({
     fontFamily: "System",
   },
 
-  headerSubtitle: {
-    fontSize: 14,
-    color: VintageColors.secondaryText,
-    fontWeight: "400",
-    letterSpacing: 0.5,
-    marginTop: 4,
-  },
-
   profileSection: {
     alignItems: "center",
     marginBottom: 35,
-    marginTop: 10,
-  },
-
-  avatarContainer: {
-    position: "relative",
-    alignItems: "center",
   },
 
   gooseAvatarCircle: {

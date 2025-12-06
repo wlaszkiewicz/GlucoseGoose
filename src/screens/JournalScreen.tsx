@@ -1,7 +1,6 @@
 import React, { useState } from "react";
 import { ScrollView, View, Text, TouchableOpacity } from "react-native";
 import { getPlatformStyles } from "../themes/styles";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import FoodSection from "../components/Journal/FoodSection";
 import SportsSection from "../components/Journal/SportsSection";
@@ -10,6 +9,7 @@ import SimpleCalendar from "../components/Common/SimpleCalendar";
 import { VintageColors } from "../themes/vintage/colors_vintage";
 import { VintageStyles } from "../themes/vintage/styles_vintage";
 import { VintageStylesJournal } from "../themes/vintage/styles_vintage_journal";
+import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
 
 type Category = "Food" | "Sports" | "Other";
 
@@ -76,15 +76,13 @@ const JournalScreen = () => {
   };
 
   return (
-    <SafeAreaView
-      style={[platformStyles.container, VintageStylesJournal.container]}
-    >
+    <View style={VintageStyles.container}>
       <ScrollView
-        contentContainerStyle={VintageStylesJournal.scrollContent}
+        contentContainerStyle={VintageStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
         {/* Header Section*/}
-        <View style={VintageStylesJournal.headerSection}>
+        <View style={VintageStyles.headerSection}>
           <View style={VintageStyles.header}>
             <View style={VintageStyles.headerDecoration}>
               <View style={VintageStyles.headerLine} />
@@ -94,7 +92,7 @@ const JournalScreen = () => {
           </View>
 
           {/* Date Selector */}
-          <View style={VintageStylesJournal.dateSection}>
+          <View>
             <TouchableOpacity
               style={VintageStylesJournal.dateSelector}
               onPress={() => setShowCalendar(true)}
@@ -187,7 +185,7 @@ const JournalScreen = () => {
         onDateSelect={handleDateSelect}
         selectedDate={selectedDate}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 export default JournalScreen;
