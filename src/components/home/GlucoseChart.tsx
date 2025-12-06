@@ -3,16 +3,14 @@ import {
   View,
   Text,
   Dimensions,
-  Animated,
   TouchableOpacity,
+  Platform,
+  ScrollView,
 } from "react-native";
-import { ScrollView } from "react-native-gesture-handler";
-import Svg, { Line, Circle, Text as SvgText } from "react-native-svg";
+import Svg, { Line, Circle, Text as SvgText, Rect } from "react-native-svg";
+import { Feather, Ionicons } from "@expo/vector-icons";
 import { VintageStylesHome } from "../../themes/vintage/styles_vintage_home";
 import { VintageColors } from "../../themes/vintage/colors_vintage";
-import { Ionicons } from "@expo/vector-icons";
-import { Feather } from "@expo/vector-icons";
-import { Platform } from "react-native";
 import {
   getGlucoseColor,
   getEventColor,
@@ -29,6 +27,13 @@ interface GlucoseChartProps {
   onEventPress: (event: any) => void;
 }
 
+const GLUCOSE_RANGES = {
+  LOW: 80,
+  HIGH: 180,
+  NORMAL_LOW: 80,
+  NORMAL_HIGH: 180,
+};
+
 export const GlucoseChart: React.FC<GlucoseChartProps> = ({
   entries,
   events,
@@ -36,167 +41,266 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
   onEventPress,
 }) => {
   const chartScrollRef = useRef<ScrollView>(null);
-  const scrollX = useRef(new Animated.Value(0)).current;
   const { width: screenWidth } = Dimensions.get("window");
 
-  // Calculate chart dimensions and data
-  const glucoseRange = useMemo(() => calculateGlucoseRange(entries), [entries]);
+  // DYNAMIC SPACING: Different spacing for different time filters
+  const getSpacingForTimeFilter = () => {
+    switch (timeFilter) {
+      case "2h":
+        return Platform.select({ ios: 25, default: 40 });
+      case "12h":
+        return Platform.select({ ios: 20, default: 30 });
+      case "24h":
+        return Platform.select({ ios: 15, default: 25 });
+      default:
+        return Platform.select({ ios: 20, default: 35 });
+    }
+  };
 
+  const displayEntries = useMemo(() => {
+    if (Platform.OS !== "ios") return entries;
+
+    const spacing = getSpacingForTimeFilter();
+    const maxPoints = Math.floor(4096 / spacing);
+
+    if (entries.length > maxPoints) {
+      const reductionFactor = Math.ceil(entries.length / maxPoints);
+      const reduced: any[] = [];
+
+      reduced.push(entries[0]);
+
+      for (let i = reductionFactor; i < entries.length; i += reductionFactor) {
+        if (i < entries.length - 1) {
+          reduced.push(entries[i]);
+        }
+      }
+
+      reduced.push(entries[entries.length - 1]);
+
+      return reduced;
+    }
+
+    return entries;
+  }, [entries, timeFilter]);
+
+  const glucoseRange = useMemo(
+    () => calculateGlucoseRange(displayEntries),
+    [displayEntries]
+  );
+
+  // FIXED: Add more padding for the last point
   const chartWidth = useMemo(() => {
-    if (entries.length === 0) return screenWidth * 1.5;
+    if (displayEntries.length === 0) return screenWidth * 1.5;
 
-    const spacing = 35;
-    const widthFromEntries = entries.length * spacing + 100;
+    const spacing = getSpacingForTimeFilter();
+    // Add 80px on the right instead of 30px for better last point visibility
+    const calculatedWidth = 30 + displayEntries.length * spacing + 40; // Added 80px right padding
     const minWidth = screenWidth * 1.5;
 
-    return Math.max(minWidth, widthFromEntries);
-  }, [entries, screenWidth]);
+    const maxSafeWidth = Platform.select({
+      ios: 4096,
+      default: 10000,
+    });
+
+    return Math.min(Math.max(minWidth, calculatedWidth), maxSafeWidth);
+  }, [displayEntries, screenWidth, timeFilter]);
+
+  const pointSpacing = useMemo(() => {
+    if (displayEntries.length <= 1) return getSpacingForTimeFilter();
+    return (chartWidth - 30 - 40) / displayEntries.length;
+  }, [chartWidth, displayEntries.length, timeFilter]);
 
   const eventPositions = useMemo(() => {
-    if (entries.length === 0 || events.length === 0) return [];
+    if (displayEntries.length === 0 || events.length === 0) return [];
 
     const positions = [];
-    const spacing = 35;
 
     for (const event of events) {
       const eventTime = new Date(event.created_at).getTime();
 
       let closestIndex = 0;
-      let minDiff = Math.abs(entries[0].date - eventTime);
+      let minDiff = Math.abs(displayEntries[0].date - eventTime);
 
-      for (let i = 1; i < entries.length; i++) {
-        const diff = Math.abs(entries[i].date - eventTime);
+      for (let i = 1; i < displayEntries.length; i++) {
+        const diff = Math.abs(displayEntries[i].date - eventTime);
         if (diff < minDiff) {
           minDiff = diff;
           closestIndex = i;
         }
       }
 
-      const xPosition = 60 + closestIndex * spacing;
-      const yPosition = 90;
+      const svgX = 30 + closestIndex * pointSpacing;
 
       positions.push({
         ...event,
-        x: xPosition,
-        y: yPosition,
+        svgX,
         chartIndex: closestIndex,
+        displayTime: formatTimeShort(new Date(event.created_at)),
+        iconX: svgX - 16,
       });
     }
 
     return positions;
-  }, [entries, events]);
+  }, [displayEntries, events, pointSpacing]);
 
   const yAxisLabels = useMemo(() => {
-    const range = glucoseRange.max - glucoseRange.min;
-    const step = Math.max(20, Math.round(range / 5));
-    const labels = [];
+    const keyValues = [40, GLUCOSE_RANGES.LOW, 130, GLUCOSE_RANGES.HIGH, 250];
 
-    for (let val = glucoseRange.min; val <= glucoseRange.max; val += step) {
-      labels.push(Math.round(val));
+    const labels = new Set<number>();
+
+    keyValues.forEach((value) => {
+      const paddedMin = Math.min(glucoseRange.min, GLUCOSE_RANGES.LOW - 20);
+      const paddedMax = Math.max(glucoseRange.max, GLUCOSE_RANGES.HIGH + 20);
+
+      if (value >= paddedMin && value <= paddedMax) {
+        labels.add(value);
+      }
+    });
+
+    const range = glucoseRange.max - glucoseRange.min;
+    if (labels.size < 3 && range > 0) {
+      const step = Math.max(10, Math.round(range / 4));
+
+      let start = Math.floor(glucoseRange.min / 10) * 10;
+      start = Math.max(40, start);
+
+      let current = start;
+      while (current <= glucoseRange.max + step && labels.size < 5) {
+        labels.add(current);
+        current += step;
+      }
     }
 
-    return labels;
+    return Array.from(labels)
+      .sort((a, b) => a - b)
+      .filter(
+        (value, index, array) => index === 0 || value - array[index - 1] >= 15
+      );
   }, [glucoseRange]);
 
-  // Scroll to end when data changes
+  const referenceLines = useMemo(() => {
+    const lines = [];
+
+    if (
+      GLUCOSE_RANGES.LOW >= glucoseRange.min - 20 &&
+      GLUCOSE_RANGES.LOW <= glucoseRange.max + 20
+    ) {
+      lines.push({
+        value: GLUCOSE_RANGES.LOW,
+        color: "#FF6B6B",
+        label: `Low`,
+      });
+    }
+
+    if (
+      GLUCOSE_RANGES.HIGH >= glucoseRange.min - 20 &&
+      GLUCOSE_RANGES.HIGH <= glucoseRange.max + 20
+    ) {
+      lines.push({
+        value: GLUCOSE_RANGES.HIGH,
+        color: "#4ECDC4",
+        label: `High`,
+      });
+    }
+
+    const targetValue = Math.round(
+      (GLUCOSE_RANGES.NORMAL_LOW + GLUCOSE_RANGES.NORMAL_HIGH) / 2
+    );
+    if (
+      targetValue >= glucoseRange.min - 20 &&
+      targetValue <= glucoseRange.max + 20
+    ) {
+      lines.push({
+        value: targetValue,
+        color: "#81C784",
+        label: `Target`,
+      });
+    }
+
+    return lines;
+  }, [glucoseRange]);
+
+  const calculateY = (glucose: number) => {
+    const range = glucoseRange.max - glucoseRange.min;
+    if (range === 0) return 160;
+
+    const normalized = (glucose - glucoseRange.min) / range;
+    return 40 + (1 - normalized) * 240;
+  };
+
+  const getEventIcon = (event: any) => {
+    if (event.type === "meal") {
+      return getMealIcon(event.eventType);
+    } else if (event.type === "activity") {
+      return getActivityIcon(event.eventType);
+    }
+    return "medical";
+  };
+
+  // Scroll to end
   useEffect(() => {
-    if (entries.length > 0 && chartScrollRef.current) {
+    if (displayEntries.length > 0 && chartScrollRef.current) {
       setTimeout(() => {
         chartScrollRef.current?.scrollToEnd({ animated: false });
       }, 100);
     }
-  }, [entries.length, timeFilter]);
+  }, [displayEntries.length, timeFilter]);
 
-  const renderEventIcon = (event: any, adjustedX: number) => {
-    const iconName =
-      event.type === "meal"
-        ? getMealIcon(event.eventType)
-        : event.type === "activity"
-        ? getActivityIcon(event.eventType)
-        : "medical";
-
+  if (displayEntries.length === 0) {
     return (
-      <Animated.View
-        key={`event-button-${event._id}`}
-        style={{
-          position: "absolute",
-          left: adjustedX + 50,
-          top: 75,
-          width: 32,
-          height: 32,
-          justifyContent: "center",
-          alignItems: "center",
-          zIndex: 1000,
-          backgroundColor: getEventColor(event.type, event.eventType),
-          borderRadius: 16,
-          shadowColor: "#000",
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.3,
-          shadowRadius: 3,
-          elevation: 5,
-          borderWidth: 2,
-          borderColor: "#FFFFFF",
-          transform: [
-            {
-              translateX: scrollX.interpolate({
-                inputRange: [0, chartWidth],
-                outputRange: [0, -chartWidth],
-                extrapolate: "clamp",
-              }),
-            },
-          ],
-          overflow: "visible",
-        }}
-      >
-        <TouchableOpacity
-          onPress={() => onEventPress(event)}
-          style={{
-            width: "100%",
-            height: "100%",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-          activeOpacity={0.7}
+      <View style={VintageStylesHome.chartContainer}>
+        <Text
+          style={{ textAlign: "center", color: VintageColors.secondaryText }}
         >
-          <Ionicons name={iconName as any} size={18} color="white" />
-        </TouchableOpacity>
-      </Animated.View>
+          No glucose data available for the selected time range.
+        </Text>
+      </View>
     );
-  };
+  }
 
   return (
-    <View style={VintageStylesHome.chartContainer}>
+    <View style={[VintageStylesHome.chartContainer, { marginTop: 8 }]}>
       <View style={VintageStylesHome.sectionTitle}>
-        {
-          <Feather
-            name="activity"
-            size={22}
-            color={VintageColors.primaryText}
-            style={{ marginRight: 8 }}
-          />
-        }
+        <Feather
+          name="activity"
+          size={22}
+          color={VintageColors.primaryText}
+          style={{ marginRight: 8 }}
+        />
         <Text style={VintageStylesHome.chartTitle}>Glucose Chart</Text>
+        {Platform.OS === "ios" && displayEntries.length < entries.length && (
+          <Text style={{ fontSize: 10, color: "#8B7355", marginLeft: 8 }}>
+            ({displayEntries.length} of {entries.length} points)
+          </Text>
+        )}
       </View>
 
-      <View style={{ height: 300, position: "relative" }}>
-        {/* Y-axis labels */}
+      {/* MAIN CHART CONTAINER WITH CARD BACKGROUND */}
+      <View
+        style={[
+          VintageStylesHome.chartSvgContainer,
+          {
+            height: 340,
+            position: "relative",
+            paddingLeft: 0,
+            overflow: "hidden",
+          },
+        ]}
+      >
+        {/* STATIC Y-AXIS LABELS - FIXED ON LEFT SIDE OF CARD */}
         <View
           style={{
             position: "absolute",
-            left: 0,
+            left: 10,
             top: 0,
-            bottom: 40,
-            width: 50,
-            zIndex: 50,
+            bottom: 0,
+            width: 40,
+            zIndex: 20,
             backgroundColor: "transparent",
           }}
         >
           {yAxisLabels.map((value) => {
-            const y =
-              220 -
-              ((value - glucoseRange.min) /
-                (glucoseRange.max - glucoseRange.min)) *
-                180;
+            const y = calculateY(value);
             return (
               <View
                 key={`y-label-${value}`}
@@ -204,16 +308,19 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
                   position: "absolute",
                   left: 0,
                   top: y - 10,
-                  width: 50,
-                  alignItems: "flex-end",
-                  paddingRight: 8,
+                  width: 40,
+                  alignItems: "flex-start",
                 }}
               >
                 <Text
                   style={{
                     fontSize: 11,
                     color: "#8B7355",
-                    fontWeight: "500",
+                    fontWeight: "600",
+                    backgroundColor: VintageColors.cardBackground,
+                    paddingHorizontal: 4,
+                    paddingVertical: 2,
+                    borderRadius: 3,
                   }}
                 >
                   {value}
@@ -223,150 +330,125 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
           })}
         </View>
 
-        {/* Horizontal ScrollView for the chart */}
-        <Animated.ScrollView
+        {/* STATIC Y-AXIS VERTICAL LINE */}
+        <View
+          style={{
+            position: "absolute",
+            left: 40,
+            top: 40,
+            bottom: 60,
+            width: 1.5,
+            backgroundColor: "#D2B48C",
+            zIndex: 15,
+          }}
+        />
+
+        {/* HORIZONTAL SCROLLVIEW FOR CHART */}
+        <ScrollView
           horizontal
           ref={chartScrollRef}
           showsHorizontalScrollIndicator={true}
           style={{
-            height: 280,
-            marginLeft: 50,
+            height: 340,
+            marginLeft: 40,
           }}
-          contentContainerStyle={{ paddingRight: 20 }}
-          onScroll={Animated.event(
-            [{ nativeEvent: { contentOffset: { x: scrollX } } }],
-            { useNativeDriver: true }
-          )}
+          contentContainerStyle={{
+            paddingRight: 40,
+            width: chartWidth,
+          }}
           scrollEventThrottle={16}
         >
-          <Svg
-            width={chartWidth}
-            height={260}
-            style={VintageStylesHome.chartSvgContainer}
-            viewBox={`0 0 ${chartWidth} 260`}
-          >
-            {/* Y-axis line */}
+          {/* SVG CHART */}
+          <Svg width={chartWidth} height={320}>
+            {/* CARD BACKGROUND EXTENSION */}
+            <Rect
+              x="0"
+              y="0"
+              width={chartWidth}
+              height="320"
+              fill={VintageColors.cardBackground}
+            />
+
+            {/* X-AXIS LINE */}
             <Line
-              x1="10"
-              y1="20"
-              x2="10"
-              y2="220"
+              x1="0"
+              y1="280"
+              x2={chartWidth - 30}
+              y2="280"
               stroke="#D2B48C"
               strokeWidth="1.5"
             />
 
-            {/* X-axis line */}
-            <Line
-              x1="10"
-              y1="220"
-              x2={chartWidth - 40}
-              y2="220"
-              stroke="#D2B48C"
-              strokeWidth="1.5"
-            />
+            {/* REFERENCE LINES */}
+            {referenceLines.map((line, index) => {
+              const y = calculateY(line.value);
+              return (
+                <Line
+                  key={`ref-line-${index}`}
+                  x1="0"
+                  y1={y}
+                  x2={chartWidth - 30}
+                  y2={y}
+                  stroke={line.color}
+                  strokeWidth="2"
+                  strokeDasharray="4,4"
+                  opacity={0.5}
+                />
+              );
+            })}
 
-            {/* Glucose range lines */}
-            <Line
-              x1="10"
-              y1={
-                220 -
-                ((70 - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180
-              }
-              x2={chartWidth - 40}
-              y2={
-                220 -
-                ((70 - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180
-              }
-              stroke="#FF6B6B"
-              strokeWidth="1.5"
-              strokeDasharray="4,4"
-              opacity={0.7}
-            />
-            <Line
-              x1="10"
-              y1={
-                220 -
-                ((180 - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180
-              }
-              x2={chartWidth - 40}
-              y2={
-                220 -
-                ((180 - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180
-              }
-              stroke="#4ECDC4"
-              strokeWidth="1.5"
-              strokeDasharray="4,4"
-              opacity={0.7}
-            />
-
-            {/* Glucose lines */}
-            {entries.map((entry, index) => {
+            {/* GLUCOSE LINES */}
+            {displayEntries.map((entry, index) => {
               if (index === 0) return null;
-              const prevEntry = entries[index - 1];
+              const prevEntry = displayEntries[index - 1];
 
-              const spacing = 35;
-              const x1 = 10 + (index - 1) * spacing;
-              const x2 = 10 + index * spacing;
+              const x1 = 30 + (index - 1) * pointSpacing;
+              const x2 = 30 + index * pointSpacing;
+              const y1 = calculateY(prevEntry.sgv);
+              const y2 = calculateY(entry.sgv);
 
-              const y1 =
-                220 -
-                ((prevEntry.sgv - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180;
-              const y2 =
-                220 -
-                ((entry.sgv - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180;
+              if (isNaN(y1) || isNaN(y2)) return null;
 
               return (
                 <Line
-                  key={`line-${entry.date}`}
+                  key={`line-${entry.date}-${index}`}
                   x1={x1}
-                  y1={Math.max(20, Math.min(220, y1))}
+                  y1={Math.max(40, Math.min(280, y1))}
                   x2={x2}
-                  y2={Math.max(20, Math.min(220, y2))}
+                  y2={Math.max(40, Math.min(280, y2))}
                   stroke={getGlucoseColor(entry.sgv)}
-                  strokeWidth="2.5"
+                  strokeWidth="3"
                   strokeLinecap="round"
                 />
               );
             })}
 
-            {/* Glucose points and time labels */}
-            {entries.map((entry, index) => {
-              const spacing = 35;
-              const x = 10 + index * spacing;
-              const y =
-                220 -
-                ((entry.sgv - glucoseRange.min) /
-                  (glucoseRange.max - glucoseRange.min)) *
-                  180;
+            {/* GLUCOSE POINTS */}
+            {displayEntries.map((entry, index) => {
+              const x = 30 + index * pointSpacing;
+              const y = calculateY(entry.sgv);
+
+              if (isNaN(y)) return null;
 
               return (
-                <React.Fragment key={`point-${entry.date}`}>
+                <React.Fragment key={`point-${entry.date}-${index}`}>
                   <Circle
                     cx={x}
-                    cy={Math.max(20, Math.min(220, y))}
-                    r="3.5"
+                    cy={Math.max(40, Math.min(280, y))}
+                    r="4"
                     fill={getGlucoseColor(entry.sgv)}
                     stroke="#FFFFFF"
-                    strokeWidth="1"
+                    strokeWidth="1.5"
                   />
-                  {index % 3 === 0 && (
+
+                  {/* TIME LABELS */}
+                  {index % 4 === 0 ||
+                  (index === displayEntries.length - 1 && index > 0) ? (
                     <>
                       <SvgText
                         x={x}
-                        y="240"
-                        fontSize="9"
+                        y="300"
+                        fontSize="11"
                         fill="#8B7355"
                         textAnchor="middle"
                         fontWeight="500"
@@ -375,59 +457,139 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
                       </SvgText>
                       <Line
                         x1={x}
-                        y1="220"
+                        y1="280"
                         x2={x}
-                        y2="225"
+                        y2="285"
                         stroke="#E0D6C9"
-                        strokeWidth="1"
+                        strokeWidth="2"
                       />
                     </>
-                  )}
+                  ) : null}
                 </React.Fragment>
               );
             })}
 
-            {/* Event vertical lines */}
+            {/* EVENT VERTICAL LINES */}
             {eventPositions.map((event) => {
               const eventColor = getEventColor(event.type, event.eventType);
-              const adjustedX = event.x - 50;
+              const adjustedX = 30 + event.chartIndex * pointSpacing;
 
               return (
                 <React.Fragment key={`event-line-${event._id}`}>
                   <Line
                     x1={adjustedX}
-                    y1="20"
+                    y1="40"
                     x2={adjustedX}
-                    y2="220"
+                    y2="280"
                     stroke={eventColor}
-                    strokeWidth="1"
+                    strokeWidth="2"
                     strokeDasharray="3,3"
                     opacity={0.6}
                   />
                   <SvgText
                     x={adjustedX}
-                    y="250"
-                    fontSize="8"
+                    y="315"
+                    fontSize="9"
                     fill={eventColor}
                     textAnchor="middle"
                     fontWeight="600"
                   >
-                    {formatTimeShort(new Date(event.created_at))}
+                    {event.displayTime}
                   </SvgText>
                 </React.Fragment>
               );
             })}
           </Svg>
-        </Animated.ScrollView>
 
-        {/* Event icons */}
-        {eventPositions.map((event) => {
-          const adjustedX = event.x - 50 - 16;
-          return renderEventIcon(event, adjustedX);
-        })}
+          {/* EVENT ICONS */}
+          {eventPositions.map((event) => {
+            const eventColor = getEventColor(event.type, event.eventType);
+            const iconName = getEventIcon(event);
+            const adjustedX = 30 + event.chartIndex * pointSpacing - 16;
+
+            return (
+              <View
+                key={`event-icon-container-${event._id}`}
+                style={{
+                  position: "absolute",
+                  left: adjustedX,
+                  top: 105,
+                  width: 32,
+                  height: 32,
+                  justifyContent: "center",
+                  alignItems: "center",
+                  zIndex: 100,
+                }}
+              >
+                <TouchableOpacity
+                  onPress={() => onEventPress(event)}
+                  style={{
+                    width: "100%",
+                    height: "100%",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    backgroundColor: eventColor,
+                    borderRadius: 16,
+                    shadowColor: "#000",
+                    shadowOffset: { width: 0, height: 2 },
+                    shadowOpacity: 0.3,
+                    shadowRadius: 3,
+                    elevation: 5,
+                    borderWidth: 2,
+                    borderColor: "#FFFFFF",
+                    ...Platform.select({
+                      ios: {
+                        shadowOpacity: 0.4,
+                        shadowRadius: 4,
+                      },
+                    }),
+                  }}
+                  activeOpacity={0.7}
+                >
+                  <Ionicons name={iconName as any} size={18} color="white" />
+                </TouchableOpacity>
+              </View>
+            );
+          })}
+        </ScrollView>
       </View>
 
-      {/* Chart hint for events */}
+      <View
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          marginTop: 8,
+          paddingHorizontal: 16,
+          flexWrap: "wrap",
+        }}
+      >
+        {referenceLines.map((line, index) => (
+          <View
+            key={`ref-legend-${index}`}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              marginRight: 12,
+              marginBottom: 4,
+            }}
+          >
+            <View
+              style={{
+                width: 12,
+                height: 3,
+                backgroundColor: line.color,
+                marginRight: 4,
+                borderRadius: 1.5,
+              }}
+            />
+            <Text style={{ fontSize: 10, color: "#8B7355", fontWeight: "500" }}>
+              {line.label}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {/* CHART HINT */}
       {events.length > 0 && (
         <View
           style={{
@@ -441,11 +603,7 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
             borderRadius: 8,
           }}
         >
-          <Ionicons
-            name="information-circle-outline"
-            size={14}
-            color="#8B7355"
-          />
+          <Feather name="info" size={14} color="#8B7355" />
           <Text
             style={{
               fontSize: 12,
@@ -455,6 +613,24 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
             }}
           >
             Click on event icons for details
+          </Text>
+        </View>
+      )}
+
+      {/* iOS OPTIMIZATION INFO */}
+      {Platform.OS === "ios" && displayEntries.length < entries.length && (
+        <View
+          style={{
+            marginTop: 6,
+            padding: 6,
+            backgroundColor: "rgba(139, 115, 85, 0.05)",
+            borderRadius: 4,
+            alignItems: "center",
+          }}
+        >
+          <Text style={{ fontSize: 9, color: "#8B7355", fontStyle: "italic" }}>
+            Showing {displayEntries.length} of {entries.length} points for
+            better performance
           </Text>
         </View>
       )}
