@@ -48,18 +48,6 @@ export const filterEntriesByTime = (
   const hours = timeFilter === "2h" ? 2 : timeFilter === "12h" ? 12 : 24;
   const cutoff = now - hours * 60 * 60 * 1000;
 
-  console.log(
-    `Filtering entries for the last ${hours} hours, cutoff: ${new Date(
-      cutoff
-    ).toISOString()}`
-  );
-  console.log(`Total entries before filtering: ${entries.length}`);
-  console.log(
-    `Entries after filtering: ${
-      entries.filter((entry) => entry.date >= cutoff).length
-    }`
-  );
-
   return entries
     .filter(
       (entry) =>

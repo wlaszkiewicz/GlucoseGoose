@@ -27,6 +27,21 @@ export const EventModal: React.FC<EventModalProps> = ({
   const eventColor = getEventColor(event.type, event.eventType);
   const displayName = getEventDisplayName(event);
 
+  const safeNumber = (value: any): number => {
+    if (value === null || value === undefined || value === "") return 0;
+
+    const num = Number(value);
+
+    return !isNaN(num) && num > 0 ? num : 0;
+  };
+
+  const safeCarbs = safeNumber(event.carbs);
+  const safeProtein = safeNumber(event.protein);
+  const safeFat = safeNumber(event.fat);
+  const safeCalories = safeNumber(event.calories);
+  const safeDuration = safeNumber(event.duration);
+  const safeCaloriesBurned = safeNumber(event.caloriesBurned);
+
   const renderEventIcon = () => {
     const iconSize = 28;
     const iconContainerStyle = [
@@ -67,38 +82,42 @@ export const EventModal: React.FC<EventModalProps> = ({
   const renderNutritionInfo = () => {
     if (event.type !== "meal") return null;
 
+    const hasNutritionData =
+      safeCarbs > 0 || safeProtein > 0 || safeFat > 0 || safeCalories > 0;
+    if (!hasNutritionData) return null;
+
     return (
       <View style={VintageStylesHome.modalNutritionContainer}>
         <Text style={VintageStylesHome.modalNutritionTitle}>Nutrition:</Text>
         <View style={VintageStylesHome.modalNutritionGrid}>
-          {event.carbs && event.carbs > 0 && (
+          {safeCarbs > 0 && (
             <View style={VintageStylesHome.modalNutritionItem}>
               <Text style={VintageStylesHome.modalNutritionValue}>
-                {event.carbs}g
+                {safeCarbs}g
               </Text>
               <Text style={VintageStylesHome.modalNutritionLabel}>Carbs</Text>
             </View>
           )}
-          {event.protein && event.protein > 0 && (
+          {safeProtein > 0 && (
             <View style={VintageStylesHome.modalNutritionItem}>
               <Text style={VintageStylesHome.modalNutritionValue}>
-                {event.protein}g
+                {safeProtein}g
               </Text>
               <Text style={VintageStylesHome.modalNutritionLabel}>Protein</Text>
             </View>
           )}
-          {event.fat && event.fat > 0 && (
+          {safeFat > 0 && (
             <View style={VintageStylesHome.modalNutritionItem}>
               <Text style={VintageStylesHome.modalNutritionValue}>
-                {event.fat}g
+                {safeFat}g
               </Text>
               <Text style={VintageStylesHome.modalNutritionLabel}>Fat</Text>
             </View>
           )}
-          {event.calories && event.calories > 0 && (
+          {safeCalories > 0 && (
             <View style={VintageStylesHome.modalNutritionItem}>
               <Text style={VintageStylesHome.modalNutritionValue}>
-                {event.calories}
+                {Math.round(safeCalories)}{" "}
               </Text>
               <Text style={VintageStylesHome.modalNutritionLabel}>
                 Calories
@@ -111,8 +130,7 @@ export const EventModal: React.FC<EventModalProps> = ({
   };
 
   const renderActivityInfo = () => {
-    if (event.type !== "activity" || !event.duration || event.duration <= 0)
-      return null;
+    if (event.type !== "activity" || safeDuration <= 0) return null;
 
     return (
       <View style={VintageStylesHome.modalActivityContainer}>
@@ -122,7 +140,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         <View style={VintageStylesHome.modalDurationBadge}>
           <Ionicons name="time" size={16} color={eventColor} />
           <Text style={VintageStylesHome.modalDurationText}>
-            {event.duration} minutes
+            {safeDuration} minutes
           </Text>
         </View>
         {event.intensity && (
@@ -133,11 +151,11 @@ export const EventModal: React.FC<EventModalProps> = ({
             </Text>
           </View>
         )}
-        {event.caloriesBurned && (
+        {safeCaloriesBurned > 0 && (
           <View style={VintageStylesHome.modalDurationBadge}>
             <Ionicons name="flame" size={16} color={eventColor} />
             <Text style={VintageStylesHome.modalDurationText}>
-              {event.caloriesBurned} calories burned
+              {Math.round(safeCaloriesBurned)} calories burned
             </Text>
           </View>
         )}

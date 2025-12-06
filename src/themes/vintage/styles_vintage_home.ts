@@ -12,10 +12,9 @@ export const VintageStylesHome = StyleSheet.create({
     paddingBottom: 40,
   },
 
-  // Header Section - Matching Journal exactly
   headerSection: {
     marginBottom: 24,
-    paddingTop: 40, // Added for proper spacing
+    paddingTop: 20,
   },
 
   headerDecoration: {
@@ -79,7 +78,7 @@ export const VintageStylesHome = StyleSheet.create({
 
   currentGlucoseTitle: {
     fontSize: 16,
-    fontWeight: "700", // Changed back to 700 to match original
+    fontWeight: "700",
     color: VintageColors.primaryText,
   },
 
@@ -138,20 +137,24 @@ export const VintageStylesHome = StyleSheet.create({
     fontWeight: "300",
   },
 
-  // Time Filter Buttons - Updated to match Journal styling
   timeFilterContainer: {
     flexDirection: "row",
-    justifyContent: "center",
-    marginVertical: 8, // Changed from marginBottom to marginVertical
+    alignItems: "center",
+    justifyContent: "flex-start",
+    marginVertical: 8,
     marginHorizontal: 20,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
   },
 
   timeFilterButton: {
     paddingHorizontal: 20,
     paddingVertical: 10,
-    marginHorizontal: 5, // Changed from 6 to 5
+    marginHorizontal: 5,
     backgroundColor: "#FFFFFF",
-    borderRadius: 25,
+    borderRadius: 16,
     borderWidth: 1,
     borderColor: "#D2B48C",
     shadowColor: "#000",
@@ -164,8 +167,8 @@ export const VintageStylesHome = StyleSheet.create({
   },
 
   timeFilterButtonSelected: {
-    backgroundColor: VintageColors.primaryText,
-    borderColor: VintageColors.primaryText,
+    backgroundColor: VintageColors.accent,
+    borderColor: VintageColors.accentDark,
   },
 
   timeFilterButtonDisabled: {
@@ -174,12 +177,26 @@ export const VintageStylesHome = StyleSheet.create({
 
   timeFilterText: {
     fontWeight: "600",
-    fontSize: 13, // Changed from 14 to 13
+    fontSize: 14,
     color: VintageColors.primaryText,
   },
 
   timeFilterTextSelected: {
     color: "white",
+  },
+
+  timeFilterLabelContainer: {
+    marginRight: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingVertical: 4,
+  },
+
+  timeFilterLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+    letterSpacing: 0.5,
   },
 
   // Chart Section
