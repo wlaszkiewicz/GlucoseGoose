@@ -1,151 +1,238 @@
 import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
-import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
-import { Text } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
+import { Animated, View, StyleSheet } from "react-native";
 import HomeScreen from "./screens/HomeScreen";
 import JournalScreen from "./screens/JournalScreen";
 import TrendsScreen from "./screens/TrendsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import { MainTabParamList } from "./types/navigation";
-import { VintageNavBarConfig } from "./themes/vintage/navBar_vintage";
+import { VintageColors } from "./themes/vintage/colors_vintage";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 
-const iconComponents: Record<string, any> = {
-  Ionicons,
-  Feather,
-  FontAwesome5,
+const CustomTabBarLabel = ({
+  focused,
+  label,
+  color,
+}: {
+  focused: boolean;
+  label: string;
+  color: string;
+}) => {
+  const scaleAnim = React.useRef(new Animated.Value(1)).current;
+  const opacityAnim = React.useRef(new Animated.Value(0)).current;
+
+  React.useEffect(() => {
+    if (focused) {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1.05,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 1,
+          duration: 300,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    } else {
+      Animated.parallel([
+        Animated.spring(scaleAnim, {
+          toValue: 1,
+          tension: 100,
+          friction: 8,
+          useNativeDriver: true,
+        }),
+        Animated.timing(opacityAnim, {
+          toValue: 0,
+          duration: 200,
+          useNativeDriver: true,
+        }),
+      ]).start();
+    }
+  }, [focused]);
+
+  return (
+    <View style={styles.labelContainer}>
+      <Animated.Text
+        style={[styles.label, { color, transform: [{ scale: scaleAnim }] }]}
+      >
+        {label}
+      </Animated.Text>
+      <Animated.View
+        style={[
+          styles.underline,
+          { opacity: opacityAnim, backgroundColor: color },
+        ]}
+      />
+    </View>
+  );
 };
 
 const MainTabNavigator = () => {
-  const iconColor = VintageNavBarConfig.getIconColor();
-
   return (
     <Tab.Navigator
-      screenOptions={VintageNavBarConfig.screenOptions}
+      screenOptions={{
+        headerShown: false,
+        tabBarStyle: {
+          backgroundColor: VintageColors.cardBackground,
+          borderTopWidth: 1,
+          borderTopColor: VintageColors.border,
+          height: 80,
+          paddingBottom: 16,
+          paddingTop: 8,
+          borderRadius: 30,
+        },
+        tabBarActiveTintColor: VintageColors.primaryText,
+        tabBarInactiveTintColor: VintageColors.secondaryText,
+      }}
     >
       <Tab.Screen
         name="Home"
         component={HomeScreen}
-        options={({ route }) => ({
-          title: VintageNavBarConfig.getLabel("Home"),
-          tabBarIcon: ({ focused, size }) => {
-            const IconComponent = iconComponents[VintageNavBarConfig.getIconComponent("home")];
+        options={{
+          tabBarIcon: ({ focused, color, size }) => {
+            const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+            React.useEffect(() => {
+              Animated.spring(scaleAnim, {
+                toValue: focused ? 1.1 : 1,
+                tension: 150,
+                friction: 5,
+                useNativeDriver: true,
+              }).start();
+            }, [focused]);
+
             return (
-              <IconComponent 
-                name={VintageNavBarConfig.getIconName(focused, "home")}
-                size={VintageNavBarConfig.getIconSize(focused, size, "home")}
-                color={iconColor} 
-              />
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <Ionicons
+                  name={focused ? "home" : "home-outline"}
+                  size={size}
+                  color={color}
+                />
+              </Animated.View>
             );
           },
-          tabBarLabel: ({ focused }) => (
-            <Text style={{
-              fontSize: 11,
-              fontWeight: focused ? '700' : '400',
-              letterSpacing: 0.5,
-              marginTop: 0,
-              marginBottom: 2,
-              fontFamily: 'System',
-              color: iconColor, 
-            }}>
-              {VintageNavBarConfig.getLabel("Home")}
-            </Text>
-          ),
-        })}
+          tabBarLabel: (props) => <CustomTabBarLabel {...props} label="Home" />,
+        }}
       />
       <Tab.Screen
         name="Journal"
         component={JournalScreen}
-        options={({ route }) => ({
-          title: VintageNavBarConfig.getLabel("Journal"),
-          tabBarIcon: ({ focused, size }) => {
-            const IconComponent = iconComponents[VintageNavBarConfig.getIconComponent("journal")];
+        options={{
+          tabBarIcon: ({ focused, color, size }) => {
+            const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+            React.useEffect(() => {
+              Animated.spring(scaleAnim, {
+                toValue: focused ? 1.1 : 1,
+                tension: 150,
+                friction: 5,
+                useNativeDriver: true,
+              }).start();
+            }, [focused]);
+
             return (
-              <IconComponent 
-                name={VintageNavBarConfig.getIconName(focused, "journal")}
-                size={VintageNavBarConfig.getIconSize(focused, size, "journal")}
-                color={iconColor}
-              />
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <Ionicons
+                  name={focused ? "journal" : "journal-outline"}
+                  size={size}
+                  color={color}
+                />
+              </Animated.View>
             );
           },
-          tabBarLabel: ({ focused }) => (
-            <Text style={{
-              fontSize: 11,
-              fontWeight: focused ? '700' : '400',
-              letterSpacing: 0.5,
-              marginTop: 0,
-              marginBottom: 2,
-              fontFamily: 'System',
-              color: iconColor,
-            }}>
-              {VintageNavBarConfig.getLabel("Journal")}
-            </Text>
+          tabBarLabel: (props) => (
+            <CustomTabBarLabel {...props} label="Journal" />
           ),
-        })}
+        }}
       />
       <Tab.Screen
         name="Trends"
         component={TrendsScreen}
-        options={({ route }) => ({
-          title: VintageNavBarConfig.getLabel("Trends"),
-          tabBarIcon: ({ focused, size }) => {
-            const IconComponent = iconComponents[VintageNavBarConfig.getIconComponent("trends")];
+        options={{
+          tabBarIcon: ({ focused, color, size }) => {
+            const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+            React.useEffect(() => {
+              Animated.spring(scaleAnim, {
+                toValue: focused ? 1.1 : 1,
+                tension: 150,
+                friction: 5,
+                useNativeDriver: true,
+              }).start();
+            }, [focused]);
+
             return (
-              <IconComponent 
-                name={VintageNavBarConfig.getIconName(focused, "trends")}
-                size={VintageNavBarConfig.getIconSize(focused, size, "trends")}
-                color={iconColor}
-              />
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <Ionicons
+                  name={focused ? "trending-up" : "trending-up-outline"}
+                  size={size}
+                  color={color}
+                />
+              </Animated.View>
             );
           },
-          tabBarLabel: ({ focused }) => (
-            <Text style={{
-              fontSize: 11,
-              fontWeight: focused ? '700' : '400',
-              letterSpacing: 0.5,
-              marginTop: 0,
-              marginBottom: 2,
-              fontFamily: 'System',
-              color: iconColor,
-            }}>
-              {VintageNavBarConfig.getLabel("Trends")}
-            </Text>
+          tabBarLabel: (props) => (
+            <CustomTabBarLabel {...props} label="Trends" />
           ),
-        })}
+        }}
       />
       <Tab.Screen
         name="Settings"
         component={SettingsScreen}
-        options={({ route }) => ({
-          title: VintageNavBarConfig.getLabel("Settings"),
-          tabBarIcon: ({ focused, size }) => {
-            const IconComponent = iconComponents[VintageNavBarConfig.getIconComponent("profile")];
+        options={{
+          tabBarIcon: ({ focused, color, size }) => {
+            const scaleAnim = React.useRef(new Animated.Value(1)).current;
+
+            React.useEffect(() => {
+              Animated.spring(scaleAnim, {
+                toValue: focused ? 1.1 : 1,
+                tension: 150,
+                friction: 5,
+                useNativeDriver: true,
+              }).start();
+            }, [focused]);
+
             return (
-              <IconComponent 
-                name={VintageNavBarConfig.getIconName(focused, "profile")}
-                size={VintageNavBarConfig.getIconSize(focused, size, "profile")}
-                color={iconColor}
-              />
+              <Animated.View style={{ transform: [{ scale: scaleAnim }] }}>
+                <Ionicons
+                  name={focused ? "settings" : "settings-outline"}
+                  size={size}
+                  color={color}
+                />
+              </Animated.View>
             );
           },
-          tabBarLabel: ({ focused }) => (
-            <Text style={{
-              fontSize: 11,
-              fontWeight: focused ? '700' : '400',
-              letterSpacing: 0.5,
-              marginTop: 0,
-              marginBottom: 2,
-              fontFamily: 'System',
-              color: iconColor,
-            }}>
-              {VintageNavBarConfig.getLabel("Settings")}
-            </Text>
+          tabBarLabel: (props) => (
+            <CustomTabBarLabel {...props} label="Settings" />
           ),
-        })}
+        }}
       />
     </Tab.Navigator>
   );
 };
+
+const styles = StyleSheet.create({
+  labelContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  label: {
+    fontSize: 11,
+    fontWeight: "500",
+    marginTop: 2,
+    textAlign: "center",
+  },
+  underline: {
+    width: 24,
+    height: 2,
+    borderRadius: 1,
+    marginTop: 4,
+  },
+});
 
 export default MainTabNavigator;

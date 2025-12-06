@@ -35,22 +35,22 @@ const SettingsScreen = () => {
   };
 
   return (
-    <ScrollView
-      style={VintageStyles.container}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={VintageStyles.header}>
-        <View style={VintageStyles.headerDecoration}>
-          <View style={VintageStyles.headerLine} />
-          <Text style={VintageStyles.headerTitle}>My Profile</Text>
-          <View style={VintageStyles.headerLine} />
+    <View style={VintageStyles.container}>
+      <ScrollView
+        style={{ flex: 1 }}
+        contentContainerStyle={VintageStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={[VintageStyles.headerSection]}>
+          <View style={VintageStyles.headerDecoration}>
+            <View style={VintageStyles.headerLine} />
+            <Text style={VintageStyles.headerTitle}>My Profile</Text>
+            <View style={VintageStyles.headerLine} />
+          </View>
         </View>
-      </View>
 
-      {/* Profile */}
-      <View style={VintageStyles.profileSection}>
-        <View style={VintageStyles.avatarContainer}>
+        {/* Profile */}
+        <View style={VintageStyles.profileSection}>
           <View style={VintageStyles.gooseAvatarCircle}>
             <Image
               source={gooseImage}
@@ -58,215 +58,225 @@ const SettingsScreen = () => {
               resizeMode="cover"
             />
           </View>
+
+          <Text style={VintageStyles.profileName}>Goose</Text>
+
+          <View style={VintageStyles.spacing10} />
+
+          {/* Stats */}
+          <View style={VintageStyles.vintageStats}>
+            <View style={VintageStyles.statItem}>
+              <View style={VintageStyles.statIconContainer}>
+                <Feather
+                  name="droplet"
+                  size={18}
+                  color={VintageColors.statIcon}
+                />
+              </View>
+              <Text style={VintageStyles.statValue}>5.8</Text>
+              <Text style={VintageStyles.statLabel}>glucose</Text>
+            </View>
+
+            <View style={VintageStyles.statDivider} />
+
+            <View style={VintageStyles.statItem}>
+              <View style={VintageStyles.statIconContainer}>
+                <Ionicons
+                  name="flower"
+                  size={18}
+                  color={VintageColors.statIcon}
+                />
+              </View>
+              <Text style={VintageStyles.statValue}>85%</Text>
+              <Text style={VintageStyles.statLabel}>in range</Text>
+            </View>
+
+            <View style={VintageStyles.statDivider} />
+
+            <View style={VintageStyles.statItem}>
+              <View style={VintageStyles.statIconContainer}>
+                <Feather name="sun" size={18} color={VintageColors.statIcon} />
+              </View>
+              <Text style={VintageStyles.statValue}>28</Text>
+              <Text style={VintageStyles.statLabel}>days</Text>
+            </View>
+          </View>
         </View>
 
-        <Text style={VintageStyles.profileName}>Goose</Text>
+        {/* Cards */}
+        <View style={VintageStyles.settingsList}>
+          <View style={VintageStyles.sectionHeader}>
+            <Text style={VintageStyles.sectionTitle}>
+              Settings & Preferences
+            </Text>
+            <View style={VintageStyles.featherAccent}>
+              <FontAwesome5
+                name="feather-alt"
+                size={16}
+                color={VintageColors.primaryText}
+              />
+            </View>
+          </View>
 
-        <View style={VintageStyles.spacing10} />
-
-        {/* Stats */}
-        <View style={VintageStyles.vintageStats}>
-          <View style={VintageStyles.statItem}>
-            <View style={VintageStyles.statIconContainer}>
+          <TouchableOpacity style={VintageStyles.vintageCard}>
+            <View
+              style={[
+                VintageStyles.settingIcon,
+                { backgroundColor: VintageColors.iconGreen },
+              ]}
+            >
               <Feather
-                name="droplet"
-                size={18}
-                color={VintageColors.statIcon}
+                name="user"
+                size={22}
+                color={VintageColors.primaryText}
               />
             </View>
-            <Text style={VintageStyles.statValue}>5.8</Text>
-            <Text style={VintageStyles.statLabel}>glucose</Text>
-          </View>
+            <View style={VintageStyles.settingTextContainer}>
+              <Text style={VintageStyles.settingText}>Account & Profile</Text>
+              <Text style={VintageStyles.settingSubtext}>
+                Update personal information
+              </Text>
+            </View>
+            <View style={VintageStyles.vintageArrow}>
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={VintageColors.secondaryText}
+              />
+            </View>
+          </TouchableOpacity>
 
-          <View style={VintageStyles.statDivider} />
-
-          <View style={VintageStyles.statItem}>
-            <View style={VintageStyles.statIconContainer}>
+          <TouchableOpacity style={VintageStyles.vintageCard}>
+            <View
+              style={[
+                VintageStyles.settingIcon,
+                { backgroundColor: VintageColors.iconYellow },
+              ]}
+            >
               <Ionicons
-                name="flower"
-                size={18}
-                color={VintageColors.statIcon}
+                name="notifications-outline"
+                size={22}
+                color={VintageColors.primaryText}
               />
             </View>
-            <Text style={VintageStyles.statValue}>85%</Text>
-            <Text style={VintageStyles.statLabel}>in range</Text>
-          </View>
-
-          <View style={VintageStyles.statDivider} />
-
-          <View style={VintageStyles.statItem}>
-            <View style={VintageStyles.statIconContainer}>
-              <Feather name="sun" size={18} color={VintageColors.statIcon} />
+            <View style={VintageStyles.settingTextContainer}>
+              <Text style={VintageStyles.settingText}>Reminders & Alerts</Text>
+              <Text style={VintageStyles.settingSubtext}>
+                Glucose checks, medication
+              </Text>
             </View>
-            <Text style={VintageStyles.statValue}>28</Text>
-            <Text style={VintageStyles.statLabel}>days</Text>
-          </View>
+            <View style={VintageStyles.vintageArrow}>
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={VintageColors.secondaryText}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={VintageStyles.vintageCard}>
+            <View
+              style={[
+                VintageStyles.settingIcon,
+                { backgroundColor: VintageColors.iconBlue },
+              ]}
+            >
+              <Feather
+                name="activity"
+                size={22}
+                color={VintageColors.primaryText}
+              />
+            </View>
+            <View style={VintageStyles.settingTextContainer}>
+              <Text style={VintageStyles.settingText}>Health Data</Text>
+              <Text style={VintageStyles.settingSubtext}>
+                Connect devices & apps
+              </Text>
+            </View>
+            <View style={VintageStyles.vintageArrow}>
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={VintageColors.secondaryText}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={VintageStyles.vintageCard}>
+            <View
+              style={[
+                VintageStyles.settingIcon,
+                { backgroundColor: VintageColors.iconPink },
+              ]}
+            >
+              <MaterialIcons
+                name="support-agent"
+                size={22}
+                color={VintageColors.primaryText}
+              />
+            </View>
+            <View style={VintageStyles.settingTextContainer}>
+              <Text style={VintageStyles.settingText}>Goose Support</Text>
+              <Text style={VintageStyles.settingSubtext}>
+                Help, FAQ & community
+              </Text>
+            </View>
+            <View style={VintageStyles.vintageArrow}>
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={VintageColors.secondaryText}
+              />
+            </View>
+          </TouchableOpacity>
+
+          <TouchableOpacity style={VintageStyles.vintageCard}>
+            <View
+              style={[
+                VintageStyles.settingIcon,
+                { backgroundColor: VintageColors.iconPurple },
+              ]}
+            >
+              <Feather
+                name="feather"
+                size={22}
+                color={VintageColors.primaryText}
+              />
+            </View>
+            <View style={VintageStyles.settingTextContainer}>
+              <Text style={VintageStyles.settingText}>Goose Features</Text>
+              <Text style={VintageStyles.settingSubtext}>
+                Themes & customization
+              </Text>
+            </View>
+            <View style={VintageStyles.vintageArrow}>
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={VintageColors.secondaryText}
+              />
+            </View>
+          </TouchableOpacity>
         </View>
-      </View>
 
-      {/* Cards */}
-      <View style={VintageStyles.settingsList}>
-        <View style={VintageStyles.sectionHeader}>
-          <Text style={VintageStyles.sectionTitle}>Settings & Preferences</Text>
-          <View style={VintageStyles.featherAccent}>
-            <FontAwesome5
-              name="feather-alt"
-              size={16}
-              color={VintageColors.primaryText}
-            />
-          </View>
-        </View>
-
-        <TouchableOpacity style={VintageStyles.vintageCard}>
-          <View
-            style={[
-              VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconGreen },
-            ]}
-          >
-            <Feather name="user" size={22} color={VintageColors.primaryText} />
-          </View>
-          <View style={VintageStyles.settingTextContainer}>
-            <Text style={VintageStyles.settingText}>Account & Profile</Text>
-            <Text style={VintageStyles.settingSubtext}>
-              Update personal information
-            </Text>
-          </View>
-          <View style={VintageStyles.vintageArrow}>
+        {/* Sign out */}
+        <TouchableOpacity
+          style={VintageStyles.signOutButton}
+          onPress={handleLogout}
+        >
+          <View style={VintageStyles.signOutIconContainer}>
             <Feather
-              name="chevron-right"
-              size={20}
-              color={VintageColors.secondaryText}
+              name="log-out"
+              size={18}
+              color={VintageColors.signOutText}
             />
           </View>
+          <Text style={VintageStyles.signOutText}>Sign Out</Text>
         </TouchableOpacity>
 
-        <TouchableOpacity style={VintageStyles.vintageCard}>
-          <View
-            style={[
-              VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconYellow },
-            ]}
-          >
-            <Ionicons
-              name="notifications-outline"
-              size={22}
-              color={VintageColors.primaryText}
-            />
-          </View>
-          <View style={VintageStyles.settingTextContainer}>
-            <Text style={VintageStyles.settingText}>Reminders & Alerts</Text>
-            <Text style={VintageStyles.settingSubtext}>
-              Glucose checks, medication
-            </Text>
-          </View>
-          <View style={VintageStyles.vintageArrow}>
-            <Feather
-              name="chevron-right"
-              size={20}
-              color={VintageColors.secondaryText}
-            />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={VintageStyles.vintageCard}>
-          <View
-            style={[
-              VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconBlue },
-            ]}
-          >
-            <Feather
-              name="activity"
-              size={22}
-              color={VintageColors.primaryText}
-            />
-          </View>
-          <View style={VintageStyles.settingTextContainer}>
-            <Text style={VintageStyles.settingText}>Health Data</Text>
-            <Text style={VintageStyles.settingSubtext}>
-              Connect devices & apps
-            </Text>
-          </View>
-          <View style={VintageStyles.vintageArrow}>
-            <Feather
-              name="chevron-right"
-              size={20}
-              color={VintageColors.secondaryText}
-            />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={VintageStyles.vintageCard}>
-          <View
-            style={[
-              VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconPink },
-            ]}
-          >
-            <MaterialIcons
-              name="support-agent"
-              size={22}
-              color={VintageColors.primaryText}
-            />
-          </View>
-          <View style={VintageStyles.settingTextContainer}>
-            <Text style={VintageStyles.settingText}>Goose Support</Text>
-            <Text style={VintageStyles.settingSubtext}>
-              Help, FAQ & community
-            </Text>
-          </View>
-          <View style={VintageStyles.vintageArrow}>
-            <Feather
-              name="chevron-right"
-              size={20}
-              color={VintageColors.secondaryText}
-            />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={VintageStyles.vintageCard}>
-          <View
-            style={[
-              VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconPurple },
-            ]}
-          >
-            <Feather
-              name="feather"
-              size={22}
-              color={VintageColors.primaryText}
-            />
-          </View>
-          <View style={VintageStyles.settingTextContainer}>
-            <Text style={VintageStyles.settingText}>Goose Features</Text>
-            <Text style={VintageStyles.settingSubtext}>
-              Themes & customization
-            </Text>
-          </View>
-          <View style={VintageStyles.vintageArrow}>
-            <Feather
-              name="chevron-right"
-              size={20}
-              color={VintageColors.secondaryText}
-            />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {/* Sign out */}
-      <TouchableOpacity
-        style={VintageStyles.signOutButton}
-        onPress={handleLogout}
-      >
-        <View style={VintageStyles.signOutIconContainer}>
-          <Feather name="log-out" size={18} color={VintageColors.signOutText} />
-        </View>
-        <Text style={VintageStyles.signOutText}>Sign Out</Text>
-      </TouchableOpacity>
-
-      <View style={VintageStyles.spacing60} />
-    </ScrollView>
+        <View style={VintageStyles.spacing60} />
+      </ScrollView>
+    </View>
   );
 };
 

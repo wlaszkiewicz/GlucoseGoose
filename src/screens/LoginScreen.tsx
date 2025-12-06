@@ -59,7 +59,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
       }
 
       cleanup();
-      navigation.navigate("Home" as never);
+      navigation.navigate("MainTabs" as never);
     } catch (e) {
       setErrors((prev) => ({
         ...prev,

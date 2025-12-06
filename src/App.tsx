@@ -1,13 +1,14 @@
 import React from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { SafeAreaProvider } from "react-native-safe-area-context";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import SplashScreen from "./screens/SplashScreen";
 import { AuthProvider, useAuth } from "./context/AuthContext";
 import { NightscoutProvider } from "./context/NightscoutContext";
 import MainTabNavigator from "./MainTabNavigator";
+import { VintageColors } from "./themes/vintage/colors_vintage";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator();
 
@@ -18,26 +19,31 @@ const AppContent = () => {
 
   return (
     <Stack.Navigator
-      screenOptions={{ headerShown: false }}
-      initialRouteName={firebaseUser ? "Home" : "Login"}
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: VintageColors.background },
+      }}
+      initialRouteName={firebaseUser ? "MainTabs" : "Login"}
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen name="Home" component={MainTabNavigator} />
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabNavigator}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
 
 export default function App() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <NightscoutProvider>
-          <NavigationContainer>
-            <AppContent />
-          </NavigationContainer>
-        </NightscoutProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    <AuthProvider>
+      <NightscoutProvider>
+        <NavigationContainer>
+          <AppContent />
+        </NavigationContainer>
+      </NightscoutProvider>
+    </AuthProvider>
   );
 }
