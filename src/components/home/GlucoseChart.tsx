@@ -43,11 +43,10 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
   const chartScrollRef = useRef<ScrollView>(null);
   const { width: screenWidth } = Dimensions.get("window");
 
-  // DYNAMIC SPACING: Different spacing for different time filters
   const getSpacingForTimeFilter = () => {
     switch (timeFilter) {
       case "2h":
-        return Platform.select({ ios: 25, default: 40 });
+        return Platform.select({ ios: 25, default: 35 });
       case "12h":
         return Platform.select({ ios: 20, default: 30 });
       case "24h":
@@ -88,13 +87,11 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
     [displayEntries]
   );
 
-  // FIXED: Add more padding for the last point
   const chartWidth = useMemo(() => {
     if (displayEntries.length === 0) return screenWidth * 1.5;
 
     const spacing = getSpacingForTimeFilter();
-    // Add 80px on the right instead of 30px for better last point visibility
-    const calculatedWidth = 30 + displayEntries.length * spacing + 40; // Added 80px right padding
+    const calculatedWidth = 30 + displayEntries.length * spacing + 40;
     const minWidth = screenWidth * 1.5;
 
     const maxSafeWidth = Platform.select({
@@ -287,7 +284,7 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
           },
         ]}
       >
-        {/* STATIC Y-AXIS LABELS - FIXED ON LEFT SIDE OF CARD */}
+        {/* STATIC Y-AXIS LABELS*/}
         <View
           style={{
             position: "absolute",
