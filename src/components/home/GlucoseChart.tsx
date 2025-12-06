@@ -34,6 +34,8 @@ const GLUCOSE_RANGES = {
   NORMAL_HIGH: 180,
 };
 
+const MAX_IOS = 4096;
+
 export const GlucoseChart: React.FC<GlucoseChartProps> = ({
   entries,
   events,
@@ -46,13 +48,13 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
   const getSpacingForTimeFilter = () => {
     switch (timeFilter) {
       case "2h":
-        return Platform.select({ ios: 25, default: 35 });
+        return Platform.select({ ios: 25, default: 25 });
       case "12h":
-        return Platform.select({ ios: 20, default: 30 });
+        return Platform.select({ ios: 20, default: 20 });
       case "24h":
-        return Platform.select({ ios: 15, default: 25 });
+        return Platform.select({ ios: 15, default: 15 });
       default:
-        return Platform.select({ ios: 20, default: 35 });
+        return Platform.select({ ios: 20, default: 20 });
     }
   };
 
@@ -60,7 +62,7 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
     if (Platform.OS !== "ios") return entries;
 
     const spacing = getSpacingForTimeFilter();
-    const maxPoints = Math.floor(4096 / spacing);
+    const maxPoints = Math.floor(MAX_IOS / spacing);
 
     if (entries.length > maxPoints) {
       const reductionFactor = Math.ceil(entries.length / maxPoints);
@@ -234,7 +236,6 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
     return "medical";
   };
 
-  // Scroll to end
   useEffect(() => {
     if (displayEntries.length > 0 && chartScrollRef.current) {
       setTimeout(() => {

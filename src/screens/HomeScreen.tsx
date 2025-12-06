@@ -6,7 +6,6 @@ import {
   ActivityIndicator,
   Text,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { HomeScreenProps } from "../types/navigation";
 import { VintageStylesHome } from "../themes/vintage/styles_vintage_home";
 import { VintageColors } from "../themes/vintage/colors_vintage";
@@ -15,7 +14,7 @@ import { CurrentGlucoseCard } from "../components/home/CurrentGlucoseCard";
 import { TimeFilter } from "../components/home/TimeFilter";
 import { GlucoseChart } from "../components/home/GlucoseChart";
 import { EventModal } from "../components/home/EventModal";
-import { Platform } from "react-native";
+import { VintageStyles } from "../themes/vintage/styles_vintage";
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
   const {
@@ -35,21 +34,21 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
 
   if (!isLoading && filteredEntries.length === 0) {
     return (
-      <SafeAreaView style={VintageStylesHome.container}>
+      <View style={[VintageStyles.container, { justifyContent: "center" }]}>
         <View style={VintageStylesHome.emptyContainer}>
           <Text style={VintageStylesHome.emptyText}>
             No glucose data available.
           </Text>
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
-    <SafeAreaView style={VintageStylesHome.container}>
+    <View style={VintageStyles.container}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={VintageStylesHome.scrollContent}
+        contentContainerStyle={VintageStyles.scrollContent}
         showsVerticalScrollIndicator={false}
         refreshControl={
           <RefreshControl
@@ -60,43 +59,38 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
           />
         }
       >
-        {/* Header Section */}
-        <View style={VintageStylesHome.headerSection}>
-          <View style={VintageStylesHome.headerDecoration}>
-            <View style={VintageStylesHome.headerLine} />
-            <Text style={VintageStylesHome.headerTitle}>Glucose Overview</Text>
-            <View style={VintageStylesHome.headerLine} />
+        <View style={[VintageStyles.headerSection]}>
+          <View style={VintageStyles.headerDecoration}>
+            <View style={VintageStyles.headerLine} />
+            <Text style={VintageStyles.headerTitle}>Glucose Overview</Text>
+            <View style={VintageStyles.headerLine} />
           </View>
         </View>
 
-        {/* Current Glucose Card */}
         {filteredEntries.length > 0 && (
           <CurrentGlucoseCard entries={filteredEntries} />
         )}
+        {filteredEntries.length > 0 && (
+          <TimeFilter
+            timeFilter={timeFilter}
+            onTimeFilterChange={handleTimeFilterChange}
+            isRefreshing={isRefreshing}
+          />
+        )}
 
-        {/* Time Filter */}
-        <TimeFilter
-          timeFilter={timeFilter}
-          onTimeFilterChange={handleTimeFilterChange}
-          isRefreshing={isRefreshing}
-        />
-
-        {/* Error Display */}
         {error && (
           <View style={VintageStylesHome.errorContainer}>
             <Text style={VintageStylesHome.errorText}>{error}</Text>
           </View>
         )}
 
-        {/* Loading State */}
-        {isLoading && (
+        {isLoading && filteredEntries.length === 0 && (
           <View style={VintageStylesHome.loadingContainer}>
             <ActivityIndicator size="large" color={VintageColors.primaryText} />
             <Text style={VintageStylesHome.loadingText}>Loading data...</Text>
           </View>
         )}
 
-        {/* Chart */}
         {filteredEntries.length > 0 && (
           <GlucoseChart
             entries={filteredEntries}
@@ -107,13 +101,12 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         )}
       </ScrollView>
 
-      {/* Event Modal */}
       <EventModal
         event={selectedEvent}
         visible={showEventModal}
         onClose={() => setShowEventModal(false)}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
