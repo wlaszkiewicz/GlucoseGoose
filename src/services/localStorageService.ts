@@ -1,7 +1,6 @@
 import * as SecureStore from "expo-secure-store";
 
-export type StorageKey = "nightscoutSecret" | "rememberMe";
-//   | "nightscoutUrl"
+export type StorageKey = "nightscoutSecret" | "rememberMe" | "nightscoutUrl";
 //   | "openAiKey"
 
 const isWeb =
@@ -46,8 +45,13 @@ export const StorageService = {
   async clearAll() {
     if (isWeb || isElectron) {
       Object.keys(localStorage).forEach((k) => localStorage.removeItem(k));
+      Object.keys(sessionStorage).forEach((k) => sessionStorage.removeItem(k));
     } else if (isMobile) {
-      const keys: StorageKey[] = ["nightscoutSecret", "rememberMe"];
+      const keys: StorageKey[] = [
+        "nightscoutSecret",
+        "rememberMe",
+        "nightscoutUrl",
+      ];
       await Promise.all(keys.map((k) => SecureStore.deleteItemAsync(k)));
     }
   },
