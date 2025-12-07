@@ -47,11 +47,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const localSecret = await StorageService.get("nightscoutSecret");
 
+        let nightscoutUrl;
+        if (data?.storeLocally) {
+          nightscoutUrl = await StorageService.get("nightscoutUrl");
+        }
+
         setUserData(
           data
             ? {
                 ...data,
-                nightscoutSecret: localSecret ?? data.nightscoutSecret,
+                nightscoutSecret: localSecret ?? "",
+                nightscoutUrl: nightscoutUrl ?? data.nightscoutUrl,
               }
             : null
         );
