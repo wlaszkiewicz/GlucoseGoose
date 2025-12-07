@@ -15,7 +15,6 @@ import { useState, useRef } from "react";
 import { registerUser, logoutUser } from "../services/authService";
 import { isUsernameAvailable } from "../services/userService";
 import { ActivityIndicator } from "react-native";
-import sha1 from "js-sha1";
 import { VintageColors } from "../themes/vintage/colors_vintage";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
 const gooseImage = require("../../assets/goose1.png");
@@ -26,7 +25,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [nightscoutUrl, setNightscoutUrl] = useState("");
-  const [nightscoutSecret, setNightscoutSecret] = useState("");
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
@@ -104,12 +102,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       return;
     }
 
-    const nightscoutSecretHash = sha1.sha1(nightscoutSecret);
-
     const result = await registerUser(email, password, {
       username,
       nightscoutUrl: nightscoutUrl,
-      nightscoutSecret: nightscoutSecretHash,
       role: "user",
     });
 
@@ -135,7 +130,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
     setPassword("");
     setConfirmPassword("");
     setNightscoutUrl("");
-    setNightscoutSecret("");
     setErrors({});
   };
 
@@ -277,25 +271,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                 )}
                 <Text style={VintageStylesAuth.helpText}>
                   This is required to connect with your Nightscout data source.
-                </Text>
-              </View>
-
-              {/* Nightscout Secret */}
-              <View style={VintageStylesAuth.inputGroup}>
-                <Text style={VintageStylesAuth.inputLabel}>
-                  Nightscout API Secret (Optional)
-                </Text>
-                <TextInput
-                  style={VintageStylesAuth.input}
-                  placeholder="Enter your API token if you have one"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  autoCapitalize="none"
-                  value={nightscoutSecret}
-                  onChangeText={setNightscoutSecret}
-                />
-                <Text style={VintageStylesAuth.helpText}>
-                  If your Nightscout instance requires authentication, add your
-                  API token here.
                 </Text>
               </View>
 

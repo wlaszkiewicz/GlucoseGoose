@@ -30,6 +30,7 @@
     },
     "web": {
       "favicon": "./assets/goose1-nobg.png"
-    }
+    },
+    "plugins": ["expo-secure-store"]
   }
 }

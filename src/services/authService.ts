@@ -3,10 +3,15 @@ import {
   createUserWithEmailAndPassword,
   deleteUser,
   signInWithEmailAndPassword,
+  setPersistence,
+  browserLocalPersistence,
+  browserSessionPersistence,
 } from "firebase/auth";
 import { deleteDoc, doc, setDoc } from "firebase/firestore";
 import { getEmailFromUsername } from "../utils/cloud_functions";
 import Constants from "expo-constants";
+import { StorageService } from "./localStorageService";
+import { Platform } from "react-native";
 
 const CLOUD_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
@@ -50,9 +55,18 @@ export async function registerUser(
 
 export async function loginWithEmailOrUsername(
   identifier: string,
-  password: string
+  password: string,
+  nightscoutSecretHash?: string,
+  rememberMe: boolean = true
 ) {
   try {
+    if (Platform.OS === "web") {
+      await setPersistence(
+        auth,
+        rememberMe ? browserLocalPersistence : browserSessionPersistence
+      );
+    }
+
     let email = identifier;
 
     if (!identifier.includes("@")) {
@@ -70,6 +84,14 @@ export async function loginWithEmailOrUsername(
     }
 
     const result = await signInWithEmailAndPassword(auth, email, password);
+    if (nightscoutSecretHash && result.user) {
+      await StorageService.set(
+        "nightscoutSecret",
+        nightscoutSecretHash,
+        rememberMe
+      );
+    }
+
     return { success: true, user: result.user };
   } catch (error: any) {
     const friendlyMessage = getFriendlyFirebaseError(
@@ -85,6 +107,7 @@ export async function loginWithEmailOrUsername(
 export async function logoutUser() {
   try {
     await auth.signOut();
+    await StorageService.clearAll();
     return { success: true };
   } catch (error) {
     return { success: false, error };

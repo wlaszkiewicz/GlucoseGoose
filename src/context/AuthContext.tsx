@@ -8,6 +8,7 @@ import React, {
 import { auth, db } from "../../firebaseConfig";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
+import { StorageService } from "../services/localStorageService";
 
 export interface UserData {
   uid: string;
@@ -42,7 +43,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setFirebaseUser(user);
       if (user) {
         const docSnap = await getDoc(doc(db, "users", user.uid));
-        setUserData(docSnap.exists() ? (docSnap.data() as UserData) : null);
+        const data = docSnap.exists() ? (docSnap.data() as UserData) : null;
+
+        const localSecret = await StorageService.get("nightscoutSecret");
+
+        setUserData(
+          data
+            ? {
+                ...data,
+                nightscoutSecret: localSecret ?? data.nightscoutSecret,
+              }
+            : null
+        );
       } else {
         setUserData(null);
       }

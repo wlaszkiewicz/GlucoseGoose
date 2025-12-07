@@ -47,6 +47,41 @@ export const VintageStylesAuth = StyleSheet.create({
     letterSpacing: 1,
   },
 
+  checkboxContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 20,
+    marginTop: 10,
+  },
+
+  checkbox: {
+    width: 24,
+    height: 24,
+    borderWidth: 2,
+    borderColor: VintageColors.primaryText,
+    borderRadius: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    backgroundColor: "#FFFFFF",
+  },
+
+  checkboxChecked: {
+    backgroundColor: VintageColors.primaryText,
+  },
+
+  checkboxCheckmark: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
+
+  checkboxLabel: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    letterSpacing: 0.3,
+  },
+
   gooseIcon: {
     width: 80,
     height: 80,
