@@ -77,6 +77,7 @@ const MainTabNavigator = () => {
     <Tab.Navigator
       screenOptions={{
         headerShown: false,
+        title: "GlucoseGoose",
         tabBarStyle: {
           backgroundColor: VintageColors.cardBackground,
           borderTopWidth: 1,
@@ -94,6 +95,7 @@ const MainTabNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
+          title: "Home",
           tabBarIcon: ({ focused, color, size }) => {
             const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -123,6 +125,7 @@ const MainTabNavigator = () => {
         name="Journal"
         component={JournalScreen}
         options={{
+          title: "Journal",
           tabBarIcon: ({ focused, color, size }) => {
             const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -154,6 +157,7 @@ const MainTabNavigator = () => {
         name="Trends"
         component={TrendsScreen}
         options={{
+          title: "Trends",
           tabBarIcon: ({ focused, color, size }) => {
             const scaleAnim = React.useRef(new Animated.Value(1)).current;
 
@@ -185,6 +189,7 @@ const MainTabNavigator = () => {
         name="Settings"
         component={SettingsScreen}
         options={{
+          title: "Settings",
           tabBarIcon: ({ focused, color, size }) => {
             const scaleAnim = React.useRef(new Animated.Value(1)).current;
 

@@ -3,8 +3,6 @@ import {
   NightscoutTreatment,
 } from "../types/nightscout";
 
-import { GoogleGenAI } from "@google/genai";
-
 export async function getEmailFromUsername(
   cloudHost: string,
   username: string
@@ -14,9 +12,7 @@ export async function getEmailFromUsername(
   );
 
   if (!res.ok) throw new Error("Failed to get email from username");
-  console.log("getEmailFromUsername response:", res);
   const data = await res.json();
-  console.log("getEmailFromUsername response data:", data);
   return data.email as string;
 }
 
@@ -113,73 +109,6 @@ export async function deleteTreatment(
 
   if (!res.ok) throw new Error("Failed to update treatment");
   return res.json();
-}
-
-export async function analyzeMeal(imageBase64: string, apiKey: string) {
-  const ai = new GoogleGenAI({
-    apiKey: apiKey,
-  });
-  const prompt = `
-You are an expert nutrition AI. A user will send a photograph of a meal.
-You MUST estimate the nutritional composition based on what you visually see.
-
-Return ONLY valid JSON. No extra text.
-
-SCHEMA:
-{
-  "food_items": [
-    {
-      "name": "",
-      "estimated_weight_grams": 0,
-      "calories": 0,
-      "protein_grams": 0,
-      "carbs_grams": 0,
-      "fat_grams": 0,
-      "fiber_grams": 0
-    }
-  ],
-  "totals": {
-    "calories": 0,
-    "protein_grams": 0,
-    "carbs_grams": 0,
-    "fat_grams": 0,
-    "fiber_grams": 0
-  },
-  "confidence": ""
-}
-
-RULES:
-- "confidence" should be: low, medium, or high.
-- If unsure, be conservative and use "low".
-- Weight must be numeric.
-- If food is unclear, still name something reasonable.
-- DO NOT include text outside of the JSON.
-`;
-
-  const response = await ai.models.generateContent({
-    model: "gemini-2.5-flash",
-    contents: [
-      prompt,
-      { inlineData: { mimeType: "image/jpeg", data: imageBase64 } },
-    ],
-  });
-
-  if (!response.text) {
-    throw new Error("AI analysis failed: no text returned");
-  }
-
-  let output = response.text;
-
-  output = output
-    .replace(/^```json/, "")
-    .replace(/```$/, "")
-    .trim();
-
-  try {
-    return JSON.parse(output);
-  } catch {
-    return { error: "AI returned invalid JSON", raw: output };
-  }
 }
 
 export async function analyzeMealCloud(
