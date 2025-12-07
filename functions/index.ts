@@ -55,7 +55,7 @@ export const getEmailFromUsername = functions.https.onRequest(
       res.json({ email: userRecord.email });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
-      console.error("Error fetching email from username:", err);
+      throw new Error("Error in getEmailFromUsername: " + err.message);
     }
   }
 );
@@ -214,7 +214,7 @@ export const updateTreatment = functions.https.onRequest(
 
     if (!url || !treatment) {
       res.status(400).json({ error: "Missing url or treatment" });
-      return;
+      throw new Error("Missing url or treatment");
     }
 
     const headers: Record<string, string> = {
@@ -231,12 +231,13 @@ export const updateTreatment = functions.https.onRequest(
 
       if (!r.ok) {
         res.status(r.status).json({ error: await r.text() });
-        return;
+        throw new Error("Error in updateTreatment: " + (await r.text()));
       }
 
       res.json(await r.json());
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+      throw new Error("Error in updateTreatment: " + err.message);
     }
   }
 );
@@ -260,7 +261,7 @@ export const deleteTreatment = functions.https.onRequest(
 
     if (!url || !id) {
       res.status(400).json({ error: "Missing url or id" });
-      return;
+      throw new Error("Missing url or id");
     }
 
     const headers: Record<string, string> = {};
@@ -274,12 +275,13 @@ export const deleteTreatment = functions.https.onRequest(
 
       if (!r.ok) {
         res.status(r.status).json({ error: await r.text() });
-        return;
+        throw new Error("Error in deleteTreatment: " + (await r.text()));
       }
 
       res.json({ success: true, id });
     } catch (err: any) {
       res.status(500).json({ error: err.message });
+      throw new Error("Error in deleteTreatment: " + err.message);
     }
   }
 );
@@ -302,7 +304,7 @@ export const analyzeMeal = functions.https.onRequest(
     const { imageBase64 } = req.body;
     if (!imageBase64) {
       res.status(400).json({ error: "Missing 'imageBase64' in body" });
-      return;
+      throw new Error("Missing 'imageBase64' in body");
     }
     const prompt = `
 You are an expert nutrition AI. A user will send a photograph of a meal.
@@ -397,9 +399,6 @@ RULES:
       const outputText =
         data?.candidates?.[0]?.content?.parts?.[0]?.text?.trim();
 
-      console.log("AI Output Text:", outputText);
-      console.log("Full AI Response:", JSON.stringify(data, null, 2));
-
       if (!outputText) {
         throw new Error("AI returned empty response");
       }
@@ -418,8 +417,7 @@ RULES:
 
       res.json(parsed);
     } catch (err: any) {
-      console.error("Error in analyzeMeal:", err);
-      res.status(500).json({ error: err.message });
+      throw new Error("Error in analyzeMeal: " + err.message);
     }
   }
 );
@@ -427,21 +425,23 @@ RULES:
 const nightscoutSecret = defineSecret("NIGHTSCOUT_API_SECRET");
 const nightscoutUrl = defineSecret("NIGHTSCOUT_URL");
 
-let lastBG = 110;
+let lastBG = 120;
 
-function simulateBG(t: number) {
-  const amplitude = 62.5;
-  const center = 127.5;
-  const frequency = 5; // cycles per day
+export function simulateBG(t: number) {
+  const day = 86400 * 1000;
+  const x = (t % day) / day;
 
-  return Math.round(
-    center +
-      Math.sin(
-        ((t % (86400 * 1000)) / (86400 * 1000)) * 2 * Math.PI * frequency
-      ) *
-        amplitude +
-      (Math.random() - 0.5) * 10
-  );
+  const circadian = Math.sin(x * 2 * Math.PI * 1) * 25;
+
+  const ultradian = Math.sin(x * 2 * Math.PI * 5 + 1.2) * 15;
+
+  lastBG += (Math.random() - 0.5) * 1.5;
+
+  const noise = (Math.random() - 0.5) * 8;
+
+  const value = 120 + circadian + ultradian + noise + (lastBG - 120) * 0.05;
+
+  return Math.round(value);
 }
 
 export const simulateGlucose = onSchedule(

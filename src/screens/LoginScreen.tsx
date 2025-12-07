@@ -8,6 +8,8 @@ import {
   TouchableOpacity,
   Image,
   ScrollView,
+  Platform,
+  Switch,
 } from "react-native";
 import { getPlatformStyles } from "../themes/styles";
 import { useWindowDimensions } from "react-native";
@@ -19,12 +21,16 @@ import { ActivityIndicator } from "react-native";
 import { VintageColors } from "../themes/vintage/colors_vintage";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
 const gooseImage = require("../../assets/goose1.png");
+import * as sha1 from "js-sha1";
 
 const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const { width } = useWindowDimensions();
   const platformStyles = getPlatformStyles();
   const [identifier, setIdentifier] = useState("");
   const [password, setPassword] = useState("");
+  const [nightscoutSecret, setNightscoutSecret] = useState("");
+  const isWeb = Platform.OS === "web";
+  const [rememberMe, setRememberMe] = useState(!isWeb); // default true on non-web
 
   const identifierRef = React.useRef<TextInput>(null);
   const passwordRef = React.useRef<TextInput>(null);
@@ -50,7 +56,17 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setLoading(true);
 
     try {
-      const result = await loginWithEmailOrUsername(identifier, password);
+      let nightscoutSecretHash: string | undefined = undefined;
+      if (nightscoutSecret && nightscoutSecret.trim().length > 0) {
+        nightscoutSecretHash = sha1.sha1(nightscoutSecret);
+      }
+
+      const result = await loginWithEmailOrUsername(
+        identifier,
+        password,
+        nightscoutSecretHash,
+        rememberMe
+      );
 
       if (!result.success) {
         setErrors((prev) => ({ ...prev, firebase: result.error?.message }));
@@ -73,6 +89,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const cleanup = () => {
     setIdentifier("");
     setPassword("");
+    setNightscoutSecret("");
     setErrors({});
   };
 
@@ -87,6 +104,30 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const CustomCheckbox: React.FC<{
+    value: boolean;
+    onValueChange: (value: boolean) => void;
+    label: string;
+  }> = ({ value, onValueChange, label }) => {
+    return (
+      <TouchableOpacity
+        style={VintageStylesAuth.checkboxContainer}
+        onPress={() => onValueChange(!value)}
+        activeOpacity={0.7}
+      >
+        <View
+          style={[
+            VintageStylesAuth.checkbox,
+            value && VintageStylesAuth.checkboxChecked,
+          ]}
+        >
+          {value && <Text style={VintageStylesAuth.checkboxCheckmark}>✓</Text>}
+        </View>
+        <Text style={VintageStylesAuth.checkboxLabel}>{label}</Text>
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -143,6 +184,26 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               )}
             </View>
 
+            {/* Nightscout Secret */}
+            <View style={VintageStylesAuth.inputGroup}>
+              <Text style={VintageStylesAuth.inputLabel}>
+                Nightscout API Secret (Optional)
+              </Text>
+              <TextInput
+                style={VintageStylesAuth.input}
+                placeholder="Enter your API token if you have one"
+                placeholderTextColor={VintageColors.secondaryText}
+                autoCapitalize="none"
+                value={nightscoutSecret}
+                onChangeText={setNightscoutSecret}
+              />
+              <Text style={VintageStylesAuth.helpText}>
+                If your Nightscout instance requires authentication, add your
+                API token here. This will only be stored locally on your device
+                to ensure secure access to your data.
+              </Text>
+            </View>
+
             <View style={VintageStylesAuth.inputGroup}>
               <Text style={VintageStylesAuth.inputLabel}>Password</Text>
               <TextInput
@@ -160,6 +221,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                 </Text>
               )}
             </View>
+
+            {/* Remember Me checkbox - Web only */}
+            {isWeb && (
+              <View style={VintageStylesAuth.inputGroup}>
+                <CustomCheckbox
+                  value={rememberMe}
+                  onValueChange={setRememberMe}
+                  label="Remember Me"
+                />
+                <Text style={VintageStylesAuth.helpText}>
+                  Stay signed in on this device
+                </Text>
+              </View>
+            )}
 
             {errors.firebase && (
               <Text style={VintageStylesAuth.errorText}>{errors.firebase}</Text>
