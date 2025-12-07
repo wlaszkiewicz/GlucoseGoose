@@ -18,6 +18,9 @@ const CLOUD_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 export async function registerUser(
   email: string,
   password: string,
+  storeLocally: boolean,
+  nightscoutUrl: string,
+
   extra: any = {}
 ) {
   try {
@@ -30,11 +33,14 @@ export async function registerUser(
     await setDoc(doc(db, "users", user.uid), {
       email,
       createdAt: Date.now(),
+      storeLocally: storeLocally,
+      nightscoutUrl: storeLocally ? "" : nightscoutUrl,
       ...(extra || {}),
     });
 
     await setDoc(doc(db, "public_users", user.uid), {
       username_lower: extra.username.toLowerCase(),
+      storeLocally: storeLocally,
     });
 
     return { success: true, user };
@@ -53,10 +59,12 @@ export async function registerUser(
   }
 }
 
-export async function loginWithEmailOrUsername(
+export async function loginWithUsername(
   identifier: string,
   password: string,
+  nightscoutUrl?: string,
   nightscoutSecretHash?: string,
+  storeLocally: boolean = false,
   rememberMe: boolean = true
 ) {
   try {
@@ -69,18 +77,16 @@ export async function loginWithEmailOrUsername(
 
     let email = identifier;
 
-    if (!identifier.includes("@")) {
-      email = await getEmailFromUsername(CLOUD_HOST, identifier);
+    email = await getEmailFromUsername(CLOUD_HOST, identifier);
 
-      if (!email) {
-        return {
-          success: false,
-          error: {
-            code: "auth/user-not-found",
-            message: getFriendlyFirebaseError("auth/user-not-found"),
-          },
-        };
-      }
+    if (!email) {
+      return {
+        success: false,
+        error: {
+          code: "auth/user-not-found",
+          message: getFriendlyFirebaseError("auth/user-not-found"),
+        },
+      };
     }
 
     const result = await signInWithEmailAndPassword(auth, email, password);
@@ -90,6 +96,9 @@ export async function loginWithEmailOrUsername(
         nightscoutSecretHash,
         rememberMe
       );
+    }
+    if (result.user && storeLocally && nightscoutUrl) {
+      await StorageService.set("nightscoutUrl", nightscoutUrl, rememberMe);
     }
 
     return { success: true, user: result.user };
