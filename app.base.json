@@ -4,27 +4,32 @@
     "slug": "GlucoseGoose",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logo-placeholder.png",
+    "icon": "./assets/goose1-nobg.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logo-placeholder.png",
+      "image": "./assets/goose1-nobg.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hotties.glucosegoose",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logo-placeholder.png",
+        "foregroundImage": "./assets/goose1-nobg.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "package": "com.hotties.glucosegoose"
     },
     "web": {
-      "favicon": "./assets/logo-placeholder-nobg.png"
+      "favicon": "./assets/goose1-nobg.png"
     }
   }
 }

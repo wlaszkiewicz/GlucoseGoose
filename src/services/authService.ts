@@ -58,8 +58,6 @@ export async function loginWithEmailOrUsername(
     if (!identifier.includes("@")) {
       email = await getEmailFromUsername(CLOUD_HOST, identifier);
 
-      console.log("Fetched email for username:", email);
-
       if (!email) {
         return {
           success: false,

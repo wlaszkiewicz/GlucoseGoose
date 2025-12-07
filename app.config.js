@@ -6,7 +6,6 @@ export default ({ config }) => ({
   expo: {
     ...baseConfig.expo,
     extra: {
-      xdripUrl: process.env.XDRIP_URL,
       apiKey: process.env.API_KEY,
       authDomain: process.env.AUTH_DOMAIN,
       projectId: process.env.PROJECT_ID,
@@ -15,7 +14,9 @@ export default ({ config }) => ({
       appId: process.env.APP_ID,
       measurementId: process.env.MEASUREMENT_ID,
       cloudFunctionsHost: process.env.CLOUD_FUNCTIONS_HOST,
-      geminiApiKey: process.env.GEMINI_API_KEY,
+      eas: {
+        projectId: "1bbd27d8-9e22-4e0d-a427-dee4fe37e1ef",
+      },
     },
   },
 });
