@@ -298,7 +298,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       fat: nutritionInfo?.fat || 0,
       fiber: nutritionInfo?.fiber || 0,
       calories: nutritionInfo?.calories || 0,
-      created_at: new Date().toISOString(),
+      created_at: selectedDate.toISOString(),
     };
 
     if (aiAnalysis) {

@@ -1,5 +1,6 @@
+// GlucoseChart/components/EventModal.tsx
 import React from "react";
-import { Modal, View, Text, TouchableOpacity } from "react-native";
+import { Modal, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import {
   Feather,
   FontAwesome5,
@@ -13,13 +14,15 @@ import {
   getEventColor,
   getMealIcon,
   getActivityIcon,
-  formatTime,
   getInsulinIcon,
   getInsulinColor,
   formatInsulinValue,
   formatTempBasalValue,
   getTargetIcon,
   getTargetColor,
+  formatTargetValue,
+  getSpecialEventIcon,
+  isSpecialEvent,
 } from "../../utils/chartUtils";
 import { getEventDisplayName } from "../../utils/glucoseUtils";
 
@@ -36,16 +39,51 @@ export const EventModal: React.FC<EventModalProps> = ({
 }) => {
   if (!event) return null;
 
-  const isInsulinEvent =
-    event.eventType?.includes("Bolus") || event.eventType === "Temp Basal";
-  const isTargetEvent = event.eventType === "Temporary Target";
+  const getEventCategory = () => {
+    const eventType = event.eventType?.toLowerCase() || "";
+    const type = event.type?.toLowerCase() || "";
 
-  const eventColor = isInsulinEvent
-    ? getInsulinColor(event.eventType, event.percent, event.insulin)
-    : isTargetEvent
-    ? getTargetColor(event.reason)
-    : getEventColor(event.type, event.eventType);
+    if (
+      eventType.includes("meal bolus") ||
+      eventType.includes("correction bolus") ||
+      eventType.includes("bolus")
+    ) {
+      return "insulin";
+    }
+    if (eventType.includes("temp basal")) return "basal";
+    if (eventType.includes("temp target") || eventType.includes("target"))
+      return "target";
+    if (type === "meal" && !eventType.includes("bolus")) return "meal";
+    if (type === "activity") return "activity";
+    if (
+      eventType.includes("site") ||
+      eventType.includes("sensor") ||
+      eventType.includes("pump")
+    )
+      return "device";
+    if (eventType.includes("note") || eventType.includes("comment"))
+      return "note";
+    if (type === "other") return "other";
+    return "unknown";
+  };
 
+  const category = getEventCategory();
+  const isInsulinEvent = category === "insulin" || category === "basal";
+  const isTargetEvent = category === "target";
+  const isMealEvent = category === "meal";
+  const isActivityEvent = category === "activity";
+
+  const getModalEventColor = () => {
+    if (isInsulinEvent) {
+      return getInsulinColor(event.eventType, event.percent, event.insulin);
+    }
+    if (isTargetEvent) {
+      return getTargetColor(event.reason || event.eventType);
+    }
+    return getEventColor(event.type, event.eventType);
+  };
+
+  const eventColor = getModalEventColor();
   const displayName = getEventDisplayName(event);
 
   const safeNumber = (value: any): number => {
@@ -54,98 +92,57 @@ export const EventModal: React.FC<EventModalProps> = ({
     return !isNaN(num) && num > 0 ? num : 0;
   };
 
-  const renderEventIcon = () => {
+  const getModalEventIcon = () => {
     if (isInsulinEvent) {
-      return (
-        <View style={VintageStylesHome.modalEventIconContainerCompact}>
-          <View
-            style={[
-              VintageStylesHome.modalIconCircleCompact,
-              { backgroundColor: eventColor },
-            ]}
-          >
-            <Ionicons
-              name={getInsulinIcon(event.eventType, event.insulin) as any}
-              size={20}
-              color="white"
-            />
-          </View>
-        </View>
-      );
+      return getInsulinIcon(event.eventType, event.insulin);
     }
-
     if (isTargetEvent) {
-      return (
-        <View style={VintageStylesHome.modalEventIconContainerCompact}>
-          <View
-            style={[
-              VintageStylesHome.modalIconCircleCompact,
-              { backgroundColor: eventColor },
-            ]}
-          >
-            <MaterialCommunityIcons
-              name={getTargetIcon(event.reason) as any}
-              size={20}
-              color="white"
-            />
-          </View>
-        </View>
-      );
+      return getTargetIcon(event.reason || "custom");
     }
+    if (isSpecialEvent(event)) {
+      return getSpecialEventIcon(event.eventType);
+    }
+    if (isMealEvent) {
+      return getMealIcon(event.eventType);
+    }
+    if (isActivityEvent) {
+      return getActivityIcon(event.eventType);
+    }
+    return "medical";
+  };
 
-    switch (event.type) {
-      case "meal":
-        return (
-          <View style={VintageStylesHome.modalEventIconContainerCompact}>
-            <View
-              style={[
-                VintageStylesHome.modalIconCircleCompact,
-                { backgroundColor: eventColor },
-              ]}
-            >
-              <Ionicons
-                name={getMealIcon(event.eventType) as any}
+  const renderEventIcon = () => {
+    const iconName = getModalEventIcon();
+
+    return (
+      <View style={VintageStylesHome.modalEventIconContainerCompact}>
+        <View
+          style={[
+            VintageStylesHome.modalIconCircleCompact,
+            { backgroundColor: eventColor },
+          ]}
+        >
+          {isTargetEvent ||
+            (iconName == "bullhorn" && (
+              <MaterialCommunityIcons
+                name={iconName as any}
                 size={20}
                 color="white"
               />
-            </View>
-          </View>
-        );
-      case "activity":
-        return (
-          <View style={VintageStylesHome.modalEventIconContainerCompact}>
-            <View
-              style={[
-                VintageStylesHome.modalIconCircleCompact,
-                { backgroundColor: eventColor },
-              ]}
-            >
-              <Ionicons
-                name={getActivityIcon(event.eventType) as any}
-                size={20}
-                color="white"
-              />
-            </View>
-          </View>
-        );
-      default:
-        return (
-          <View style={VintageStylesHome.modalEventIconContainerCompact}>
-            <View
-              style={[
-                VintageStylesHome.modalIconCircleCompact,
-                { backgroundColor: eventColor },
-              ]}
-            >
-              <Ionicons name="medical" size={20} color="white" />
-            </View>
-          </View>
-        );
-    }
+            ))}
+          {!isTargetEvent && iconName !== "bullhorn" && (
+            <Ionicons name={iconName as any} size={20} color="white" />
+          )}
+        </View>
+      </View>
+    );
   };
 
   const renderTargetInfo = () => {
     if (!isTargetEvent) return null;
+
+    const targetValue = formatTargetValue(event);
+    if (!targetValue) return null;
 
     const targetColors = {
       value: VintageColors.iconGreen,
@@ -181,7 +178,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             ]}
           >
             <Text style={VintageStylesHome.modalTargetValue}>
-              {event.targetBottom || event.targetTop || "—"} mg/dL
+              {targetValue}
             </Text>
             <Text style={VintageStylesHome.modalTargetLabel}>Target</Text>
           </View>
@@ -200,7 +197,7 @@ export const EventModal: React.FC<EventModalProps> = ({
             </View>
           )}
 
-          {event.reason && (
+          {(event.reason || event.eventType) && (
             <View style={VintageStylesHome.modalTargetReason}>
               <Ionicons
                 name="information-circle"
@@ -208,7 +205,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                 color={VintageColors.secondaryText}
               />
               <Text style={VintageStylesHome.modalTargetReasonText}>
-                {event.reason}
+                {event.reason || event.eventType}
               </Text>
             </View>
           )}
@@ -253,7 +250,7 @@ export const EventModal: React.FC<EventModalProps> = ({
         </View>
 
         <View style={VintageStylesHome.modalInsulinGridCompact}>
-          {event.eventType.includes("Bolus") && event.insulin && (
+          {event.eventType?.includes("Bolus") && event.insulin && (
             <View
               style={[
                 VintageStylesHome.modalDataItem,
@@ -272,7 +269,7 @@ export const EventModal: React.FC<EventModalProps> = ({
                   {formatInsulinValue(event.insulin)}
                 </Text>
                 <Text style={VintageStylesHome.modalDataItemLabel}>
-                  {event.eventType.replace(" Bolus", "")}
+                  {event.eventType?.replace(" Bolus", "") || "Bolus"}
                 </Text>
               </View>
             </View>
@@ -280,7 +277,7 @@ export const EventModal: React.FC<EventModalProps> = ({
 
           {event.eventType === "Temp Basal" && (
             <>
-              {event.rate !== undefined && (
+              {(event.rate !== undefined || event.rate === 0) && (
                 <View
                   style={[
                     VintageStylesHome.modalDataItem,
@@ -338,20 +335,15 @@ export const EventModal: React.FC<EventModalProps> = ({
                   ]}
                 >
                   <View style={VintageStylesHome.modalDataItemIcon}>
-                    {event.percent !== 0 && (
+                    {event.percent !== 0 ? (
                       <Ionicons
                         name={
-                          event.percent < 0
-                            ? "trending-down"
-                            : event.percent > 0
-                            ? "trending-up"
-                            : "arrow-forward"
+                          event.percent < 0 ? "trending-down" : "trending-up"
                         }
                         size={20}
                         color={VintageColors.primaryText}
                       />
-                    )}
-                    {event.percent === 0 && (
+                    ) : (
                       <MaterialIcons
                         name="trending-flat"
                         size={20}
@@ -378,7 +370,7 @@ export const EventModal: React.FC<EventModalProps> = ({
   };
 
   const renderNutritionInfo = () => {
-    if (event.type !== "meal") return null;
+    if (!isMealEvent) return null;
 
     const safeCarbs = safeNumber(event.carbs);
     const safeProtein = safeNumber(event.protein);
@@ -459,7 +451,7 @@ export const EventModal: React.FC<EventModalProps> = ({
   };
 
   const renderActivityInfo = () => {
-    if (event.type !== "activity") return null;
+    if (!isActivityEvent) return null;
 
     const safeDuration = safeNumber(event.duration);
     const safeCaloriesBurned = safeNumber(event.caloriesBurned);
@@ -570,6 +562,46 @@ export const EventModal: React.FC<EventModalProps> = ({
     );
   };
 
+  const renderDeviceInfo = () => {
+    if (category !== "device") return null;
+
+    return (
+      <View style={VintageStylesHome.modalSectionCompact}>
+        <View style={VintageStylesHome.modalSectionHeaderCompact}>
+          <View
+            style={[
+              VintageStylesHome.modalSectionIcon,
+              { backgroundColor: VintageColors.iconPurple },
+            ]}
+          >
+            <Ionicons
+              name="bandage"
+              size={16}
+              color={VintageColors.primaryText}
+            />
+          </View>
+          <Text style={VintageStylesHome.modalSectionTitleCompact}>
+            Device Event
+          </Text>
+        </View>
+
+        <View style={VintageStylesHome.modalTargetGrid}>
+          <View
+            style={[
+              VintageStylesHome.modalTargetItem,
+              { backgroundColor: VintageColors.iconBlue },
+            ]}
+          >
+            <Text style={VintageStylesHome.modalTargetValue}>
+              {event.eventType || "Device Change"}
+            </Text>
+            <Text style={VintageStylesHome.modalTargetLabel}>Type</Text>
+          </View>
+        </View>
+      </View>
+    );
+  };
+
   const renderNotes = () => {
     if (!event.notes || event.notes.trim() === "") return null;
 
@@ -615,6 +647,16 @@ export const EventModal: React.FC<EventModalProps> = ({
     });
   };
 
+  // Determine which sections to show
+  const sections = [
+    renderTargetInfo(),
+    renderInsulinInfo(),
+    renderNutritionInfo(),
+    renderActivityInfo(),
+    renderDeviceInfo(),
+    renderNotes(),
+  ].filter(Boolean);
+
   return (
     <Modal
       visible={visible}
@@ -632,7 +674,6 @@ export const EventModal: React.FC<EventModalProps> = ({
                 <Text style={VintageStylesHome.modalTitleCompact}>
                   {displayName}
                 </Text>
-                <View style={VintageStylesHome.modalEventTypeRow}></View>
               </View>
             </View>
 
@@ -701,22 +742,22 @@ export const EventModal: React.FC<EventModalProps> = ({
           <View style={VintageStylesHome.modalDivider} />
 
           {/* Content */}
-          <View style={VintageStylesHome.modalBodyCompact}>
-            {/* Target Info */}
-            {renderTargetInfo()}
-
-            {/* Insulin Info */}
-            {renderInsulinInfo()}
-
-            {/* Nutrition Info */}
-            {renderNutritionInfo()}
-
-            {/* Activity Info */}
-            {renderActivityInfo()}
-
-            {/* Notes */}
-            {renderNotes()}
-          </View>
+          <ScrollView style={VintageStylesHome.modalBodyCompact}>
+            {sections.length > 0 ? (
+              sections
+            ) : (
+              <View style={VintageStylesHome.modalSectionCompact}>
+                <Text
+                  style={{
+                    color: VintageColors.secondaryText,
+                    textAlign: "center",
+                  }}
+                >
+                  No additional details available for this event.
+                </Text>
+              </View>
+            )}
+          </ScrollView>
 
           {/* Footer */}
           <View style={VintageStylesHome.modalFooterCompact}>

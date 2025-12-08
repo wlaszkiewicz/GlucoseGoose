@@ -10,8 +10,8 @@ import {
 } from "react-native";
 import Svg, { Line, Circle, Text as SvgText, Rect } from "react-native-svg";
 import { Feather, Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
-import { VintageStylesHome } from "../../themes/vintage/styles_vintage_home";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageStylesHome } from "../../../themes/vintage/styles_vintage_home";
+import { VintageColors } from "../../../themes/vintage/colors_vintage";
 import {
   getGlucoseColor,
   getEventColor,
@@ -23,10 +23,10 @@ import {
   getInsulinColor,
   isSpecialEvent,
   getSpecialEventIcon,
-} from "../../utils/chartUtils";
+} from "../../../utils/chartUtils";
 import { ChartSettingsModal } from "./ChartSettingsModal";
-import { useChartSettings } from "../../hooks/useChartSettings";
-import { NightscoutEntry } from "../../types/nightscout";
+import { useChartSettings } from "../../../hooks/useChartSettings";
+import { NightscoutEntry } from "../../../types/nightscout";
 import { InteractiveLegend } from "./InteractiveLegend";
 
 interface GlucoseChartProps {
@@ -674,6 +674,35 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
                   </React.Fragment>
                 );
               })}
+              {specialEventPositions.map((event) => {
+                const eventColor = getEventColor(event.type, event.eventType);
+                const adjustedX = 30 + event.chartIndex * pointSpacing;
+
+                return (
+                  <React.Fragment key={`event-line-${event._id}`}>
+                    <Line
+                      x1={adjustedX}
+                      y1="40"
+                      x2={adjustedX}
+                      y2="280"
+                      stroke={eventColor}
+                      strokeWidth="2"
+                      strokeDasharray="3,3"
+                      opacity={0.6}
+                    />
+                    <SvgText
+                      x={adjustedX}
+                      y="315"
+                      fontSize="9"
+                      fill={eventColor}
+                      textAnchor="middle"
+                      fontWeight="600"
+                    >
+                      {event.displayTime}
+                    </SvgText>
+                  </React.Fragment>
+                );
+              })}
             </Svg>
 
             {/* REGULAR EVENT ICONS */}
@@ -723,7 +752,7 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
 
             {/* SPECIAL EVENT ICONS */}
             {specialEventPositions.map((event) => {
-              const eventColor = getEventColor(event.eventType);
+              const eventColor = getEventColor(event.type, event.eventType);
               const iconName = getSpecialEventIcon(event.eventType);
 
               return (
@@ -830,6 +859,8 @@ export const GlucoseChart: React.FC<GlucoseChartProps> = ({
               tempBasals: settings.showTempBasals,
               targets: settings.showTargets,
               deviceEvents: settings.showDeviceEvents,
+              notes: settings.showNotes,
+              otherEvents: settings.showOtherEvents,
             }}
             chartEvents={filteredEvents}
           />
