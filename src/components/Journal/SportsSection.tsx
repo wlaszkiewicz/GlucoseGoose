@@ -288,7 +288,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       caloriesBurned: caloriesBurned,
       heartRate: manualHeartRate ? parseInt(manualHeartRate) : undefined,
       distance: distance,
-      created_at: new Date().toISOString(),
+      created_at: selectedDate.toISOString(),
     };
 
     try {

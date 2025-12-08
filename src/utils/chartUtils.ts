@@ -24,60 +24,64 @@ export {
 
 export const PASTEL_COLORS = {
   // Meal colors
-  mealBreakfast: "#FFD6E7", // Pastel pink
-  mealLunch: "#B5EAD7", // Pastel mint
-  mealDinner: "#C7CEEA", // Pastel lavender
-  mealSnack: "#FFDAC1", // Pastel peach
-  mealOther: "#E2F0CB", // Pastel sage
+  mealBreakfast: "#FFD6E7",
+  mealLunch: "#B5EAD7",
+  mealDinner: "#C7CEEA",
+  mealSnack: "#FFDAC1",
+  mealOther: "#E2F0CB",
 
   // Activity colors
-  activityWalking: "#B5EAD7", // Pastel mint
-  activityRunning: "#FFD6E7", // Pastel pink
-  activityTraining: "#C7CEEA", // Pastel lavender
-  activitySports: "#FFB7B2", // Pastel coral
-  activityYoga: "#FFDAC1", // Pastel peach
-  activityOther: "#E2F0CB", // Pastel sage
+  activityWalking: "#B5EAD7",
+  activityRunning: "#FFD6E7",
+  activityTraining: "#C7CEEA",
+  activitySports: "#FFB7B2",
+  activityYoga: "#FFDAC1",
+  activityOther: "#E2F0CB",
 
   // Insulin colors
-  bolusSmall: "#FCB7B2FF", // Pastel coral
-  bolusMedium: "#FA8B94FF", // Pastel rose
-  bolusLarge: "#F9858DFF", // Pastel red
+  bolusSmall: "#FCB7B2FF",
+  bolusMedium: "#FA8B94FF",
+  bolusLarge: "#F9858DFF",
 
   // Basal colors
-  basalReduced: "#AFCBFF", // Pastel blue
-  basalNormal: "#C7CEEA", // Pastel lavender
-  basalIncreased: "#FFDAC1", // Pastel peach
+  basalReduced: "#AFCBFF",
+  basalNormal: "#C7CEEA",
+  basalIncreased: "#FFDAC1",
 
   // Target colors
-  targetMeal: "#F9C9A9FF", // Pastel peach
-  targetActivity: "#B5EAD7", // Pastel mint
-  targetHypo: "#FFB7B2", // Pastel coral
-  targetCustom: "#E2F0CB", // Pastel sage
+  targetMeal: "#F9C9A9FF",
+  targetActivity: "#B5EAD7",
+  targetHypo: "#FFB7B2",
+  targetCustom: "#E2F0CB",
 
   // Device colors
-  deviceSite: "#C7CEEA", // Pastel lavender
-  deviceSensor: "#B5EAD7", // Pastel mint
-  devicePump: "#FFD6E7", // Pastel pink
+  deviceSite: "#C7CEEA",
+  deviceSensor: "#B5EAD7",
+  devicePump: "#FFD6E7",
 
   // Other colors
-  note: "#D8D8D8", // Pastel gray
-  announcement: "#EC9279FF", // Pastel apricot
-  other: "#E2F0CB", // Pastel sage
+  note: "#D8D8D8",
+  announcement: "#EC9279FF",
+  other: "#E2F0CB",
 };
 
 export const getEventCategory = (event: any): string => {
   const eventType = event.eventType?.toLowerCase() || "";
   const type = event.type?.toLowerCase() || "";
 
-  if (eventType.includes("meal bolus")) return "insulin";
-  if (eventType.includes("correction bolus")) return "insulin";
-  if (eventType.includes("bolus")) return "insulin";
+  if (
+    eventType.includes("meal bolus") ||
+    eventType.includes("correction bolus") ||
+    eventType.includes("bolus")
+  ) {
+    return "insulin";
+  }
 
   if (eventType.includes("temp basal")) return "basal";
   if (eventType.includes("temp target") || eventType.includes("target"))
     return "target";
 
-  if (type === "meal" && eventType !== "meal bolus") return "meal";
+  if (type === "meal" && !eventType.includes("bolus")) return "meal";
   if (type === "activity") return "activity";
 
   if (
@@ -93,63 +97,12 @@ export const getEventCategory = (event: any): string => {
   return "unknown";
 };
 
-export const getCategoryIcon = (category: string): string => {
-  switch (category) {
-    case "meal":
-      return "fast-food";
-    case "activity":
-      return "bicycle";
-    case "insulin":
-      return "water";
-    case "basal":
-      return "timer";
-    case "target":
-      return "target";
-    case "device":
-      return "bandage";
-    case "note":
-      return "document-text";
-    case "other":
-      return "medical";
-    default:
-      return "help-circle";
-  }
-};
-
-export const getInsulinColor = (
-  eventType: string,
-  percent?: number,
-  insulin?: number
-): string => {
-  if (eventType === "Temp Basal") {
-    if (percent === undefined) return PASTEL_COLORS.basalNormal;
-
-    if (percent < -50) return "#8CB3E3"; // Deeper blue for strong reduction
-    if (percent < 0) return PASTEL_COLORS.basalReduced;
-    if (percent > 50) return "#FFB347"; // Orange for strong increase
-    if (percent > 0) return PASTEL_COLORS.basalIncreased;
-    return PASTEL_COLORS.basalNormal;
-  }
-
-  if (eventType.includes("Bolus")) {
-    if (insulin && insulin > 3) return "#FF8C94";
-    if (insulin && insulin > 1) return PASTEL_COLORS.bolusMedium;
-    if (insulin && insulin > 0.5) return PASTEL_COLORS.bolusSmall;
-    return "#FFE5E0"; // Very light coral for tiny bolus
-  }
-
-  return PASTEL_COLORS.other;
-};
-
 export const getEventColor = (type: string, eventType: string = ""): string => {
-  if (
-    type === "other" &&
-    eventType?.includes("Bolus") &&
-    eventType === "Meal Bolus"
-  ) {
+  if (eventType === "Meal Bolus" || eventType === "Correction Bolus") {
     return getInsulinColor(eventType);
   }
-  if (type === "other" && eventType === "Temp Basal") {
+
+  if (eventType === "Temp Basal") {
     return getInsulinColor(eventType);
   }
 
@@ -220,6 +173,54 @@ export const getEventColor = (type: string, eventType: string = ""): string => {
   }
 };
 
+export const getCategoryIcon = (category: string): string => {
+  switch (category) {
+    case "meal":
+      return "fast-food";
+    case "activity":
+      return "bicycle";
+    case "insulin":
+      return "water";
+    case "basal":
+      return "timer";
+    case "target":
+      return "target";
+    case "device":
+      return "bandage";
+    case "note":
+      return "document-text";
+    case "other":
+      return "medical";
+    default:
+      return "help-circle";
+  }
+};
+
+export const getInsulinColor = (
+  eventType: string,
+  percent?: number,
+  insulin?: number
+): string => {
+  if (eventType === "Temp Basal") {
+    if (percent === undefined) return PASTEL_COLORS.basalNormal;
+
+    if (percent < -50) return "#8CB3E3"; // Deeper blue for strong reduction
+    if (percent < 0) return PASTEL_COLORS.basalReduced;
+    if (percent > 50) return "#FFB347"; // Orange for strong increase
+    if (percent > 0) return PASTEL_COLORS.basalIncreased;
+    return PASTEL_COLORS.basalNormal;
+  }
+
+  if (eventType.includes("Bolus")) {
+    if (insulin && insulin > 3) return "#FF8C94";
+    if (insulin && insulin > 1) return PASTEL_COLORS.bolusMedium;
+    if (insulin && insulin > 0.5) return PASTEL_COLORS.bolusSmall;
+    return "#FFE5E0"; // Very light coral for tiny bolus
+  }
+
+  return PASTEL_COLORS.other;
+};
+
 export const getTargetColor = (reason: string): string => {
   const reasonLower = reason?.toLowerCase() || "";
   if (reasonLower.includes("meal") || reasonLower.includes("pre-meal")) {
@@ -257,6 +258,8 @@ export const getCategoryDisplayName = (category: string): string => {
   }
 };
 
+// Update the shouldShowEvent function to use showOtherEvents:
+
 export const shouldShowEvent = (event: any, settings: any): boolean => {
   const category = getEventCategory(event);
 
@@ -276,9 +279,9 @@ export const shouldShowEvent = (event: any, settings: any): boolean => {
     case "note":
       return settings.showNotes;
     case "other":
-      return true;
+      return settings.showOtherEvents;
     default:
-      return true;
+      return settings.showOtherEvents;
   }
 };
 
@@ -352,7 +355,7 @@ export const getTargetIcon = (reason: string): string => {
   switch (reason?.toLowerCase()) {
     case "meal soon":
     case "pre-meal":
-      return "food";
+      return "food-variant";
     case "activity":
     case "exercise":
       return "run";
@@ -399,7 +402,6 @@ export const isSpecialEvent = (event: any): boolean => {
   const eventType = event.eventType?.toLowerCase() || "";
   const category = getEventCategory(event);
 
-  // "Special" events are anything that's not a regular meal or activity
   return category !== "meal" && category !== "activity";
 };
 

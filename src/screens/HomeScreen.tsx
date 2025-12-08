@@ -12,7 +12,7 @@ import { VintageColors } from "../themes/vintage/colors_vintage";
 import { useHomeScreenData } from "../hooks/useHomeScreenData";
 import { CurrentGlucoseCard } from "../components/home/CurrentGlucoseCard";
 import { TimeFilter } from "../components/home/TimeFilter";
-import { GlucoseChart } from "../components/home/GlucoseChart";
+import { GlucoseChart } from "../components/home/GlucoseChart/GlucoseChart";
 import { EventModal } from "../components/home/EventModal";
 import { VintageStyles } from "../themes/vintage/styles_vintage";
 

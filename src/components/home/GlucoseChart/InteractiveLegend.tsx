@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { View, Text, TouchableOpacity, Modal, ScrollView } from "react-native";
 import { Ionicons, MaterialCommunityIcons, Feather } from "@expo/vector-icons";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
-import { PASTEL_COLORS } from "../../utils/chartUtils";
+import { VintageColors } from "../../../themes/vintage/colors_vintage";
+import { PASTEL_COLORS } from "../../../utils/chartUtils";
 import {
   getEventCategory,
   getCategoryDisplayName,
@@ -13,7 +13,7 @@ import {
   getActivityIcon,
   getInsulinIcon,
   getTargetIcon,
-} from "../../utils/chartUtils";
+} from "../../../utils/chartUtils";
 import { StyleSheet } from "react-native";
 
 interface LegendItem {
@@ -39,6 +39,8 @@ interface InteractiveLegendProps {
     tempBasals: boolean;
     targets: boolean;
     deviceEvents: boolean;
+    notes: boolean;
+    otherEvents: boolean;
   };
   chartEvents: any[];
 }
@@ -133,20 +135,6 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
     return Array.from(mealTypes);
   };
 
-  const getPresentActivityTypes = (): string[] => {
-    const activityTypes = new Set<string>();
-    chartEvents.forEach((event) => {
-      if (getEventCategory(event) === "activity" && event.eventType) {
-        const activityType = event.eventType.replace(
-          /^(Activity|Exercise):?\s*/i,
-          ""
-        );
-        activityTypes.add(activityType);
-      }
-    });
-    return Array.from(activityTypes);
-  };
-
   const hasEventsInCategory = (
     category: string,
     specificType?: string
@@ -171,7 +159,38 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
         return true;
       });
     }
-    return chartEvents.some((event) => getEventCategory(event) === category);
+
+    return chartEvents.some((event) => {
+      const eventCategory = getEventCategory(event);
+
+      if (category === "other") {
+        return (
+          eventCategory === "note" ||
+          eventCategory === "other" ||
+          eventCategory === "unknown"
+        );
+      }
+
+      if (category === "meal" && event.eventType === "Meal Bolus") {
+        return false;
+      }
+
+      return eventCategory === category;
+    });
+  };
+
+  const getPresentActivityTypes = (): string[] => {
+    const activityTypes = new Set<string>();
+    chartEvents.forEach((event) => {
+      if (getEventCategory(event) === "activity" && event.eventType) {
+        const activityType = event.eventType.replace(
+          /^(Activity|Exercise):?\s*/i,
+          ""
+        );
+        activityTypes.add(activityType);
+      }
+    });
+    return Array.from(activityTypes);
   };
 
   const presentMealTypes = getPresentMealTypes();
@@ -184,7 +203,7 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
             id: "meal-breakfast",
             name: "Breakfast",
             icon: getMealIcon("Breakfast"),
-            color: PASTEL_COLORS.mealBreakfast, // Use directly from palette
+            color: PASTEL_COLORS.mealBreakfast,
             description: "Food intake - breakfast or morning meal",
             category: "meal",
             isVisible:
@@ -354,6 +373,32 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
         visibleEventTypes.deviceEvents,
       showColorExplanation: false,
     },
+    ...(hasEventsInCategory("note") || hasEventsInCategory("other")
+      ? [
+          {
+            id: "note",
+            name: "Notes",
+            icon: "document-text",
+            color: PASTEL_COLORS.note,
+            description: "Notes, comments, or general annotations",
+            category: "note",
+            isVisible:
+              (hasEventsInCategory("note") || hasEventsInCategory("other")) &&
+              true,
+            showColorExplanation: false,
+          },
+          {
+            id: "announcement",
+            name: "Announcements",
+            icon: "bullhorn",
+            color: PASTEL_COLORS.announcement,
+            description: "Important announcements or notifications",
+            category: "other",
+            isVisible: hasEventsInCategory("other"),
+            showColorExplanation: false,
+          },
+        ]
+      : []),
   ];
 
   const visibleItems = legendItems.filter((item) => item.isVisible);
@@ -379,11 +424,11 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
       <View
         style={[styles.legendIconContainer, { backgroundColor: item.color }]}
       >
-        {item.icon !== "target" && (
+        {item.icon !== "target" && item.icon !== "bullhorn" && (
           <Ionicons name={item.icon as any} size={14} color="white" />
         )}
-        {item.icon === "target" && (
-          <MaterialCommunityIcons name={"target"} size={14} color="white" />
+        {(item.icon === "target" || item.icon === "bullhorn") && (
+          <MaterialCommunityIcons name={item.icon} size={14} color="white" />
         )}
       </View>
       <Text style={styles.legendItemText} numberOfLines={1}>
@@ -417,12 +462,12 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
           >
             <View style={styles.infoHeader}>
               <View style={[styles.infoIcon, { backgroundColor: item.color }]}>
-                {item.icon !== "target" && (
+                {item.icon !== "target" && item.icon !== "bullhorn" && (
                   <Ionicons name={item.icon as any} size={24} color="white" />
                 )}
-                {item.icon === "target" && (
+                {(item.icon === "target" || item.icon === "bullhorn") && (
                   <MaterialCommunityIcons
-                    name={"target"}
+                    name={item.icon}
                     size={24}
                     color="white"
                   />
@@ -487,6 +532,7 @@ export const InteractiveLegend: React.FC<InteractiveLegendProps> = ({
     "basal",
     "target",
     "device",
+    "other",
   ];
 
   return (

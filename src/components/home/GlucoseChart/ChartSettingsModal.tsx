@@ -14,7 +14,7 @@ import {
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../../themes/vintage/colors_vintage";
 
 interface ChartSettings {
   showMeals: boolean;
@@ -27,6 +27,7 @@ interface ChartSettings {
   showReferenceLines: boolean;
   showTimeLabels: boolean;
   showGlucosePoints: boolean;
+  showOtherEvents: boolean;
 }
 
 interface ChartSettingsModalProps {
@@ -62,6 +63,7 @@ export const ChartSettingsModal: React.FC<ChartSettingsModalProps> = ({
       showReferenceLines: true,
       showTimeLabels: true,
       showGlucosePoints: true,
+      showOtherEvents: true,
     };
     setCurrentSettings(defaults);
     onSettingsChange(defaults);
@@ -214,6 +216,14 @@ export const ChartSettingsModal: React.FC<ChartSettingsModalProps> = ({
                 subtitle="Show notes and comments"
                 settingKey="showNotes"
                 value={currentSettings.showNotes}
+              />
+              <SettingItem
+                icon="help-circle"
+                iconColor="#EC9279"
+                title="Other Events"
+                subtitle="Show announcements and other events"
+                settingKey="showOtherEvents"
+                value={currentSettings.showOtherEvents}
               />
             </Section>
 
