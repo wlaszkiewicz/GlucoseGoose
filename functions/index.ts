@@ -431,15 +431,19 @@ export function simulateBG(t: number) {
   const day = 86400 * 1000;
   const x = (t % day) / day;
 
-  const circadian = Math.sin(x * 2 * Math.PI * 1) * 25;
+  const w1 = Math.abs(Math.sin(x * 2 * Math.PI * 3)) * 18;
+  const w2 = Math.sin(x * 2 * Math.PI * 7) * 10;
+  const w3 = Math.sin(x * 2 * Math.PI * 11 + 1) * 7;
 
-  const ultradian = Math.sin(x * 2 * Math.PI * 5 + 1.2) * 15;
+  if (Math.random() < 0.015) {
+    lastBG += (Math.random() - 0.5) * 25;
+  }
 
-  lastBG += (Math.random() - 0.5) * 1.5;
+  lastBG += (Math.random() - 0.5) * 1.8;
 
   const noise = (Math.random() - 0.5) * 8;
 
-  const value = 120 + circadian + ultradian + noise + (lastBG - 120) * 0.05;
+  const value = 120 + w1 + w2 + w3 + (lastBG - 120) * 0.08 + noise;
 
   return Math.round(value);
 }

@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { VintageStylesCalendar } from "../../themes/vintage/styles_vintage_calendar";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 
 interface SimpleCalendarProps {
   visible: boolean;

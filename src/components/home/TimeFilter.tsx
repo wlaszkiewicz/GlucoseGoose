@@ -1,7 +1,7 @@
 import React from "react";
 import { TouchableOpacity, Text, View } from "react-native";
 import { VintageStylesHome } from "../../themes/vintage/styles_vintage_home";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 
 interface TimeFilterProps {
   timeFilter: "2h" | "12h" | "24h";

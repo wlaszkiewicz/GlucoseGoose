@@ -1,6 +1,6 @@
 // styles_vintage_other.ts
 import { StyleSheet } from "react-native";
-import { VintageColors } from "./colors_vintage";
+import { VintageColors } from "./colors";
 
 export const VintageStylesOther = StyleSheet.create({
   container: {

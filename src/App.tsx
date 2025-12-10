@@ -4,10 +4,10 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import SplashScreen from "./screens/SplashScreen";
-import { AuthProvider, useAuth } from "./context/AuthContext";
-import { NightscoutProvider } from "./context/NightscoutContext";
+import { AuthProvider, useAuth } from "./contexts/AuthContext";
+import { NightscoutProvider } from "./contexts/NightscoutContext";
 import MainTabNavigator from "./MainTabNavigator";
-import { VintageColors } from "./themes/vintage/colors_vintage";
+import { VintageColors } from "./themes/vintage/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator();

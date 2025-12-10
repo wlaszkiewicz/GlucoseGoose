@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-import { VintageColors } from "./colors_vintage";
+import { VintageColors } from "./colors";
 
 export const VintageStyles = StyleSheet.create({
   container: {
@@ -37,7 +37,7 @@ export const VintageStyles = StyleSheet.create({
   },
 
   headerTitle: {
-    fontSize: 28,
+    fontSize: 25,
     fontWeight: "300",
     color: VintageColors.headerTitle,
     letterSpacing: 2,
