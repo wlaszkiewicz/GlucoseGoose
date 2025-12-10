@@ -1,7 +1,7 @@
 import React from "react";
 import { View, Text, ActivityIndicator, StyleSheet } from "react-native";
 import { Image } from "react-native";
-import { VintageColors } from "../themes/vintage/colors_vintage";
+import { VintageColors } from "../themes/vintage/colors";
 
 const SplashScreen = () => {
   return (

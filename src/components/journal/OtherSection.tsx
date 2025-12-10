@@ -9,7 +9,7 @@ import {
 import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
 import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 import { VintageStylesOther } from "../../themes/vintage/styles_vintage_other";
 import Constants from "expo-constants";
 import {
@@ -17,9 +17,9 @@ import {
   updateTreatment,
   deleteTreatment,
 } from "../../utils/cloud_functions";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
-import { useNightscout } from "../../context/NightscoutContext";
+import { useNightscout } from "../../contexts/NightscoutContext";
 
 interface OtherSectionProps {
   selectedDate: Date;

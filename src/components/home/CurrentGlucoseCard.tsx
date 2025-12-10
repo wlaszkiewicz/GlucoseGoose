@@ -1,14 +1,19 @@
 import React from "react";
 import { View, Text } from "react-native";
-import { Ionicons, Feather } from "@expo/vector-icons";
+import {
+  Ionicons,
+  Feather,
+  MaterialIcons,
+  FontAwesome,
+} from "@expo/vector-icons";
 import { VintageStylesHome } from "../../themes/vintage/styles_vintage_home";
 import {
   getGlucoseColor,
   getGlucoseStatus,
   formatTime,
-} from "../../utils/chartUtils";
+} from "../../utils/chartUtils/chartUtils";
 import { NightscoutEntry } from "../../types/nightscout";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 
 interface CurrentGlucoseCardProps {
   entries: NightscoutEntry[];
@@ -38,23 +43,17 @@ export const CurrentGlucoseCard: React.FC<CurrentGlucoseCardProps> = ({
     const direction = latestEntry.direction?.toLowerCase() || "";
     const delta = latestEntry.delta || 0;
 
-    switch (direction) {
+    switch (direction.toLocaleLowerCase()) {
       case "fortyfiveup":
-        return "arrow-up-right";
+        return "trending-up";
       case "fortyfivedown":
-        return "arrow-down-right";
-      case "doubleup":
-        return "arrow-up";
-      case "doubledown":
-        return "arrow-down";
+        return "trending-down";
       case "singleup":
         return "arrow-up";
       case "singledown":
         return "arrow-down";
-      case "flat":
-        return "arrow-right";
       default:
-        return "arrow-right";
+        return "wifi-off";
     }
   };
 
@@ -81,7 +80,7 @@ export const CurrentGlucoseCard: React.FC<CurrentGlucoseCardProps> = ({
       </View>
 
       <View style={VintageStylesHome.currentGlucoseContent}>
-        {/* Left Column: Glucose Value with Arrow */}
+        {/* Left Column: Glucose Value  */}
         <View style={VintageStylesHome.glucoseValueContainer}>
           <Text style={VintageStylesHome.glucoseValueLabel}>GLUCOSE</Text>
           <View style={VintageStylesHome.glucoseRow}>
@@ -101,15 +100,65 @@ export const CurrentGlucoseCard: React.FC<CurrentGlucoseCardProps> = ({
         {/* Middle Column: Delta Value */}
         <View style={VintageStylesHome.glucoseDeltaContainer}>
           <Text style={VintageStylesHome.glucoseValueLabel}>TREND</Text>
-          {latestEntry.direction && (
-            <View style={VintageStylesHome.arrowContainer}>
-              <Feather
-                name={getDirectionIcon()}
-                size={40}
-                color={glucoseColor}
-              />
-            </View>
-          )}
+          {latestEntry.direction &&
+            latestEntry.direction.toLocaleLowerCase() !== "doubleup" &&
+            latestEntry.direction.toLocaleLowerCase() !== "doubledown" && (
+              <View style={VintageStylesHome.arrowContainer}>
+                {latestEntry.direction.toLocaleLowerCase() !== "flat" && (
+                  <Feather
+                    name={getDirectionIcon()}
+                    size={40}
+                    color={glucoseColor}
+                  />
+                )}
+                {latestEntry.direction.toLocaleLowerCase() === "flat" && (
+                  <MaterialIcons
+                    name="trending-flat"
+                    size={40}
+                    color={glucoseColor}
+                  />
+                )}
+              </View>
+            )}
+          {latestEntry.direction &&
+            latestEntry.direction.toLocaleLowerCase() == "doubleup" && (
+              <View style={{ flexDirection: "row" }}>
+                <View style={VintageStylesHome.arrowContainer}>
+                  <FontAwesome
+                    name="long-arrow-up"
+                    size={40}
+                    color={glucoseColor}
+                  />
+                </View>
+                <View style={VintageStylesHome.arrowContainer}>
+                  <FontAwesome
+                    name="long-arrow-up"
+                    size={40}
+                    color={glucoseColor}
+                  />
+                </View>
+              </View>
+            )}
+
+          {latestEntry.direction &&
+            latestEntry.direction.toLocaleLowerCase() === "doubledown" && (
+              <View style={{ flexDirection: "row" }}>
+                <View style={VintageStylesHome.arrowContainer}>
+                  <FontAwesome
+                    name="long-arrow-down"
+                    size={40}
+                    color={glucoseColor}
+                  />
+                </View>
+                <View style={VintageStylesHome.arrowContainer}>
+                  <FontAwesome
+                    name="long-arrow-down"
+                    size={40}
+                    color={glucoseColor}
+                  />
+                </View>
+              </View>
+            )}
 
           <Text style={VintageStylesHome.glucoseDeltaLabel}>
             {getDeltaText()} mg/dL

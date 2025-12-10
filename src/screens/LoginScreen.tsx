@@ -16,7 +16,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { loginWithUsername } from "../services/authService";
 import { ActivityIndicator } from "react-native";
-import { VintageColors } from "../themes/vintage/colors_vintage";
+import { VintageColors } from "../themes/vintage/colors";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
 import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
 const gooseImage = require("../../assets/goose1.png");
