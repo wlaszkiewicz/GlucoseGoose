@@ -1,18 +1,18 @@
-import { VintageColors } from './colors_vintage';
-import { VintageStyles } from './styles_vintage';
+import { VintageColors } from "./colors";
+import { VintageStyles } from "./styles_vintage";
 
 export const VintageNavBarConfig = {
   screenOptions: {
     headerShown: false,
     tabBarStyle: VintageStyles.tabBarContainer,
-    tabBarActiveTintColor: VintageColors.tabBarTextColor, 
+    tabBarActiveTintColor: VintageColors.tabBarTextColor,
     tabBarInactiveTintColor: VintageColors.tabBarTextColor,
     tabBarLabelStyle: {
       fontSize: 11,
       letterSpacing: 0.5,
       marginTop: 0,
       marginBottom: 2,
-      fontFamily: 'System',
+      fontFamily: "System",
       color: VintageColors.tabBarTextColor,
     },
     tabBarIconStyle: {
@@ -36,14 +36,14 @@ export const VintageNavBarConfig = {
     },
     trends: {
       active: "chart-line",
-      inactive: "chart-line", 
+      inactive: "chart-line",
       component: "FontAwesome5",
-      sizeIncrement: 1, 
-      sizeDecrement: 1, 
+      sizeIncrement: 1,
+      sizeDecrement: 1,
     },
     profile: {
       active: "user",
-      inactive: "user", 
+      inactive: "user",
       component: "Feather",
       sizeIncrement: 3,
     },
@@ -57,20 +57,26 @@ export const VintageNavBarConfig = {
   },
 
   getIconConfig: (routeName: string) => {
-    return VintageNavBarConfig.icons[routeName.toLowerCase() as keyof typeof VintageNavBarConfig.icons];
+    return VintageNavBarConfig.icons[
+      routeName.toLowerCase() as keyof typeof VintageNavBarConfig.icons
+    ];
   },
 
   getLabel: (routeName: string) => {
-    return VintageNavBarConfig.labels[routeName.toLowerCase() as keyof typeof VintageNavBarConfig.labels] || routeName;
+    return (
+      VintageNavBarConfig.labels[
+        routeName.toLowerCase() as keyof typeof VintageNavBarConfig.labels
+      ] || routeName
+    );
   },
 
   getIconSize: (focused: boolean, baseSize: number, routeName: string) => {
     const config = VintageNavBarConfig.getIconConfig(routeName);
-    
+
     if (focused) {
       return baseSize + (config.sizeIncrement || 0);
     } else {
-      if (routeName.toLowerCase() === 'trends' && config.sizeIncrement) {
+      if (routeName.toLowerCase() === "trends" && config.sizeIncrement) {
         return baseSize - config.sizeIncrement;
       }
       return baseSize;
@@ -89,8 +95,8 @@ export const VintageNavBarConfig = {
 
   getLabelStyle: (focused: boolean) => ({
     ...VintageNavBarConfig.screenOptions.tabBarLabelStyle,
-    fontWeight: focused ? '700' : '400',
+    fontWeight: focused ? "700" : "400",
   }),
 
-  getIconColor: () => VintageColors.tabBarTextColor, 
+  getIconColor: () => VintageColors.tabBarTextColor,
 };

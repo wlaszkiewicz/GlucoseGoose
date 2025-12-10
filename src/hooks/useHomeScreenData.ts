@@ -1,7 +1,10 @@
 import { useState, useEffect, useMemo } from "react";
-import { useAuth } from "../context/AuthContext";
-import { useNightscout } from "../context/NightscoutContext";
-import { filterEntriesByTime, filterEventsByTime } from "../utils/chartUtils";
+import { useAuth } from "../contexts/AuthContext";
+import { useNightscout } from "../contexts/NightscoutContext";
+import {
+  filterEntriesByTime,
+  filterEventsByTime,
+} from "../utils/chartUtils/chartUtils";
 
 export const useHomeScreenData = () => {
   const { userData } = useAuth();

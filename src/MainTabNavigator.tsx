@@ -7,7 +7,7 @@ import JournalScreen from "./screens/JournalScreen";
 import TrendsScreen from "./screens/TrendsScreen";
 import SettingsScreen from "./screens/SettingsScreen";
 import { MainTabParamList } from "./types/navigation";
-import { VintageColors } from "./themes/vintage/colors_vintage";
+import { VintageColors } from "./themes/vintage/colors";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
 

@@ -1,4 +1,3 @@
-// GlucoseChart/components/EventModal.tsx
 import React from "react";
 import { Modal, View, Text, TouchableOpacity, ScrollView } from "react-native";
 import {
@@ -8,8 +7,8 @@ import {
   MaterialCommunityIcons,
   MaterialIcons,
 } from "@expo/vector-icons";
-import { VintageStylesHome } from "../../themes/vintage/styles_vintage_home";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageStylesHome } from "../../../../themes/vintage/styles_vintage_home";
+import { VintageColors } from "../../../../themes/vintage/colors";
 import {
   getEventColor,
   getMealIcon,
@@ -23,8 +22,8 @@ import {
   formatTargetValue,
   getSpecialEventIcon,
   isSpecialEvent,
-} from "../../utils/chartUtils";
-import { getEventDisplayName } from "../../utils/glucoseUtils";
+  getEventDisplayName,
+} from "../../../../utils/chartUtils/chartUtils";
 
 interface EventModalProps {
   event: any;
@@ -122,15 +121,13 @@ export const EventModal: React.FC<EventModalProps> = ({
             { backgroundColor: eventColor },
           ]}
         >
-          {isTargetEvent ||
-            (iconName == "bullhorn" && (
-              <MaterialCommunityIcons
-                name={iconName as any}
-                size={20}
-                color="white"
-              />
-            ))}
-          {!isTargetEvent && iconName !== "bullhorn" && (
+          {isTargetEvent || iconName === "bullhorn" ? (
+            <MaterialCommunityIcons
+              name={iconName as any}
+              size={20}
+              color="white"
+            />
+          ) : (
             <Ionicons name={iconName as any} size={20} color="white" />
           )}
         </View>
@@ -151,7 +148,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     };
 
     return (
-      <View style={VintageStylesHome.modalSectionCompact}>
+      <View key="target-section" style={VintageStylesHome.modalSectionCompact}>
         <View style={VintageStylesHome.modalSectionHeaderCompact}>
           <View
             style={[
@@ -230,7 +227,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     };
 
     return (
-      <View style={VintageStylesHome.modalSectionCompact}>
+      <View key="insulin-section" style={VintageStylesHome.modalSectionCompact}>
         <View style={VintageStylesHome.modalSectionHeaderCompact}>
           <View
             style={[
@@ -380,7 +377,10 @@ export const EventModal: React.FC<EventModalProps> = ({
     if (!hasNutritionData) return null;
 
     return (
-      <View style={VintageStylesHome.modalSectionCompact}>
+      <View
+        key="nutrition-section"
+        style={VintageStylesHome.modalSectionCompact}
+      >
         <View style={VintageStylesHome.modalSectionHeaderCompact}>
           <View
             style={[
@@ -463,7 +463,10 @@ export const EventModal: React.FC<EventModalProps> = ({
     };
 
     return (
-      <View style={VintageStylesHome.modalSectionCompact}>
+      <View
+        key="activity-section"
+        style={VintageStylesHome.modalSectionCompact}
+      >
         <View style={VintageStylesHome.modalSectionHeaderCompact}>
           <View
             style={[
@@ -566,7 +569,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     if (category !== "device") return null;
 
     return (
-      <View style={VintageStylesHome.modalSectionCompact}>
+      <View key="device-section" style={VintageStylesHome.modalSectionCompact}>
         <View style={VintageStylesHome.modalSectionHeaderCompact}>
           <View
             style={[
@@ -606,7 +609,7 @@ export const EventModal: React.FC<EventModalProps> = ({
     if (!event.notes || event.notes.trim() === "") return null;
 
     return (
-      <View style={VintageStylesHome.modalSectionCompact}>
+      <View key="notes-section" style={VintageStylesHome.modalSectionCompact}>
         <View style={VintageStylesHome.modalSectionHeaderCompact}>
           <View
             style={[
@@ -647,15 +650,15 @@ export const EventModal: React.FC<EventModalProps> = ({
     });
   };
 
-  // Determine which sections to show
+  // Create sections with proper keys
   const sections = [
-    renderTargetInfo(),
-    renderInsulinInfo(),
-    renderNutritionInfo(),
-    renderActivityInfo(),
-    renderDeviceInfo(),
-    renderNotes(),
-  ].filter(Boolean);
+    { key: "target", component: renderTargetInfo() },
+    { key: "insulin", component: renderInsulinInfo() },
+    { key: "nutrition", component: renderNutritionInfo() },
+    { key: "activity", component: renderActivityInfo() },
+    { key: "device", component: renderDeviceInfo() },
+    { key: "notes", component: renderNotes() },
+  ].filter((section) => section.component !== null);
 
   return (
     <Modal
@@ -664,8 +667,16 @@ export const EventModal: React.FC<EventModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={VintageStylesHome.modalOverlay}>
-        <View style={VintageStylesHome.modalContentCompact}>
+      <TouchableOpacity
+        style={VintageStylesHome.modalOverlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        <TouchableOpacity
+          style={VintageStylesHome.modalContentCompact}
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <View style={VintageStylesHome.modalHeaderCompact}>
             <View style={VintageStylesHome.modalHeaderTop}>
@@ -744,7 +755,11 @@ export const EventModal: React.FC<EventModalProps> = ({
           {/* Content */}
           <ScrollView style={VintageStylesHome.modalBodyCompact}>
             {sections.length > 0 ? (
-              sections
+              sections.map((section) => (
+                <React.Fragment key={section.key}>
+                  {section.component}
+                </React.Fragment>
+              ))
             ) : (
               <View style={VintageStylesHome.modalSectionCompact}>
                 <Text
@@ -763,8 +778,8 @@ export const EventModal: React.FC<EventModalProps> = ({
           <View style={VintageStylesHome.modalFooterCompact}>
             <View style={VintageStylesHome.modalFooterLine} />
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };

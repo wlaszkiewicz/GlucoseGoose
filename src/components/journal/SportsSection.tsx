@@ -7,25 +7,25 @@ import {
   ScrollView,
 } from "react-native";
 import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useNightscout } from "../../context/NightscoutContext";
+import { useNightscout } from "../../contexts/NightscoutContext";
 import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
 } from "../../utils/cloud_functions";
 import Constants from "expo-constants";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
 import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 import { VintageStylesSports } from "../../themes/vintage/styles_vintage_sports";
 import {
   calculateCaloriesBurned,
   estimateDistance,
   getIntensityDescription,
   type UserProfile,
-} from "../../utils/calorieCalculations";
+} from "../../utils/journalUtils/calorieCalculations";
 import { ActivityType, activityTypes } from "../../types/events";
 import {
   extractMetricsFromActivity,
@@ -33,7 +33,7 @@ import {
   getActivityTypeFromEvent,
   getActivityIcon,
   getActivityColor,
-} from "../../utils/activities";
+} from "../../utils/journalUtils/mealsAndActivitiesUtils";
 
 interface ActivitySectionProps {
   selectedDate: Date;

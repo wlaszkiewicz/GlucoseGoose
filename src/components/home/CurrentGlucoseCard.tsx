@@ -11,9 +11,9 @@ import {
   getGlucoseColor,
   getGlucoseStatus,
   formatTime,
-} from "../../utils/chartUtils";
+} from "../../utils/chartUtils/chartUtils";
 import { NightscoutEntry } from "../../types/nightscout";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 
 interface CurrentGlucoseCardProps {
   entries: NightscoutEntry[];
