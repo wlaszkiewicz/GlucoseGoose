@@ -15,7 +15,7 @@ import { useState, useRef } from "react";
 import { registerUser, logoutUser } from "../services/authService";
 import { isUsernameAvailable } from "../services/userService";
 import { ActivityIndicator } from "react-native";
-import { VintageColors } from "../themes/vintage/colors_vintage";
+import { VintageColors } from "../themes/vintage/colors";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
 import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
 import { VintageStyles } from "../themes/vintage/styles_vintage";

@@ -1,28 +1,28 @@
-import { StyleSheet } from 'react-native';
-import { VintageColors } from './colors_vintage';
+import { StyleSheet } from "react-native";
+import { VintageColors } from "./colors";
 
 export const VintageStylesSports = StyleSheet.create({
   container: {
     flex: 1,
   },
-  
+
   sectionContainer: {
     marginBottom: 20,
     paddingHorizontal: 4,
   },
-  
+
   // Activity Type Selector
   activityTypeScroll: {
     marginTop: 8,
   },
-  
+
   activityTypeScrollContent: {
     paddingHorizontal: 4,
     paddingVertical: 8,
   },
-  
+
   activityTypeButton: {
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 8,
     paddingVertical: 12,
     paddingHorizontal: 16,
@@ -36,42 +36,42 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   activityTypeButtonSelected: {
     borderColor: VintageColors.primaryText,
     backgroundColor: VintageColors.lightBackground,
-    transform: [{ scale: 1.05 }], 
+    transform: [{ scale: 1.05 }],
   },
-  
+
   activityIconContainer: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginBottom: 8,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   activityIconContainerSelected: {
     borderColor: VintageColors.primaryText,
-    borderWidth: 2, 
+    borderWidth: 2,
   },
-  
+
   activityTypeText: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    fontWeight: '400',
-    textAlign: 'center',
+    fontWeight: "400",
+    textAlign: "center",
     letterSpacing: 0.3,
   },
-  
+
   activityTypeTextSelected: {
     color: VintageColors.primaryText,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-  
+
   // Description
   descriptionCard: {
     backgroundColor: VintageColors.cardBackground,
@@ -85,15 +85,15 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   descriptionInput: {
     fontSize: 14,
     color: VintageColors.primaryText,
     lineHeight: 20,
     minHeight: 80,
-    textAlignVertical: 'top',
+    textAlignVertical: "top",
   },
-  
+
   // Duration & Intensity
   durationIntensityCard: {
     backgroundColor: VintageColors.cardBackground,
@@ -106,7 +106,7 @@ export const VintageStylesSports = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 6,
     elevation: 2,
-    flexDirection: 'column',
+    flexDirection: "column",
   },
 
   durationSection: {
@@ -117,20 +117,20 @@ export const VintageStylesSports = StyleSheet.create({
   intensitySection: {
     flex: 1,
   },
-  
+
   inputLabel: {
     fontSize: 14,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 8,
     letterSpacing: 0.3,
   },
-  
+
   durationInputContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
-  
+
   durationInput: {
     flex: 1,
     height: 50,
@@ -142,7 +142,7 @@ export const VintageStylesSports = StyleSheet.create({
     color: VintageColors.primaryText,
     backgroundColor: VintageColors.lightBackground,
   },
-  
+
   durationUnit: {
     marginLeft: 12,
     paddingHorizontal: 12,
@@ -152,18 +152,18 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   durationUnitText: {
     fontSize: 14,
     color: VintageColors.secondaryText,
-    fontWeight: '400',
+    fontWeight: "400",
   },
-  
+
   intensityButtons: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
   },
-  
+
   intensityButton: {
     flex: 1,
     marginHorizontal: 2,
@@ -172,24 +172,24 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
     backgroundColor: VintageColors.lightBackground,
-    alignItems: 'center',
+    alignItems: "center",
   },
-  
+
   intensityButtonSelected: {
     backgroundColor: VintageColors.primaryText,
     borderColor: VintageColors.primaryText,
   },
-  
+
   intensityText: {
     fontSize: 13,
     color: VintageColors.secondaryText,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-  
+
   intensityTextSelected: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
-  
+
   // Manual Inputs
   manualInputsCard: {
     backgroundColor: VintageColors.cardBackground,
@@ -203,31 +203,31 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     marginBottom: 16,
   },
-  
+
   inputLabelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
-  
+
   inputIcon: {
     marginRight: 8,
     marginTop: 1,
   },
-  
+
   inputLabelText: {
     fontSize: 15,
     color: VintageColors.primaryText,
-    fontWeight: '400',
+    fontWeight: "400",
   },
-  
+
   numberInput: {
     width: 140,
     paddingHorizontal: 12,
@@ -238,41 +238,41 @@ export const VintageStylesSports = StyleSheet.create({
     borderColor: VintageColors.border,
     fontSize: 15,
     color: VintageColors.primaryText,
-    textAlign: 'right',
+    textAlign: "right",
     marginLeft: 12,
     height: 40,
   },
-  
+
   // AI Estimation
   caloriesCalculation: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     backgroundColor: VintageColors.lightBackground,
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   calculationIcon: {
     width: 40,
     height: 40,
     borderRadius: 20,
     backgroundColor: VintageColors.cardBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   caloriesCalculationText: {
     fontSize: 14,
     color: VintageColors.primaryText,
-    fontWeight: '400',
+    fontWeight: "400",
     flex: 1,
   },
-  
+
   aiEstimationCard: {
     backgroundColor: VintageColors.cardBackground,
     borderRadius: 12,
@@ -285,65 +285,65 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   aiHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 16,
   },
-  
+
   aiIconContainer: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: '#E8F5E9',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "#E8F5E9",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
     borderWidth: 1,
-    borderColor: '#C8E6C9',
+    borderColor: "#C8E6C9",
   },
-  
+
   aiTitle: {
     fontSize: 16,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
   },
-  
+
   aiSubtitle: {
     fontSize: 12,
     color: VintageColors.secondaryText,
     marginLeft: 8,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
-  
+
   caloriesDisplay: {
-    alignItems: 'center',
+    alignItems: "center",
     marginVertical: 10,
   },
-  
+
   caloriesValue: {
     fontSize: 36,
-    fontWeight: '300',
+    fontWeight: "300",
     color: VintageColors.primaryText,
     marginBottom: 4,
   },
-  
+
   caloriesUnit: {
     fontSize: 14,
     color: VintageColors.secondaryText,
-    fontWeight: '400',
+    fontWeight: "400",
   },
-  
+
   caloriesNote: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: 8,
-    fontStyle: 'italic',
+    fontStyle: "italic",
     lineHeight: 16,
   },
-  
+
   // Calculation Details
   calculationDetailsCard: {
     backgroundColor: VintageColors.lightBackground,
@@ -353,26 +353,26 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   calculationHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 12,
   },
-  
+
   calculationTitle: {
     fontSize: 14,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 8,
   },
-  
+
   calculationGrid: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 12,
   },
-  
+
   calculationItem: {
     flex: 1,
     marginHorizontal: 4,
@@ -382,27 +382,27 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   calculationLabel: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    fontWeight: '400',
+    fontWeight: "400",
     marginBottom: 4,
   },
-  
+
   calculationValue: {
     fontSize: 14,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 2,
   },
-  
+
   calculationNote: {
     fontSize: 11,
     color: VintageColors.secondaryText,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
-  
+
   formulaContainer: {
     backgroundColor: VintageColors.cardBackground,
     borderRadius: 8,
@@ -410,43 +410,43 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   formulaLabel: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    fontWeight: '400',
+    fontWeight: "400",
     marginBottom: 4,
   },
-  
+
   formulaText: {
     fontSize: 13,
     color: VintageColors.primaryText,
-    fontWeight: '400',
-    fontFamily: 'monospace',
+    fontWeight: "400",
+    fontFamily: "monospace",
   },
-  
+
   advancedInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
     borderTopColor: VintageColors.border,
   },
-  
+
   advancedInfoText: {
     fontSize: 11,
-    color: '#666',
+    color: "#666",
     marginLeft: 6,
-    fontStyle: 'italic',
+    fontStyle: "italic",
   },
-  
+
   // Toggle
   toggleCard: {
     backgroundColor: VintageColors.cardBackground,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
     padding: 16,
     borderRadius: 12,
     borderWidth: 1,
@@ -457,59 +457,59 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   toggleHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
-  
+
   toggleTitle: {
     fontSize: 16,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginLeft: 12,
   },
-  
+
   toggleArrow: {
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: VintageColors.lightBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   // Weight Warning
   weightWarningCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#FFF3E0',
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "#FFF3E0",
     borderRadius: 12,
     padding: 16,
     borderWidth: 1,
-    borderColor: '#FFCC80',
+    borderColor: "#FFCC80",
   },
-  
+
   weightWarningContent: {
     flex: 1,
     marginLeft: 12,
   },
-  
+
   weightWarningTitle: {
     fontSize: 14,
-    color: '#FF9800',
-    fontWeight: '500',
+    color: "#FF9800",
+    fontWeight: "500",
     marginBottom: 4,
   },
-  
+
   weightWarningText: {
     fontSize: 12,
-    color: '#FF9800',
+    color: "#FF9800",
     lineHeight: 16,
   },
-  
+
   // Activities List
   activitiesCount: {
     backgroundColor: VintageColors.lightBackground,
@@ -519,13 +519,13 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   activitiesCountText: {
     fontSize: 12,
     color: VintageColors.primaryText,
-    fontWeight: '600',
+    fontWeight: "600",
   },
-  
+
   activityCard: {
     backgroundColor: VintageColors.cardBackground,
     borderRadius: 12,
@@ -539,56 +539,56 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   activityHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
     marginBottom: 12,
   },
-  
+
   activityHeaderLeft: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     flex: 1,
   },
-  
+
   activityTypeIcon: {
     width: 36,
     height: 36,
     borderRadius: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   activityCardType: {
     fontSize: 16,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 2,
   },
-  
+
   activityTime: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    fontWeight: '300',
+    fontWeight: "300",
   },
-  
+
   activityHeaderRight: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
   },
-  
+
   activityDuration: {
     fontSize: 14,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginRight: 12,
   },
-  
+
   deleteButton: {
     padding: 6,
     borderRadius: 6,
@@ -596,39 +596,39 @@ export const VintageStylesSports = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   activityDescription: {
     fontSize: 14,
     color: VintageColors.primaryText,
     lineHeight: 20,
     marginBottom: 12,
   },
-  
+
   activityMetrics: {
     borderTopWidth: 1,
     borderTopColor: VintageColors.border,
     paddingTop: 12,
   },
-  
+
   metricsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
+    flexDirection: "row",
+    flexWrap: "wrap",
   },
-  
+
   metricItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginRight: 16,
     marginBottom: 4,
   },
-  
+
   metricText: {
     fontSize: 12,
     color: VintageColors.secondaryText,
     marginLeft: 6,
-    fontWeight: '400',
+    fontWeight: "400",
   },
-  
+
   // Total Stats
   totalStatsCard: {
     backgroundColor: VintageColors.cardBackground,
@@ -642,54 +642,54 @@ export const VintageStylesSports = StyleSheet.create({
     shadowRadius: 6,
     elevation: 2,
   },
-  
+
   totalTitle: {
     fontSize: 16,
     color: VintageColors.primaryText,
-    fontWeight: '500',
+    fontWeight: "500",
     marginBottom: 16,
   },
-  
+
   totalStats: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
+    flexDirection: "row",
+    justifyContent: "space-around",
+    alignItems: "center",
   },
-  
+
   totalStatItem: {
-    alignItems: 'center',
+    alignItems: "center",
     flex: 1,
   },
-  
+
   totalStatValue: {
     fontSize: 20,
-    fontWeight: '300',
+    fontWeight: "300",
     color: VintageColors.primaryText,
     marginBottom: 4,
   },
-  
+
   totalStatLabel: {
     fontSize: 11,
     color: VintageColors.secondaryText,
-    fontWeight: '400',
-    textTransform: 'uppercase',
+    fontWeight: "400",
+    textTransform: "uppercase",
     letterSpacing: 0.5,
   },
-  
+
   totalStatDivider: {
     width: 1,
     height: 30,
     backgroundColor: VintageColors.border,
   },
-  
+
   // Save Button
   saveButton: {
     backgroundColor: VintageColors.signOutButton,
     padding: 18,
     borderRadius: 12,
-    alignItems: 'center',
-    flexDirection: 'row',
-    justifyContent: 'center',
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
     borderWidth: 1,
     borderColor: VintageColors.signOutBorder,
     shadowColor: VintageColors.signOutButton,
@@ -700,43 +700,43 @@ export const VintageStylesSports = StyleSheet.create({
     marginTop: 10,
     marginBottom: 20,
   },
-  
+
   updateButton: {
-    backgroundColor: '#77b779ff',
-    borderColor: '#77b779ff',
+    backgroundColor: "#77b779ff",
+    borderColor: "#77b779ff",
   },
-  
+
   saveButtonIcon: {
     width: 32,
     height: 32,
     borderRadius: 16,
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(255,255,255,0.2)",
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
-  
+
   saveButtonText: {
     color: VintageColors.signOutText,
     fontSize: 16,
-    fontWeight: '500',
+    fontWeight: "500",
     letterSpacing: 0.5,
   },
-  
+
   // Cancel Button
   cancelButton: {
     backgroundColor: VintageColors.lightBackground,
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginTop: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  
+
   cancelButtonText: {
     color: VintageColors.primaryText,
     fontSize: 14,
-    fontWeight: '500',
+    fontWeight: "500",
   },
 });

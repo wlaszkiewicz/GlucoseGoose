@@ -14,7 +14,7 @@ import {
   FontAwesome5,
   MaterialCommunityIcons,
 } from "@expo/vector-icons";
-import { VintageColors } from "../../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../../themes/vintage/colors";
 
 interface ChartSettings {
   showMeals: boolean;
@@ -131,8 +131,18 @@ export const ChartSettingsModal: React.FC<ChartSettingsModalProps> = ({
       animationType="fade"
       onRequestClose={onClose}
     >
-      <View style={styles.modalOverlay}>
-        <View style={styles.modalContent}>
+      {/* OUTER CLICKABLE OVERLAY */}
+      <TouchableOpacity
+        style={styles.modalOverlay}
+        activeOpacity={1}
+        onPress={onClose}
+      >
+        {/* INNER CONTENT  */}
+        <TouchableOpacity
+          style={styles.modalContent}
+          activeOpacity={1}
+          onPress={(e) => e.stopPropagation()}
+        >
           {/* Header */}
           <View style={styles.modalHeader}>
             <View style={styles.headerDecoration}>
@@ -159,7 +169,11 @@ export const ChartSettingsModal: React.FC<ChartSettingsModalProps> = ({
           </View>
 
           {/* Settings Content */}
-          <ScrollView style={styles.scrollContent}>
+          <ScrollView
+            style={styles.scrollContent}
+            onStartShouldSetResponder={() => true}
+            onTouchEnd={(e) => e.stopPropagation()}
+          >
             <Section title="Event Display">
               <SettingItem
                 icon="fast-food"
@@ -271,8 +285,8 @@ export const ChartSettingsModal: React.FC<ChartSettingsModalProps> = ({
             <View style={styles.footerLine} />
             <Text style={styles.footerText}>Customize your chart view</Text>
           </View>
-        </View>
-      </View>
+        </TouchableOpacity>
+      </TouchableOpacity>
     </Modal>
   );
 };

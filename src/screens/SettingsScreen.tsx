@@ -7,11 +7,11 @@ import {
   FontAwesome5,
 } from "@expo/vector-icons";
 import { VintageStyles } from "../themes/vintage/styles_vintage";
-import { VintageColors } from "../themes/vintage/colors_vintage";
+import { VintageColors } from "../themes/vintage/colors";
 import { useNavigation } from "@react-navigation/native";
 import { logoutUser } from "../services/authService";
-import { useNightscout } from "../context/NightscoutContext";
-import { useAuth } from "../context/AuthContext";
+import { useNightscout } from "../contexts/NightscoutContext";
+import { useAuth } from "../contexts/AuthContext";
 
 const gooseImage = require("../../assets/goose1.png");
 

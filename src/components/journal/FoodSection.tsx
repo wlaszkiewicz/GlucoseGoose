@@ -9,18 +9,18 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useNightscout } from "../../context/NightscoutContext";
+import { useNightscout } from "../../contexts/NightscoutContext";
 import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
 } from "../../utils/cloud_functions";
 import Constants from "expo-constants";
-import { useAuth } from "../../context/AuthContext";
+import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
 import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
-import { VintageColors } from "../../themes/vintage/colors_vintage";
+import { VintageColors } from "../../themes/vintage/colors";
 import { VintageStylesFood } from "../../themes/vintage/styles_vintage_food";
 import { analyzeMealCloud } from "../../utils/cloud_functions";
 import {
@@ -31,8 +31,8 @@ import {
   getMealColor,
   getConfidenceColor,
   getConfidenceText,
-} from "../../utils/meals";
-import { pickImage, takePhoto } from "../../utils/photo_upload";
+} from "../../utils/journalUtils/mealsAndActivitiesUtils";
+import { pickImage, takePhoto } from "../../utils/photoUpload";
 import {
   AIAnalysisResult,
   MealType,

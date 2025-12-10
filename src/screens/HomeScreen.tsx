@@ -8,12 +8,12 @@ import {
 } from "react-native";
 import { HomeScreenProps } from "../types/navigation";
 import { VintageStylesHome } from "../themes/vintage/styles_vintage_home";
-import { VintageColors } from "../themes/vintage/colors_vintage";
+import { VintageColors } from "../themes/vintage/colors";
 import { useHomeScreenData } from "../hooks/useHomeScreenData";
 import { CurrentGlucoseCard } from "../components/home/CurrentGlucoseCard";
 import { TimeFilter } from "../components/home/TimeFilter";
-import { GlucoseChart } from "../components/home/GlucoseChart/GlucoseChart";
-import { EventModal } from "../components/home/EventModal";
+import { GlucoseChart } from "../components/home/chart/GlucoseChart";
+import { EventModal } from "../components/home/chart/eventModal/EventModal";
 import { VintageStyles } from "../themes/vintage/styles_vintage";
 
 const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
