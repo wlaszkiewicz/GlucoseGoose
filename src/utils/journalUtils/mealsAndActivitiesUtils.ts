@@ -58,7 +58,7 @@ const getActivityIcon = (activityType: ActivityType) => {
     "Team Sports": "football-outline",
     Other: "ellipsis-horizontal-outline",
   };
-  return icons[activityType];
+  return icons[activityType] || "ellipsis-horizontal-outline";
 };
 
 const getActivityColor = (activityType: ActivityType): string => {
@@ -74,7 +74,7 @@ const getActivityColor = (activityType: ActivityType): string => {
     "Team Sports": VintageColors.iconPurple,
     Other: VintageColors.iconYellow,
   };
-  return colors[activityType];
+  return colors[activityType] || VintageColors.iconBlue;
 };
 
 const extractNutritionFromMeal = (meal: NightscoutTreatment): NutritionInfo => {
@@ -88,12 +88,11 @@ const extractNutritionFromMeal = (meal: NightscoutTreatment): NutritionInfo => {
 };
 
 const getMealTypeFromEvent = (eventType: string): MealType => {
-  const type = eventType.replace("Meal: ", "");
+  const type = eventType.replace(/^Meal:\s*/i, "").trim();
   return mealTypes.includes(type as MealType)
     ? (type as MealType)
     : "Breakfast";
 };
-
 const getTodaysMealsNutrition = (
   meals: NightscoutTreatment[]
 ): NutritionInfo => {
@@ -130,7 +129,7 @@ const getMealIcon = (mealType: MealType) => {
     Dinner: "restaurant",
     "Evening Snack": "moon",
   };
-  return icons[mealType];
+  return icons[mealType] || "fast-food";
 };
 
 const getMealColor = (mealType: MealType): string => {
@@ -142,7 +141,7 @@ const getMealColor = (mealType: MealType): string => {
     Dinner: VintageColors.iconGreen,
     "Evening Snack": VintageColors.iconPink,
   };
-  return colors[mealType];
+  return colors[mealType] || VintageColors.iconBlue;
 };
 
 const getConfidenceColor = (confidence: string) => {

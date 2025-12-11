@@ -116,7 +116,7 @@ export async function analyzeMealCloud(
   cloudHost: string,
   token: string
 ) {
-  const res = await fetch(`https://${cloudHost}/analyzeMeal`, {
+  const response = await fetch(`https://${cloudHost}/analyzeMeal`, {
     method: "POST",
     headers: {
       Authorization: `Bearer ${token}`,
@@ -125,6 +125,36 @@ export async function analyzeMealCloud(
     body: JSON.stringify({ imageBase64 }),
   });
 
-  if (!res.ok) throw new Error("Failed to analyze meal: " + res.statusText);
-  return res.json();
+  if (!response.ok) {
+    const errText = await response.text();
+    let userMessage = "AI analysis service is temporarily unavailable.";
+    let errorDetails = {};
+
+    try {
+      const errJson = JSON.parse(errText);
+
+      if (response.status === 429) {
+        userMessage =
+          errJson.error?.message ||
+          "Daily analysis limit reached (20). Try again tomorrow.";
+        errorDetails = {
+          code: 429,
+          retryDelay: errJson.error?.details?.[2]?.retryDelay,
+          quotaMetric:
+            errJson.error?.details?.[1]?.violations?.[0]?.quotaMetric,
+        };
+      } else if (response.status === 503) {
+        userMessage = "AI service is busy. Please try again in a moment.";
+        errorDetails = { code: 503 };
+      }
+    } catch (parseErr) {
+      errorDetails = { rawError: errText };
+    }
+
+    const apiError = new Error(userMessage);
+    (apiError as any).userMessage = userMessage;
+    (apiError as any).details = errorDetails;
+    throw apiError;
+  }
+  return response.json();
 }

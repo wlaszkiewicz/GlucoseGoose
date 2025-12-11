@@ -126,17 +126,24 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         return;
       }
 
+      console.log("Starting AI meal analysis...");
+
       const result = await analyzeMealCloud(
         imageBase64,
         CLOUD_FUNCTIONS_HOST,
         await firebaseUser.getIdToken()
       );
 
+      console.log("AI Analysis Raw Result:", result);
+
       if (result.error) {
-        alert("AI Analysis Error", result.error);
+        if (result.userMessage) {
+          alert("Analysis Limit", result.userMessage);
+        } else {
+          alert("AI Analysis Error", result.error);
+        }
         return;
       }
-
       result.totals.total_weight_grams = result.food_items.reduce(
         (total: number, item: any) =>
           total + (item.estimated_weight_grams || 0),
@@ -144,8 +151,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       );
 
       setAiAnalysis(result);
-
-      console.log("AI Analysis Result:", result);
 
       setNutritionInfo({
         calories: result.totals?.calories || 0,
@@ -161,10 +166,13 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       setMealDescription(foodNames);
     } catch (error: any) {
       console.error("Error analyzing meal:", error);
-      alert(
-        "Analysis Error",
-        `Failed to analyze meal: ${error.message || "Unknown error"}`
-      );
+
+      const alertMessage =
+        error.userMessage ||
+        error.message ||
+        "Failed to analyze photo. Please try again.";
+
+      alert("Analysis Error", alertMessage);
     } finally {
       setIsAnalyzing(false);
     }
