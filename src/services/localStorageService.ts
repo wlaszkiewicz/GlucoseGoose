@@ -1,6 +1,10 @@
 import * as SecureStore from "expo-secure-store";
 
-export type StorageKey = "nightscoutSecret" | "rememberMe" | "nightscoutUrl";
+export type StorageKey =
+  | "nightscoutSecret"
+  | "rememberMe"
+  | "nightscoutUrl"
+  | "geminiAPIKey";
 //   | "openAiKey"
 
 const isWeb =
@@ -51,6 +55,7 @@ export const StorageService = {
         "nightscoutSecret",
         "rememberMe",
         "nightscoutUrl",
+        "geminiAPIKey",
       ];
       await Promise.all(keys.map((k) => SecureStore.deleteItemAsync(k)));
     }

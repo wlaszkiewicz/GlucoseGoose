@@ -47,6 +47,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
         const localSecret = await StorageService.get("nightscoutSecret");
 
+        const geminiAPIKey = await StorageService.get("geminiAPIKey");
+
         let nightscoutUrl;
         if (data?.storeLocally) {
           nightscoutUrl = await StorageService.get("nightscoutUrl");
@@ -58,6 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 ...data,
                 nightscoutSecret: localSecret ?? "",
                 nightscoutUrl: nightscoutUrl ?? data.nightscoutUrl,
+                geminiAPIKey: geminiAPIKey ?? "",
               }
             : null
         );

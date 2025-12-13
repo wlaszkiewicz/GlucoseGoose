@@ -237,6 +237,121 @@ export const VintageStylesAuth = StyleSheet.create({
     letterSpacing: 0.5,
   },
 
+  // Gemini API Key Styles
+  geminiCard: {
+    width: "100%",
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginBottom: 16,
+    overflow: "hidden",
+    shadowColor: VintageColors.lightBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+  },
+
+  geminiCardActive: {
+    borderColor: VintageColors.formAccent2,
+    backgroundColor: "rgba(143, 191, 143, 0.02)",
+  },
+
+  geminiHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    padding: 16,
+    backgroundColor: "rgba(168, 184, 200, 0.05)",
+  },
+
+  geminiHeaderActive: {
+    backgroundColor: "rgba(143, 191, 143, 0.08)",
+  },
+
+  geminiHeaderLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  geminiIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: "rgba(255, 255, 255, 0.3)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
+  },
+
+  geminiTitle: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+    letterSpacing: 0.2,
+    marginBottom: 2,
+  },
+
+  geminiSubtitle: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontStyle: "italic",
+    letterSpacing: 0.3,
+  },
+
+  geminiContent: {
+    padding: 16,
+    paddingTop: 0,
+    backgroundColor: "rgba(255, 255, 255, 0.9)",
+  },
+
+  geminiInfoText: {
+    fontSize: 13,
+    color: VintageColors.secondaryText,
+    lineHeight: 18,
+    fontStyle: "italic",
+    marginBottom: 16,
+    padding: 12,
+    backgroundColor: "rgba(168, 184, 200, 0.05)",
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: "rgba(168, 184, 200, 0.1)",
+    flexDirection: "row",
+    alignItems: "flex-start",
+  },
+
+  geminiLink: {
+    flexDirection: "row",
+    alignItems: "center",
+    padding: 12,
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginBottom: 16,
+    shadowColor: VintageColors.lightBorder,
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 1,
+  },
+
+  geminiLinkText: {
+    color: VintageColors.formAccent2,
+    fontSize: 13,
+    fontWeight: "500",
+    textDecorationLine: "underline",
+    flex: 1,
+  },
+
   // Local Storage Styles
   localStorageCard: {
     width: "100%",

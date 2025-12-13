@@ -23,42 +23,19 @@ import { useNightscout } from "../../contexts/NightscoutContext";
 
 interface OtherSectionProps {
   selectedDate: Date;
+  otherEntries?: NightscoutTreatment[];
 }
 
-const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
+const OtherSection: React.FC<OtherSectionProps> = ({
+  selectedDate,
+  otherEntries: todayNotes,
+}) => {
   const [otherInput, setOtherInput] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
+  const { fetchTreatments } = useNightscout();
 
-  const { otherEntries, loadFullDay } = useNightscout();
   const { firebaseUser, userData } = useAuth();
-
-  const notes = React.useMemo(() => {
-    if (!otherEntries || otherEntries.length === 0) return [];
-
-    return otherEntries.filter((entry) =>
-      entry.eventType.toLocaleLowerCase().includes("note")
-    );
-  }, [otherEntries]);
-
-  const todayEntries = React.useMemo(() => {
-    if (!otherEntries || otherEntries.length === 0) return [];
-
-    const todayString = selectedDate.toISOString().split("T")[0];
-
-    return otherEntries
-      .filter((entry) => {
-        if (!entry.created_at) return false;
-
-        const entryDate = entry.created_at.split("T")[0];
-        return entryDate === todayString;
-      })
-      .sort((a, b) => {
-        return (
-          new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
-        );
-      });
-  }, [otherEntries, selectedDate]);
 
   const handleSaveNotes = async () => {
     if (!otherInput.trim()) {
@@ -113,7 +90,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
         return;
       }
 
-      await loadFullDay();
+      await fetchTreatments(selectedDate);
 
       setOtherInput("");
       setEditingNoteId(null);
@@ -163,7 +140,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
               return;
             }
 
-            await loadFullDay();
+            await fetchTreatments(selectedDate);
 
             if (editingNoteId === noteId) {
               setOtherInput("");
@@ -300,7 +277,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
   };
 
   const renderSavedNotes = () => {
-    if (!todayEntries || todayEntries.length === 0) {
+    if (!todayNotes || todayNotes.length === 0) {
       return (
         <View style={VintageStylesOther.sectionContainer}>
           <View style={VintageStylesOther.noNotesCard}>
@@ -327,12 +304,12 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
           <Text style={VintageStyles.sectionTitle}>Today's Notes</Text>
           <View style={VintageStylesOther.mealsCount}>
             <Text style={VintageStylesOther.mealsCountText}>
-              {todayEntries.length}
+              {todayNotes.length}
             </Text>
           </View>
         </View>
 
-        {todayEntries.map((entry) => (
+        {todayNotes.map((entry) => (
           <TouchableOpacity
             key={entry._id || entry.created_at}
             style={VintageStylesOther.savedNotesCard}

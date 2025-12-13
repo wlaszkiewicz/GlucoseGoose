@@ -18,5 +18,15 @@ export default ({ config }) => ({
         projectId: "1bbd27d8-9e22-4e0d-a427-dee4fe37e1ef",
       },
     },
+    android: {
+      ...baseConfig.expo.android,
+      manifest: {
+        ...baseConfig.expo.android?.manifest,
+        application: {
+          ...baseConfig.expo.android?.manifest?.application,
+          "@android:fitsSystemWindows": "true",
+        },
+      },
+    },
   },
 });
