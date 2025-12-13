@@ -14,7 +14,7 @@ import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
-} from "../../utils/cloud_functions";
+} from "../../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
@@ -22,7 +22,7 @@ import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors";
 import { VintageStylesFood } from "../../themes/vintage/styles_vintage_food";
-import { analyzeMeal } from "../../utils/cloud_functions";
+import { analyzeMeal } from "../../utils/cloudFunctions";
 import {
   getMealTypeFromEvent,
   getTodaysMealsNutrition,
@@ -273,14 +273,11 @@ const FoodSection: React.FC<FoodSectionProps> = ({
         onPress: async () => {
           try {
             if (!userData.nightscoutUrl) return;
-            const token = await firebaseUser.getIdToken();
 
             const success = await deleteTreatment(
-              CLOUD_FUNCTIONS_HOST,
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              meal._id!,
-              token
+              meal._id!
             );
 
             if (!success) {
@@ -348,19 +345,15 @@ const FoodSection: React.FC<FoodSectionProps> = ({
       if (editingMealId) {
         treatmentData._id = editingMealId;
         success = await updateTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       } else {
         success = await addTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       }
 
@@ -463,7 +456,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({
   );
 
   const renderAnalyzeButton = () => {
-    if (selectedImage && !mealDescription.trim()) {
+    if (selectedImage && !mealDescription.trim() && !isAnalyzing) {
       return (
         <View style={VintageStylesFood.sectionContainer}>
           <TouchableOpacity
@@ -1334,7 +1327,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({
         <View style={VintageStyles.spacing60} />
       </ScrollView>
 
-      {/* Add the time picker */}
       {renderTimePicker()}
     </View>
   );

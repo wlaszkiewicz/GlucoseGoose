@@ -23,17 +23,36 @@ export async function fetchBundle(
   secret: string = "",
   minutes: number = 1440
 ): Promise<NightscoutBundleResponse> {
+  if (Platform.OS === "web") {
+    const query = `http://localhost:3001/bundle?url=${nsUrl}&secret=${secret}&minutes=${minutes}`;
+
+    const res = await fetch(query);
+
+    if (!res.ok) {
+      throw new Error(`Error fetching bundle: ${res.status} ${res.statusText}`);
+    }
+
+    const data = await res.json();
+    return data as NightscoutBundleResponse;
+  } else {
+    return await fetchBundleDirect(nsUrl, secret, minutes);
+  }
+}
+
+export async function fetchBundleDirect(
+  nsUrl: string,
+  secret: string = "",
+  minutes: number = 1440
+): Promise<NightscoutBundleResponse> {
   const baseUrl = nsUrl.replace(/\/$/, "");
   const sinceTimestamp = Date.now() - minutes * 60 * 1000;
   const sinceISO = new Date(sinceTimestamp).toISOString();
   const count = Math.floor(minutes / 5);
 
-  console.log("Fetching Nightscout bundle…" + minutes + " minutes");
+  console.log("Fetching Nightscout bundle directly…" + minutes + " minutes");
 
   const headers: any = {};
-  if (Platform.OS !== "web") {
-    if (secret) headers["api-secret"] = secret; // only add secret on native to avoid CORS preflight on web
-  }
+  if (secret) headers["api-secret"] = secret;
 
   try {
     const entriesRes = await fetch(
@@ -70,17 +89,39 @@ export async function fetchBundle(
       activities,
     };
   } catch (err) {
-    if ((err as any).message.includes("CORS")) {
-      console.error(
-        "CORS error when fetching Nightscout bundle. Make sure your Nightscout site has CORS enabled and is set to 'readable'"
-      );
-    }
     console.error("Failed to fetch Nightscout bundle:", err);
     throw err;
   }
 }
 
 export async function fetchTreatmentsDate(
+  nsUrl: string,
+  secret: string = "",
+  date: Date
+): Promise<NightscoutTreatment[]> {
+  if (Platform.OS === "web") {
+    const query = `http://localhost:3001/treatmentsByDate?url=${nsUrl}&secret=${secret}&date=${date.toISOString()}`;
+    const res = await fetch(query, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    if (!res.ok) {
+      throw new Error(
+        `Error fetching treatments for date: ${res.status} ${res.statusText}`
+      );
+    }
+
+    const data = await res.json();
+    return data as NightscoutTreatment[];
+  } else {
+    return await fetchTreatmentsDateDirect(nsUrl, secret, date);
+  }
+}
+
+export async function fetchTreatmentsDateDirect(
   nsUrl: string,
   secret: string = "",
   date: Date
@@ -93,9 +134,8 @@ export async function fetchTreatmentsDate(
   endOfDay.setHours(23, 59, 59, 999);
 
   const headers: any = {};
-  if (Platform.OS !== "web") {
-    if (secret) headers["api-secret"] = secret; // only add secret on native to avoid CORS preflight on web
-  }
+
+  if (secret) headers["api-secret"] = secret;
 
   console.log(`Fetching Nightscout treatments for ${date.toDateString()}`);
 
@@ -109,20 +149,17 @@ export async function fetchTreatmentsDate(
 }
 
 export async function addTreatment(
-  cloudHost: string,
   nsUrl: string,
   secret: string = "",
-  treatment: NightscoutTreatment,
-  token: string
+  treatment: NightscoutTreatment
 ) {
   treatment.enteredBy = "GlucoseGoose App";
   if (Platform.OS === "web") {
     const res = await fetch(
-      `https://${cloudHost}/addTreatment?url=${nsUrl}&secret=${secret}`,
+      `http://localhost:3001/addTreatment?url=${nsUrl}&secret=${secret}`,
       {
         method: "POST",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(treatment),
@@ -158,21 +195,18 @@ export async function addTreatmentDirect(
 }
 
 export async function updateTreatment(
-  cloudHost: string,
   nsUrl: string,
   secret: string = "",
-  treatment: NightscoutTreatment,
-  token: string
+  treatment: NightscoutTreatment
 ) {
   treatment.enteredBy = "GlucoseGoose App";
 
   if (Platform.OS === "web") {
     const res = await fetch(
-      `https://${cloudHost}/updateTreatment?url=${nsUrl}&secret=${secret}`,
+      `http://localhost:3001/updateTreatment?url=${nsUrl}&secret=${secret}`,
       {
         method: "PUT",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify(treatment),
@@ -210,19 +244,16 @@ export async function updateTreatmentDirect(
 }
 
 export async function deleteTreatment(
-  cloudHost: string,
   nsUrl: string,
   secret: string = "",
-  treatment_id: string,
-  token: string
+  treatment_id: string
 ) {
   if (Platform.OS === "web") {
     const res = await fetch(
-      `https://${cloudHost}/deleteTreatment?url=${nsUrl}&secret=${secret}&id=${treatment_id}`,
+      `http://localhost:3001/deleteTreatment?url=${nsUrl}&secret=${secret}&id=${treatment_id}`,
       {
         method: "DELETE",
         headers: {
-          Authorization: `Bearer ${token}`,
           "Content-Type": "application/json",
         },
       }

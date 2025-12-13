@@ -8,7 +8,7 @@ import {
   browserSessionPersistence,
 } from "firebase/auth";
 import { deleteDoc, doc, setDoc } from "firebase/firestore";
-import { getEmailFromUsername } from "../utils/cloud_functions";
+import { getEmailFromUsername } from "../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { StorageService } from "./localStorageService";
 import { Platform } from "react-native";

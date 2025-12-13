@@ -2,6 +2,7 @@
   "name": "glucosegoose",
   "version": "1.0.0",
   "main": "index.ts",
+  "type": "module",
   "scripts": {
     "start": "expo start",
     "android": "expo start --android",
@@ -29,6 +30,7 @@
     "firebase-functions": "^7.0.1",
     "import": "^0.0.6",
     "js-sha1": "^0.7.0",
+    "node-fetch": "^3.3.2",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-native": "0.81.5",
