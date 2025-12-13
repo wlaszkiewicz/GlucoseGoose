@@ -39,11 +39,11 @@ export const useHomeScreenData = () => {
         console.error("Failed to load data:", err);
       } finally {
         setIsRefreshing(false);
-        //  startPolling();
+        startPolling();
       }
     })();
 
-    //  return () => stopPolling();
+    return () => stopPolling();
   }, [nightscoutUrl]);
 
   const filteredEntries = useMemo(() => {
@@ -65,16 +65,16 @@ export const useHomeScreenData = () => {
     setTimeFilter(filter);
   };
 
-  // const handleRefresh = async () => {
-  //   setIsRefreshing(true);
-  //   try {
-  //     await loadFullDay();
-  //   } catch (err) {
-  //     console.error("Refresh failed:", err);
-  //   } finally {
-  //     setIsRefreshing(false);
-  //   }
-  // };
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await loadFullDay();
+    } catch (err) {
+      console.error("Refresh failed:", err);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const handleEventPress = (event: any) => {
     setSelectedEvent(event);
@@ -91,7 +91,7 @@ export const useHomeScreenData = () => {
     showEventModal,
     selectedEvent,
     handleTimeFilterChange,
-    // handleRefresh,
+    handleRefresh,
     handleEventPress,
     setShowEventModal,
   };

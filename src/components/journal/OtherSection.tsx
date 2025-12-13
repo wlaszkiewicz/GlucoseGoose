@@ -33,6 +33,14 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
   const { otherEntries, loadFullDay } = useNightscout();
   const { firebaseUser, userData } = useAuth();
 
+  const notes = React.useMemo(() => {
+    if (!otherEntries || otherEntries.length === 0) return [];
+
+    return otherEntries.filter((entry) =>
+      entry.eventType.toLocaleLowerCase().includes("note")
+    );
+  }, [otherEntries]);
+
   const todayEntries = React.useMemo(() => {
     if (!otherEntries || otherEntries.length === 0) return [];
 
@@ -83,7 +91,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
       if (editingNoteId) {
         treatmentData._id = editingNoteId;
         success = await updateTreatment(
-          CLOUD_FUNCTIONS_HOST,
+          CLOUD_FUNCTIONS_HOST!,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
           treatmentData,
@@ -92,7 +100,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
       } else {
         // Add new note
         success = await addTreatment(
-          CLOUD_FUNCTIONS_HOST,
+          CLOUD_FUNCTIONS_HOST!,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
           treatmentData,
@@ -143,7 +151,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({ selectedDate }) => {
               return;
             }
             const success = await deleteTreatment(
-              CLOUD_FUNCTIONS_HOST,
+              CLOUD_FUNCTIONS_HOST!,
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
               noteId,

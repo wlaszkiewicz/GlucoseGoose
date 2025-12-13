@@ -10,11 +10,7 @@ import React, {
 import Constants from "expo-constants";
 import { useAuth } from "./AuthContext";
 import { fetchBundle } from "../utils/cloud_functions";
-import {
-  NightscoutEntry,
-  NightscoutTreatment,
-  NightscoutBundleResponse,
-} from "../types/nightscout";
+import { NightscoutEntry, NightscoutTreatment } from "../types/nightscout";
 
 interface NightscoutContextType {
   entries: NightscoutEntry[];
@@ -33,9 +29,7 @@ interface NightscoutContextType {
 const NightscoutContext = createContext<NightscoutContextType | null>(null);
 
 export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
-  const CLOUD = Constants.expoConfig?.extra?.cloudFunctionsHost;
-
-  const { firebaseUser, userData } = useAuth();
+  const { userData } = useAuth();
   const nightscoutUrl = userData?.nightscoutUrl;
   const secret = userData?.nightscoutSecret;
 
@@ -65,7 +59,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const loadFullDay = useCallback(async () => {
-    if (!firebaseUser || !nightscoutUrl) return;
+    if (!nightscoutUrl) return;
 
     console.log("Loading full day of Nightscout data...");
 
@@ -74,11 +68,9 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const bundle = await fetchBundle(
-        CLOUD,
         nightscoutUrl,
         secret ?? "",
-        1440, // last 24h,
-        await firebaseUser.getIdToken()
+        1440 // last 24h,
       );
 
       const since = Date.now() - 1440 * 60 * 1000;
@@ -86,11 +78,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
       setEntries(bundle.entries.filter((e) => e.date >= since));
       setMeals(bundle.meals ?? []);
       setActivities(bundle.activities ?? []);
-      const otherTreatments = bundle.treatments.filter(
-        (t) =>
-          !t.eventType.includes("Meal") && !t.eventType.includes("Activity")
-      );
-      setOtherEntries(otherTreatments);
+      setOtherEntries(bundle.otherTreatments ?? []);
 
       lastEntryDateRef.current = bundle.entries[0]?.date ?? null;
     } catch (err: any) {
@@ -98,11 +86,11 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [CLOUD, firebaseUser, nightscoutUrl, secret]);
+  }, [nightscoutUrl, secret]);
 
   const fetchIncremental = useCallback(async () => {
-    if (!firebaseUser || !nightscoutUrl) return;
-    if (!lastEntryDateRef.current) return;
+    if (!nightscoutUrl) return;
+    if (!lastEntryDateRef.current) return; // no last date to compare to
 
     const now = Date.now();
     const last = lastEntryDateRef.current;
@@ -112,20 +100,15 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const bundle = await fetchBundle(
-        CLOUD,
         nightscoutUrl,
         secret ?? "",
-        minutesToFetch,
-        await firebaseUser.getIdToken()
+        minutesToFetch
       );
 
       const newEntries = bundle.entries;
       const newMeals = bundle.meals ?? [];
       const newActivities = bundle.activities ?? [];
-      const newOtherEntries = bundle.treatments.filter(
-        (t) =>
-          !t.eventType.includes("Meal") && !t.eventType.includes("Activity")
-      );
+      const newOtherEntries = bundle.otherTreatments ?? [];
 
       const getId = (o: any) => o?._id ?? o?.id;
 
@@ -168,10 +151,10 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       setError(err.message ?? "Incremental update failed");
     }
-  }, [CLOUD, firebaseUser, nightscoutUrl, secret]);
+  }, [nightscoutUrl, secret]);
 
   const startPolling = useCallback(() => {
-    if (!firebaseUser || !nightscoutUrl) return;
+    if (!nightscoutUrl) return;
 
     console.log("Starting Nightscout polling...");
     if (pollingRef.current) return;
@@ -179,7 +162,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     pollingRef.current = setInterval(fetchIncremental, 5 * 60 * 1000);
 
     fetchIncremental();
-  }, [firebaseUser, nightscoutUrl, fetchIncremental]);
+  }, [nightscoutUrl, fetchIncremental]);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
