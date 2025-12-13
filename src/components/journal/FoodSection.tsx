@@ -166,13 +166,11 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       setMealDescription(foodNames);
     } catch (error: any) {
       console.error("Error analyzing meal:", error);
-
-      const alertMessage =
-        error.userMessage ||
-        error.message ||
-        "Failed to analyze photo. Please try again.";
-
-      alert("Analysis Error", alertMessage);
+      console.log("AI raw response:", error.response);
+      alert(
+        "Analysis Error",
+        `Failed to analyze meal: ${error.message || "Unknown error"}`
+      );
     } finally {
       setIsAnalyzing(false);
     }

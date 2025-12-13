@@ -27,7 +27,7 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     showEventModal,
     selectedEvent,
     handleTimeFilterChange,
-    //  handleRefresh,
+    handleRefresh,
     handleEventPress,
     setShowEventModal,
   } = useHomeScreenData();
@@ -50,14 +50,14 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
         style={{ flex: 1 }}
         contentContainerStyle={VintageStyles.scrollContent}
         showsVerticalScrollIndicator={false}
-        //</View> refreshControl={
-        // <RefreshControl
-        //   refreshing={isRefreshing}
-        //   onRefresh={handleRefresh}
-        //   colors={[VintageColors.primaryText]}
-        //   tintColor={VintageColors.primaryText}
-        // />
-        //   }
+        refreshControl={
+          <RefreshControl
+            refreshing={isRefreshing}
+            onRefresh={handleRefresh}
+            colors={[VintageColors.primaryText]}
+            tintColor={VintageColors.primaryText}
+          />
+        }
       >
         <View style={[VintageStyles.headerSection]}>
           <View style={VintageStyles.headerDecoration}>

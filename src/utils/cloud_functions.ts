@@ -2,6 +2,7 @@ import {
   NightscoutBundleResponse,
   NightscoutTreatment,
 } from "../types/nightscout";
+import { Platform } from "react-native";
 
 export async function getEmailFromUsername(
   cloudHost: string,
@@ -17,30 +18,66 @@ export async function getEmailFromUsername(
 }
 
 export async function fetchBundle(
-  cloudHost: string,
   nsUrl: string,
   secret: string = "",
-  minutes: number = 1440, // default 24h,
-  token: string
+  minutes: number = 1440
 ): Promise<NightscoutBundleResponse> {
-  const query = `https://${cloudHost}/getNightscoutBundle?url=${nsUrl}&secret=${secret}&minutes=${minutes}`;
+  const baseUrl = nsUrl.replace(/\/$/, "");
+  const sinceTimestamp = Date.now() - minutes * 60 * 1000;
+  const sinceISO = new Date(sinceTimestamp).toISOString();
+  const count = Math.floor(minutes / 5);
 
-  const res = await fetch(query, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${token}`,
-      "Content-Type": "application/json",
-    },
-  });
+  console.log("Fetching Nightscout bundle…" + minutes + " minutes");
 
-  if (!res.ok) {
-    throw new Error(`Error fetching bundle: ${res.status} ${res.statusText}`);
+  const headers: any = {};
+  if (Platform.OS !== "web") {
+    if (secret) headers["api-secret"] = secret; // only add secret on native to avoid CORS preflight on web
   }
 
-  const data = await res.json();
-  return data as NightscoutBundleResponse;
-}
+  try {
+    const entriesRes = await fetch(
+      `${baseUrl}/api/v1/entries.json?count=${count}`,
+      { headers }
+    );
+    const entries = await entriesRes.json();
 
+    const treatmentsRes = await fetch(
+      `${baseUrl}/api/v1/treatments?find[created_at][$gte]=${sinceISO}`,
+      { headers }
+    );
+
+    const treatments = await treatmentsRes.json();
+
+    const meals = treatments.filter((t: any) =>
+      t.eventType?.toLowerCase().includes("meal")
+    );
+
+    const activities = treatments.filter((t: any) =>
+      t.eventType?.toLowerCase().includes("activity")
+    );
+
+    const otherTreatments = treatments.filter(
+      (t: any) =>
+        !t.eventType?.toLowerCase().includes("meal") &&
+        !t.eventType?.toLowerCase().includes("activity")
+    );
+    return {
+      timestamp: Date.now(),
+      entries,
+      otherTreatments,
+      meals,
+      activities,
+    };
+  } catch (err) {
+    if ((err as any).message.includes("CORS")) {
+      console.error(
+        "CORS error when fetching Nightscout bundle. Make sure your Nightscout site has CORS enabled and is set to 'readable'"
+      );
+    }
+    console.error("Failed to fetch Nightscout bundle:", err);
+    throw err;
+  }
+}
 export async function addTreatment(
   cloudHost: string,
   nsUrl: string,
@@ -48,20 +85,45 @@ export async function addTreatment(
   treatment: NightscoutTreatment,
   token: string
 ) {
-  treatment.enteredBy = "GlucoseGoose App";
-  const res = await fetch(
-    `https://${cloudHost}/addTreatment?url=${nsUrl}&secret=${secret}`,
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(treatment),
-    }
-  );
+  if (Platform.OS === "web") {
+    treatment.enteredBy = "GlucoseGoose App";
+    const res = await fetch(
+      `https://${cloudHost}/addTreatment?url=${nsUrl}&secret=${secret}`,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(treatment),
+      }
+    );
 
-  if (!res.ok) throw new Error("Failed to add treatment");
+    if (!res.ok) throw new Error("Failed to add treatment");
+    return res.json();
+  } else {
+    return await addTreatmentDirect(nsUrl, secret, treatment);
+  }
+}
+
+export async function addTreatmentDirect(
+  nsUrl: string,
+  secret: string,
+  treatment: NightscoutTreatment
+) {
+  const url = nsUrl.replace(/\/$/, "");
+
+  const headers: any = { "Content-Type": "application/json" };
+  if (secret) headers["api-secret"] = secret;
+
+  const res = await fetch(`${url}/api/v1/treatments`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(treatment),
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+
   return res.json();
 }
 
@@ -72,20 +134,46 @@ export async function updateTreatment(
   treatment: NightscoutTreatment,
   token: string
 ) {
-  treatment.enteredBy = "GlucoseGoose App";
-  const res = await fetch(
-    `https://${cloudHost}/updateTreatment?url=${nsUrl}&secret=${secret}`,
-    {
-      method: "PUT",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(treatment),
-    }
-  );
+  if (Platform.OS === "web") {
+    const res = await fetch(
+      `https://${cloudHost}/updateTreatment?url=${nsUrl}&secret=${secret}`,
+      {
+        method: "PUT",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(treatment),
+      }
+    );
 
-  if (!res.ok) throw new Error("Failed to update treatment");
+    if (!res.ok) throw new Error("Failed to update treatment");
+    return res.json();
+  } else {
+    return await updateTreatmentDirect(nsUrl, secret, treatment);
+  }
+}
+
+export async function updateTreatmentDirect(
+  nsUrl: string,
+  secret: string,
+  treatment: NightscoutTreatment
+) {
+  const url = nsUrl.replace(/\/$/, "");
+
+  if (!treatment._id) throw new Error("Missing _id for update");
+
+  const headers: any = { "Content-Type": "application/json" };
+  if (secret) headers["api-secret"] = secret;
+
+  const res = await fetch(`${url}/api/v1/treatments`, {
+    method: "PUT",
+    headers,
+    body: JSON.stringify(treatment),
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+
   return res.json();
 }
 
@@ -96,19 +184,43 @@ export async function deleteTreatment(
   treatment_id: string,
   token: string
 ) {
-  const res = await fetch(
-    `https://${cloudHost}/deleteTreatment?url=${nsUrl}&secret=${secret}&id=${treatment_id}`,
-    {
-      method: "DELETE",
-      headers: {
-        Authorization: `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-    }
-  );
+  if (Platform.OS === "web") {
+    const res = await fetch(
+      `https://${cloudHost}/deleteTreatment?url=${nsUrl}&secret=${secret}&id=${treatment_id}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
 
-  if (!res.ok) throw new Error("Failed to update treatment");
-  return res.json();
+    if (!res.ok) throw new Error("Failed to update treatment");
+    return res.json();
+  } else {
+    return await deleteTreatmentDirect(nsUrl, secret, treatment_id);
+  }
+}
+
+export async function deleteTreatmentDirect(
+  nsUrl: string,
+  secret: string,
+  id: string
+) {
+  const url = nsUrl.replace(/\/$/, "");
+
+  const headers: any = {};
+  if (secret) headers["api-secret"] = secret;
+
+  const res = await fetch(`${url}/api/v1/treatments/${id}`, {
+    method: "DELETE",
+    headers,
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+
+  return true;
 }
 
 export async function analyzeMealCloud(
