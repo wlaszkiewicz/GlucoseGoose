@@ -12,7 +12,7 @@ import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
-} from "../../utils/cloud_functions";
+} from "../../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
@@ -223,11 +223,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
               if (!userData.nightscoutUrl) return;
 
               const success = await deleteTreatment(
-                CLOUD_FUNCTIONS_HOST,
                 userData.nightscoutUrl,
                 userData.nightscoutSecret ?? "",
-                activity._id!,
-                await firebaseUser.getIdToken()
+                activity._id!
               );
 
               if (!success) {
@@ -328,19 +326,15 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
       if (editingActivityId) {
         treatmentData._id = editingActivityId;
         success = await updateTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       } else {
         success = await addTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       }
 
