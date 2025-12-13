@@ -79,6 +79,52 @@ async function verifyUser(req: Request, res: Response) {
   }
 }
 
+export const addTreatment = functions.https.onRequest(
+  async (req: Request, res: Response) => {
+    if (req.method === "OPTIONS") {
+      res.set(corsHeaders);
+      res.status(204).send("");
+      return;
+    }
+
+    res.set(corsHeaders);
+
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const url = req.query.url as string;
+    const secret = req.query.secret as string;
+    const treatment = req.body;
+
+    if (!url || !treatment) {
+      res.status(400).json({ error: "Missing url or treatment" });
+      return;
+    }
+
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+    };
+    if (secret) headers["api-secret"] = secret;
+
+    try {
+      const r = await fetch(`${url}/api/v1/treatments`, {
+        method: "POST",
+        headers,
+        body: JSON.stringify(treatment),
+      });
+
+      if (!r.ok) {
+        res.status(r.status).json({ error: await r.text() });
+        return;
+      }
+
+      res.json(await r.json());
+    } catch (err: any) {
+      res.status(500).json({ error: err.message });
+    }
+  }
+);
+
 export const updateTreatment = functions.https.onRequest(
   async (req: Request, res: Response) => {
     if (req.method === "OPTIONS") {
@@ -185,14 +231,18 @@ export const analyzeMeal = functions.https.onRequest(
     const user = await verifyUser(req, res);
     if (!user) return;
 
-    const { imageBase64 } = req.body;
+    const { imageBase64, description } = req.body;
+    console.log(description);
     if (!imageBase64) {
       res.status(400).json({ error: "Missing 'imageBase64' in body" });
       throw new Error("Missing 'imageBase64' in body");
     }
+
     const prompt = `
 You are an expert nutrition AI. A user will send a photograph of a meal.
-You MUST estimate the nutritional composition based on what you visually see.
+The user may also provide additional description: "${description || ""}".
+You MUST estimate the nutritional composition based on what you visually see AND include information from the user's description.
+Also, add a concise, human-readable summary of the meal in the "description" field of the JSON, describing what the meal contains.
 
 Return ONLY valid JSON. No extra text.
 
@@ -216,7 +266,8 @@ SCHEMA:
     "fat_grams": 0,
     "fiber_grams": 0
   },
-  "confidence": ""
+  "confidence": "",
+  "description": ""
 }
 
 RULES:
@@ -224,24 +275,9 @@ RULES:
 - If unsure, be conservative and use "low".
 - Weight must be numeric.
 - If food is unclear, still name something reasonable.
+- "description" must summarize what the meal contains based on both the photo and user input.
 - DO NOT include text outside of the JSON.
 `;
-
-    const body = {
-      content: [
-        {
-          type: "text",
-          text: prompt,
-        },
-        {
-          type: "image",
-          image: {
-            mime_type: "image/jpeg",
-            data: imageBase64,
-          },
-        },
-      ],
-    };
 
     try {
       const body = {
