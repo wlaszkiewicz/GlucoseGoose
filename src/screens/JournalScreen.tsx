@@ -5,11 +5,12 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import FoodSection from "../components/journal/FoodSection";
 import SportsSection from "../components/journal/SportsSection";
 import OtherSection from "../components/journal/OtherSection";
-import SimpleCalendar from "../components/common/SimpleCalendar";
+import Calendar from "../components/common/Calendar";
 import { VintageColors } from "../themes/vintage/colors";
 import { VintageStyles } from "../themes/vintage/styles_vintage";
 import { VintageStylesJournal } from "../themes/vintage/styles_vintage_journal";
-import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
+import { useEffect } from "react";
+import { useNightscout } from "../contexts/NightscoutContext";
 
 type Category = "Food" | "Sports" | "Other";
 
@@ -19,6 +20,42 @@ const JournalScreen = () => {
   const [selectedCategory, setSelectedCategory] = useState<Category>("Food");
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [showCalendar, setShowCalendar] = useState(false);
+  const [todayMeals, setTodayMeals] = useState<any[]>([]);
+  const [todayActivities, setTodayActivities] = useState<any[]>([]);
+  const [todayNotes, setTodayNotes] = useState<any[]>([]);
+
+  const { fetchTreatments, meals, activities, otherEntries } = useNightscout();
+
+  useEffect(() => {
+    fetchTreatments(selectedDate);
+  }, [selectedDate]);
+
+  useEffect(() => {
+    const { start, end } = getDayRange(selectedDate);
+
+    setTodayMeals(
+      meals.filter((m) => {
+        const d = new Date(m.created_at);
+        return d >= start && d <= end;
+      })
+    );
+
+    setTodayActivities(
+      activities.filter((m) => {
+        const d = new Date(m.created_at);
+        return d >= start && d <= end;
+      })
+    );
+
+    if (otherEntries) {
+      setTodayNotes(
+        otherEntries.filter((m) => {
+          const d = new Date(m.created_at);
+          return d >= start && d <= end;
+        })
+      );
+    }
+  }, [meals, activities, otherEntries, selectedDate]);
 
   const formatDate = (date: Date) => {
     return date.toLocaleDateString("en-US", {
@@ -31,6 +68,16 @@ const JournalScreen = () => {
 
   const handleDateSelect = (date: Date) => {
     setSelectedDate(date);
+  };
+
+  const getDayRange = (date: Date) => {
+    const start = new Date(date);
+    start.setHours(0, 0, 0, 0);
+
+    const end = new Date(date);
+    end.setHours(23, 59, 59, 999);
+
+    return { start, end };
   };
 
   const platformStyles = getPlatformStyles();
@@ -165,21 +212,27 @@ const JournalScreen = () => {
         {/* Main Content */}
         <View style={VintageStylesJournal.mainContent}>
           {selectedCategory === "Food" && (
-            <FoodSection selectedDate={selectedDate} />
+            <FoodSection selectedDate={selectedDate} meals={todayMeals} />
           )}
 
           {selectedCategory === "Sports" && (
-            <SportsSection selectedDate={selectedDate} />
+            <SportsSection
+              selectedDate={selectedDate}
+              activities={todayActivities}
+            />
           )}
 
           {selectedCategory === "Other" && (
-            <OtherSection selectedDate={selectedDate} />
+            <OtherSection
+              selectedDate={selectedDate}
+              otherEntries={todayNotes}
+            />
           )}
         </View>
       </ScrollView>
 
       {/* Calendar Modal */}
-      <SimpleCalendar
+      <Calendar
         visible={showCalendar}
         onClose={() => setShowCalendar(false)}
         onDateSelect={handleDateSelect}

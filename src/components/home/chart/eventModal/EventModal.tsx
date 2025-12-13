@@ -121,7 +121,9 @@ export const EventModal: React.FC<EventModalProps> = ({
             { backgroundColor: eventColor },
           ]}
         >
-          {isTargetEvent || iconName === "bullhorn" ? (
+          {isTargetEvent ||
+          iconName === "bullhorn" ||
+          iconName === "file-document-alert" ? (
             <MaterialCommunityIcons
               name={iconName as any}
               size={20}

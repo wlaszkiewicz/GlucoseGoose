@@ -11,14 +11,14 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { VintageStylesCalendar } from "../../themes/vintage/styles_vintage_calendar";
 import { VintageColors } from "../../themes/vintage/colors";
 
-interface SimpleCalendarProps {
+interface CalendarProps {
   visible: boolean;
   onClose: () => void;
   onDateSelect: (date: Date) => void;
   selectedDate: Date;
 }
 
-const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
+const Calendar: React.FC<CalendarProps> = ({
   visible,
   onClose,
   onDateSelect,
@@ -29,7 +29,6 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
     Dimensions.get("window").width * 0.9
   );
 
-  // Reset current month when selected date changes
   useEffect(() => {
     if (visible) {
       setCurrentMonth(selectedDate);
@@ -53,7 +52,6 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
       days.push(null);
     }
 
-    // Add days of the month
     for (let i = 1; i <= daysInMonth; i++) {
       days.push(
         new Date(currentMonth.getFullYear(), currentMonth.getMonth(), i)
@@ -122,9 +120,9 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
   };
 
   const handleDaySelect = (date: Date) => {
-    onDateSelect(date);
-    // Optionally close modal on select:
-    // onClose();
+    const normalizedDate = new Date(date);
+    normalizedDate.setHours(12, 0, 0, 0);
+    onDateSelect(normalizedDate);
   };
 
   const getFormattedDate = (date: Date) => {
@@ -331,4 +329,4 @@ const SimpleCalendar: React.FC<SimpleCalendarProps> = ({
   );
 };
 
-export default SimpleCalendar;
+export default Calendar;

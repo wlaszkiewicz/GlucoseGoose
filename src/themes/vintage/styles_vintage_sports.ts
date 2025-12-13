@@ -629,6 +629,83 @@ export const VintageStylesSports = StyleSheet.create({
     fontWeight: "400",
   },
 
+  // Add these styles to your existing VintageStylesSports:
+  timeCard: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    shadowColor: VintageColors.lightBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  timeCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  timeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: VintageColors.iconYellow,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  timeLabel: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontWeight: "500",
+    marginBottom: 2,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  timeValue: {
+    fontSize: 18,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+
+  timeCardRight: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  actionButtonsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+
+  actionButton: {
+    padding: 6,
+    borderRadius: 6,
+    backgroundColor: VintageColors.lightBackground,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginLeft: 4,
+  },
+
   // Total Stats
   totalStatsCard: {
     backgroundColor: VintageColors.cardBackground,
