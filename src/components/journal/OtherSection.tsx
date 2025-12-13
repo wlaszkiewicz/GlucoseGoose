@@ -16,7 +16,7 @@ import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
-} from "../../utils/cloud_functions";
+} from "../../utils/cloudFunctions";
 import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
 import { useNightscout } from "../../contexts/NightscoutContext";
@@ -68,20 +68,16 @@ const OtherSection: React.FC<OtherSectionProps> = ({
       if (editingNoteId) {
         treatmentData._id = editingNoteId;
         success = await updateTreatment(
-          CLOUD_FUNCTIONS_HOST!,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       } else {
         // Add new note
         success = await addTreatment(
-          CLOUD_FUNCTIONS_HOST!,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       }
 
@@ -128,11 +124,9 @@ const OtherSection: React.FC<OtherSectionProps> = ({
               return;
             }
             const success = await deleteTreatment(
-              CLOUD_FUNCTIONS_HOST!,
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              noteId,
-              await firebaseUser.getIdToken()
+              noteId
             );
 
             if (!success) {

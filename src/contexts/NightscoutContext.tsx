@@ -9,7 +9,7 @@ import React, {
 } from "react";
 import Constants from "expo-constants";
 import { useAuth } from "./AuthContext";
-import { fetchBundle, fetchTreatmentsDate } from "../utils/cloud_functions";
+import { fetchBundle, fetchTreatmentsDate } from "../utils/cloudFunctions";
 import { NightscoutEntry, NightscoutTreatment } from "../types/nightscout";
 
 interface NightscoutContextType {
