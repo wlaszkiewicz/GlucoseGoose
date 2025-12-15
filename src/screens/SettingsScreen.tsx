@@ -1,5 +1,17 @@
-import React from "react";
-import { View, Text, TouchableOpacity, ScrollView, Image } from "react-native";
+import React, { useState } from "react";
+import { 
+  View, 
+  Text, 
+  TouchableOpacity, 
+  ScrollView, 
+  Image, 
+  Modal, 
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
+  TextInput
+} from "react-native";
 import {
   Feather,
   MaterialIcons,
@@ -12,25 +24,104 @@ import { useNavigation } from "@react-navigation/native";
 import { logoutUser } from "../services/authService";
 import { useNightscout } from "../contexts/NightscoutContext";
 import { useAuth } from "../contexts/AuthContext";
+import NumberPicker from "../components/common/NumberPicker";
+import { updateUserProfile } from "../services/userProfileService";
 
 const gooseImage = require("../../assets/goose1.png");
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
   const { reset } = useNightscout();
-  const { userData } = useAuth();
+  const { userData, firebaseUser } = useAuth();
+  
+  const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
+  
+  const [username, setUsername] = useState(userData?.username || "");
+  const [weight, setWeight] = useState<number>(userData?.weight || 70);
+  const [height, setHeight] = useState<number>(userData?.height || 170);
+  const [age, setAge] = useState(userData?.age?.toString() || "");
+  const [gender, setGender] = useState(userData?.gender || "");
+
+  const [isWeightPickerVisible, setIsWeightPickerVisible] = useState(false);
+  const [isHeightPickerVisible, setIsHeightPickerVisible] = useState(false);
+  
 
   const handleLogout = async () => {
     const result = await logoutUser();
 
     if (result.success) {
-      reset(); // wyczyszczenie danych Nightscout
+      reset();
       navigation.reset({
         index: 0,
         routes: [{ name: "Login" as never }],
       });
     } else {
       console.error("Logout failed:", result.error);
+    }
+  };
+
+  const handleAccountProfilePress = () => {
+    setIsProfileModalVisible(true);
+  };
+
+  const closeProfileModal = () => {
+  setIsProfileModalVisible(false);
+  setUsername(userData?.username || "");
+  setWeight(userData?.weight || 70);
+  setHeight(userData?.height || 170);
+  setAge(userData?.age?.toString() || "");
+  setGender(userData?.gender || "");
+};
+
+  const handleGenderSelect = (selectedGender: string) => {
+    setGender(selectedGender);
+  };
+
+  const handleWeightSelect = (selectedWeight: number) => {
+    setWeight(selectedWeight);
+  };
+
+  const handleHeightSelect = (selectedHeight: number) => {
+    setHeight(selectedHeight);
+  };
+
+  const openWeightPicker = () => {
+    setIsWeightPickerVisible(true);
+  };
+
+  const openHeightPicker = () => {
+    setIsHeightPickerVisible(true);
+  };
+
+  const handleSaveProfile = async () => {
+    if (!firebaseUser?.uid) {
+      console.error("No user ID available");
+      return;
+    }
+
+    const profileData = {
+      username,
+      weight,
+      height,
+      age: age ? parseInt(age) : undefined,
+      gender,
+      updatedAt: Date.now()
+    };
+
+
+    try {
+      const result = await updateUserProfile(firebaseUser.uid, profileData);
+
+      if (result.success) {
+        console.log("Profile saved successfully");
+      } else {
+        console.error("Failed to save profile:", result.error);
+      }
+      
+      setIsProfileModalVisible(false);
+      
+    } catch (error) {
+      console.error("Error saving profile:", error);
     }
   };
 
@@ -118,7 +209,10 @@ const SettingsScreen = () => {
             </View>
           </View>
 
-          <TouchableOpacity style={VintageStyles.vintageCard}>
+          <TouchableOpacity 
+            style={VintageStyles.vintageCard}
+            onPress={handleAccountProfilePress}
+          >
             <View
               style={[
                 VintageStyles.settingIcon,
@@ -276,6 +370,239 @@ const SettingsScreen = () => {
 
         <View style={VintageStyles.spacing60} />
       </ScrollView>
+
+      {/* Modal for Account & Profile */}
+      <Modal
+        animationType="fade"
+        transparent={true}
+        visible={isProfileModalVisible}
+        onRequestClose={closeProfileModal}
+      >
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : "height"}
+            style={VintageStyles.modalOverlay}
+          >
+            <View style={VintageStyles.modalContentCenter}>
+              <View style={VintageStyles.modalProfileSection}>
+                <View style={VintageStyles.modalIconCircle}>
+                  <View style={VintageStyles.modalIconContainer}>
+                    <Feather
+                      name="settings"
+                      size={50}
+                      color={VintageColors.primaryText}
+                    />
+                  </View>
+                </View>
+                <Text style={VintageStyles.modalProfileTitle}>Account Settings</Text>
+              </View>
+
+              <ScrollView 
+                style={VintageStyles.formScroll}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={{ paddingBottom: 20 }}
+              >
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                  <Feather name="user" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                  <Text style={VintageStyles.label}>Username</Text>
+                  </View>
+                  <TextInput 
+                  style={VintageStyles.input}
+                  placeholder="Enter username"
+                  placeholderTextColor={VintageColors.secondaryText}
+                  value={username}
+                  onChangeText={setUsername}
+                  />
+                </View>
+
+                <View style={VintageStyles.rowContainer}>
+                  {/* Weight Picker */}
+                  <View style={VintageStyles.halfFormGroup}>
+                    <View style={VintageStyles.labelContainer}>
+                      <Feather name="target" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                      <Text style={VintageStyles.label}>Weight (kg)</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={VintageStyles.pickerButton}
+                      onPress={openWeightPicker}
+                    >
+                      <Feather 
+                        name="chevron-down" 
+                        size={18} 
+                        color={VintageColors.primaryText} 
+                        style={VintageStyles.pickerIcon}
+                      />
+                      <Text style={VintageStyles.pickerButtonText}>
+                        {weight} kg
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+
+                  {/* Height Picker */}
+                  <View style={VintageStyles.halfFormGroup}>
+                    <View style={VintageStyles.labelContainer}>
+                      <Feather name="maximize-2" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                      <Text style={VintageStyles.label}>Height (cm)</Text>
+                    </View>
+                    <TouchableOpacity 
+                      style={VintageStyles.pickerButton}
+                      onPress={openHeightPicker}
+                    >
+                      <Feather 
+                        name="chevron-down" 
+                        size={18} 
+                        color={VintageColors.primaryText} 
+                        style={VintageStyles.pickerIcon}
+                      />
+                      <Text style={VintageStyles.pickerButtonText}>
+                        {height} cm
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                  <Feather name="calendar" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                  <Text style={VintageStyles.label}>Age</Text>
+                  </View>
+                  <TextInput 
+                  style={VintageStyles.input}
+                  placeholder="Enter age"
+                  placeholderTextColor={VintageColors.secondaryText}
+                  value={age}
+                  onChangeText={setAge}
+                  keyboardType="numeric"
+                  />
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather name="users" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                    <Text style={VintageStyles.label}>Gender</Text>
+                  </View>
+                  <View style={VintageStyles.genderContainer}>
+                    <TouchableOpacity 
+                      style={[
+                        VintageStyles.genderButton,
+                        gender === "woman" && [
+                          VintageStyles.genderButtonSelected,
+                          { 
+                            backgroundColor: VintageColors.iconPink,
+                            borderColor: VintageColors.primaryText
+                          }
+                        ]
+                      ]}
+                      onPress={() => handleGenderSelect("woman")}
+                    >
+                      <Feather 
+                        name="user" 
+                        size={18} 
+                        color={gender === "woman" ? VintageColors.primaryText : VintageColors.secondaryText}
+                      />
+                      <Text style={[
+                        VintageStyles.genderButtonText,
+                        gender === "woman" && [VintageStyles.genderButtonTextSelected, { color: VintageColors.primaryText }]
+                      ]}>Woman</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[
+                        VintageStyles.genderButton,
+                        gender === "man" && [
+                          VintageStyles.genderButtonSelected,
+                          { 
+                            backgroundColor: VintageColors.iconBlue,
+                            borderColor: VintageColors.primaryText
+                          }
+                        ]
+                      ]}
+                      onPress={() => handleGenderSelect("man")}
+                    >
+                      <Feather 
+                        name="user" 
+                        size={18} 
+                        color={gender === "man" ? VintageColors.primaryText : VintageColors.secondaryText}
+                      />
+                      <Text style={[
+                        VintageStyles.genderButtonText,
+                        gender === "man" && [VintageStyles.genderButtonTextSelected, { color: VintageColors.primaryText }]
+                      ]}>Man</Text>
+                    </TouchableOpacity>
+                    
+                    <TouchableOpacity 
+                      style={[
+                        VintageStyles.genderButton,
+                        gender === "other" && [
+                          VintageStyles.genderButtonSelected,
+                          { 
+                            backgroundColor: VintageColors.iconGreen,
+                            borderColor: VintageColors.primaryText
+                          }
+                        ]
+                      ]}
+                      onPress={() => handleGenderSelect("other")}
+                    >
+                      <Feather 
+                        name="users" 
+                        size={18} 
+                        color={gender === "other" ? VintageColors.primaryText : VintageColors.secondaryText}
+                      />
+                      <Text style={[
+                        VintageStyles.genderButtonText,
+                        gender === "other" && [VintageStyles.genderButtonTextSelected, { color: VintageColors.primaryText }]
+                      ]}>Other</Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                <View style={VintageStyles.buttonContainer}>
+                  <TouchableOpacity 
+                    style={[VintageStyles.button, VintageStyles.cancelButton]}
+                    onPress={closeProfileModal}
+                  >
+                    <Text style={VintageStyles.cancelButtonText}>Cancel</Text>
+                  </TouchableOpacity>
+                  
+                  <TouchableOpacity 
+                    style={[VintageStyles.button, VintageStyles.saveButton]}
+                    onPress={handleSaveProfile} // Zmiana tutaj!
+                  >
+                    <Text style={VintageStyles.saveButtonText}>Save</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+            </View>
+          </KeyboardAvoidingView>
+        </TouchableWithoutFeedback>
+      </Modal>
+
+      {/* Weight Picker */}
+      <NumberPicker
+        visible={isWeightPickerVisible}
+        onClose={() => setIsWeightPickerVisible(false)}
+        onValueSelect={handleWeightSelect}
+        selectedValue={Number(weight)}
+        title="Select Weight"
+        unit="kg"
+        min={30}
+        max={200}
+        step={1}
+      />
+
+      {/* Height Picker */}
+      <NumberPicker
+        visible={isHeightPickerVisible}
+        onClose={() => setIsHeightPickerVisible(false)}
+        onValueSelect={handleHeightSelect}
+        selectedValue={Number(height)}
+        title="Select Height"
+        unit="cm"
+        min={100}
+        max={250}
+        step={1}
+      />
     </View>
   );
 };
