@@ -36,6 +36,7 @@ import {
 } from "../../utils/journalUtils/mealsAndActivitiesUtils";
 
 import TimePicker from "../../components/common/TimePicker";
+import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
 
 interface ActivitySectionProps {
   selectedDate: Date;
@@ -74,10 +75,16 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
   const [showTimePicker, setShowTimePicker] = useState(false);
-  const [activityTime, setActivityTime] = useState<string>(() => {
-    const now = new Date();
-    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+
+  const { currentTime, getNowTimeString } = useLiveTime({
+    format24Hour: true,
   });
+
+  const [activityTime, setActivityTime] = useState<string>(currentTime);
+
+  useEffect(() => {
+    setActivityTime(currentTime);
+  }, [currentTime]);
 
   const handleTimeChange = (time: string) => {
     setActivityTime(time);
@@ -87,7 +94,6 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
   const openTimePicker = () => {
     setShowTimePicker(true);
   };
-
   const renderTimePicker = () => (
     <TimePicker
       visible={showTimePicker}
@@ -233,6 +239,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
                 console.error("Failed to delete activity:", activity);
                 return;
               }
+              setActivityTime(getNowTimeString());
+
               await fetchTreatments(selectedDate);
               alert(
                 "Success",
@@ -348,6 +356,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
         console.error("Failed to save activity to Nightscout:", treatmentData);
         return;
       }
+
+      setActivityTime(getNowTimeString());
 
       await fetchTreatments(selectedDate);
 
