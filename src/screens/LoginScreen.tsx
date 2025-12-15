@@ -13,7 +13,6 @@ import {
 import { getPlatformStyles } from "../themes/styles";
 import { useWindowDimensions } from "react-native";
 import { LoginScreenProps } from "../types/navigation";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { loginWithUsername } from "../services/authService";
 import { ActivityIndicator } from "react-native";

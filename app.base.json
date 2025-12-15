@@ -24,7 +24,6 @@
         "foregroundImage": "./assets/goose1-nobg.png",
         "backgroundColor": "#ffffff"
       },
-      "edgeToEdgeEnabled": true,
       "predictiveBackGestureEnabled": false,
       "package": "com.hotties.glucosegoose"
     },
