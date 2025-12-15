@@ -10,6 +10,7 @@ import {
 import { Ionicons, Feather } from "@expo/vector-icons";
 import { VintageStylesCalendar } from "../../themes/vintage/styles_vintage_calendar";
 import { VintageColors } from "../../themes/vintage/colors";
+import { useEffect } from "react";
 
 interface TimePickerProps {
   visible: boolean;
@@ -44,6 +45,14 @@ const TimePicker: React.FC<TimePickerProps> = ({
     setTempSelectedMinute(minute);
   };
 
+  useEffect(() => {
+    if (!visible) {
+      const [hours, minutes] = selectedTime.split(":").map(Number);
+      setTempSelectedHour(hours || 0);
+      setTempSelectedMinute(minutes || 0);
+    }
+  }, [visible, selectedTime]);
+
   const handleSelectNow = () => {
     const now = new Date();
     const hours = now.getHours();
@@ -51,6 +60,12 @@ const TimePicker: React.FC<TimePickerProps> = ({
 
     setTempSelectedHour(hours);
     setTempSelectedMinute(minutes);
+
+    const timeString = `${hours.toString().padStart(2, "0")}:${minutes
+      .toString()
+      .padStart(2, "0")}`;
+    onTimeSelect(timeString);
+    onClose();
   };
 
   const handleConfirm = () => {
