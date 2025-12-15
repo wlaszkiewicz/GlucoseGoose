@@ -41,6 +41,7 @@ import {
   NutritionInfo,
   mealTypes,
 } from "../../types/events";
+import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
 
 interface FoodSectionProps {
   selectedDate: Date;
@@ -77,10 +78,15 @@ const FoodSection: React.FC<FoodSectionProps> = ({
     return getTodaysMealsNutrition(todayMeals);
   }, [todayMeals]);
 
-  const [mealTime, setMealTime] = useState<string>(() => {
-    const now = new Date();
-    return now.toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" });
+  const { currentTime, getNowTimeString } = useLiveTime({
+    format24Hour: true,
   });
+
+  const [mealTime, setMealTime] = useState<string>(currentTime);
+
+  useEffect(() => {
+    setMealTime(currentTime);
+  }, [currentTime]);
 
   const handleTimeChange = (time: string) => {
     setMealTime(time);
@@ -285,6 +291,8 @@ const FoodSection: React.FC<FoodSectionProps> = ({
               console.error("Failed to delete meal:", meal);
               return;
             }
+            setMealTime(getNowTimeString());
+
             await fetchTreatments(selectedDate);
 
             alert("Success", `${mealType} deleted successfully!`);
@@ -365,6 +373,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({
         console.error("Failed to save meal to Nightscout:", treatmentData);
         return;
       }
+      setMealTime(getNowTimeString());
 
       await fetchTreatments(selectedDate);
 
