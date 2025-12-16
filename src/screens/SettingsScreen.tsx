@@ -26,6 +26,7 @@ import { useNightscout } from "../contexts/NightscoutContext";
 import { useAuth } from "../contexts/AuthContext";
 import NumberPicker from "../components/common/NumberPicker";
 import { updateUserProfile } from "../services/userProfileService";
+import GooseAvatarPicker from "../components/settings/GooseAvatarPicker";
 
 const gooseImage = require("../../assets/goose1.png");
 
@@ -35,12 +36,14 @@ const SettingsScreen = () => {
   const { userData, firebaseUser } = useAuth();
   
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
+  const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
   
   const [username, setUsername] = useState(userData?.username || "");
   const [weight, setWeight] = useState<number>(userData?.weight || 70);
   const [height, setHeight] = useState<number>(userData?.height || 170);
   const [age, setAge] = useState(userData?.age?.toString() || "");
   const [gender, setGender] = useState(userData?.gender || "");
+  const [selectedAvatar, setSelectedAvatar] = useState(gooseImage);
 
   const [isWeightPickerVisible, setIsWeightPickerVisible] = useState(false);
   const [isHeightPickerVisible, setIsHeightPickerVisible] = useState(false);
@@ -71,7 +74,17 @@ const SettingsScreen = () => {
   setHeight(userData?.height || 170);
   setAge(userData?.age?.toString() || "");
   setGender(userData?.gender || "");
-};
+  };
+
+  const openAvatarPicker = () => {
+    setIsAvatarPickerVisible(true);
+  };
+
+  const handleAvatarSelect = (avatarImage: any) => {
+    setSelectedAvatar(avatarImage);
+    // logic will be there 
+    console.log("Avatar selected:", avatarImage);
+  };
 
   const handleGenderSelect = (selectedGender: string) => {
     setGender(selectedGender);
@@ -105,7 +118,8 @@ const SettingsScreen = () => {
       height,
       age: age ? parseInt(age) : undefined,
       gender,
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      avatar: selectedAvatar,
     };
 
 
@@ -142,15 +156,21 @@ const SettingsScreen = () => {
 
         {/* Profile */}
         <View style={VintageStyles.profileSection}>
-          <View style={VintageStyles.gooseAvatarCircle}>
+          <TouchableOpacity 
+            style={VintageStyles.gooseAvatarCircle}
+            onPress={openAvatarPicker}
+          >
             <Image
-              source={gooseImage}
+              source={selectedAvatar}
               style={VintageStyles.gooseAvatarImage}
               resizeMode="cover"
             />
-          </View>
+            <View style={VintageStyles.editAvatarIcon}>
+              <Feather name="edit-2" size={16} color={VintageColors.primaryText} />
+            </View>
+          </TouchableOpacity>
 
-          <Text style={VintageStyles.profileName}>Goose</Text>
+            <Text style={VintageStyles.profileName}>{userData?.username || "Goose"}</Text>
 
           <View style={VintageStyles.spacing10} />
 
@@ -567,7 +587,7 @@ const SettingsScreen = () => {
                   
                   <TouchableOpacity 
                     style={[VintageStyles.button, VintageStyles.saveButton]}
-                    onPress={handleSaveProfile} // Zmiana tutaj!
+                    onPress={handleSaveProfile}
                   >
                     <Text style={VintageStyles.saveButtonText}>Save</Text>
                   </TouchableOpacity>
@@ -577,6 +597,14 @@ const SettingsScreen = () => {
           </KeyboardAvoidingView>
         </TouchableWithoutFeedback>
       </Modal>
+
+      {/* Goose Avatar Picker Modal */}
+      <GooseAvatarPicker
+        visible={isAvatarPickerVisible}
+        onClose={() => setIsAvatarPickerVisible(false)}
+        onAvatarSelect={handleAvatarSelect}
+        currentAvatar={selectedAvatar}
+      />
 
       {/* Weight Picker */}
       <NumberPicker
