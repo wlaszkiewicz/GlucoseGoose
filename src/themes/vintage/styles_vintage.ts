@@ -527,4 +527,19 @@ inputText: {
   fontSize: 16,
   color: VintageColors.primaryText,
 },
+
+// Styles for goose avatar picker
+editAvatarIcon: {
+    position: 'absolute' as const,
+    bottom: 10,
+    right: 10,
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: VintageColors.cardBackground,
+    justifyContent: 'center' as const,
+    alignItems: 'center' as const,
+    borderWidth: 2,
+    borderColor: VintageColors.primaryText,
+  },
 });
