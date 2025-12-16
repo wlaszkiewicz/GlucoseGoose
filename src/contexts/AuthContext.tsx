@@ -9,6 +9,7 @@ import { auth, db } from "../../firebaseConfig";
 import { onAuthStateChanged, User as FirebaseUser } from "firebase/auth";
 import { doc, getDoc } from "firebase/firestore";
 import { StorageService } from "../services/localStorageService";
+import { getAvatarUrl } from "../services/avatarservice";
 
 export interface UserData {
   uid: string;
@@ -23,12 +24,15 @@ export interface UserData {
   height?: number;
   age?: number;
   gender?: string;
+  avatar?: string;
+  avatarUrl?: string;
 }
 
 interface AuthContextType {
   firebaseUser: FirebaseUser | null;
   userData: UserData | null;
   loading: boolean;
+  updateUserData: (data: Partial<UserData>) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -37,6 +41,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const updateUserData = (data: Partial<UserData>) => {
+    setUserData(prev => prev ? { ...prev, ...data } : null);
+  };
+
+  const loadAvatarUrl = async (avatarId: string | undefined): Promise<string | undefined> => {
+    if (!avatarId) return undefined;
+    
+    try {
+      if (avatarId.startsWith('http')) {
+        return avatarId;
+      }
+      
+      return await getAvatarUrl(avatarId as any);
+    } catch (error) {
+      console.error('Error loading avatar URL:', error);
+      return undefined;
+    }
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
@@ -54,6 +77,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           nightscoutUrl = await StorageService.get("nightscoutUrl");
         }
 
+        let avatarUrl = undefined;
+        if (data?.avatar) {
+          avatarUrl = await loadAvatarUrl(data.avatar);
+        }
+
         setUserData(
           data
             ? {
@@ -61,6 +89,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
                 nightscoutSecret: localSecret ?? "",
                 nightscoutUrl: nightscoutUrl ?? data.nightscoutUrl,
                 geminiAPIKey: geminiAPIKey ?? "",
+                avatarUrl,
               }
             : null
         );
@@ -74,7 +103,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, userData, loading }}>
+    <AuthContext.Provider value={{ firebaseUser, userData, loading, updateUserData }}>
       {children}
     </AuthContext.Provider>
   );

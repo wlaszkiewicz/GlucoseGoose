@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -7,22 +7,17 @@ import {
   Modal,
   ScrollView,
   StyleSheet,
+  ActivityIndicator,
 } from 'react-native';
 import { Feather } from '@expo/vector-icons';
 import { VintageColors } from '../../themes/vintage/colors';
-
-const goose1 = require('../../../assets/profilePictures/pp1.png');
-const goose2 = require('../../../assets/profilePictures/pp2.png');
-const goose3 = require('../../../assets/profilePictures/pp3.png');
-const goose4 = require('../../../assets/profilePictures/pp4.png');
-const goose5 = require('../../../assets/profilePictures/pp5.png');
-const goose6 = require('../../../assets/profilePictures/pp6.png');
+import { getAllAvatarUrls, AVATAR_OPTIONS } from '../../services/avatarservice';
 
 interface GooseAvatarPickerProps {
   visible: boolean;
   onClose: () => void;
-  onAvatarSelect: (avatarImage: any) => void;
-  currentAvatar: any;
+  onAvatarSelect: (avatarId: string) => void;
+  currentAvatar: string;
 }
 
 const GooseAvatarPicker: React.FC<GooseAvatarPickerProps> = ({
@@ -31,24 +26,56 @@ const GooseAvatarPicker: React.FC<GooseAvatarPickerProps> = ({
   onAvatarSelect,
   currentAvatar,
 }) => {
-  const gooseImages = [
-  { id: 1, image: goose1, name: 'Classic Goose' },
-  { id: 2, image: goose2, name: 'Cowboy Goose' },
-  { id: 3, image: goose3, name: 'Party Goose' },
-  { id: 4, image: goose4, name: 'Floral Goose' },
-  { id: 5, image: goose5, name: 'Blossom Goose' },
-  { id: 6, image: goose6, name: 'Vintage Goose' },
-];
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string>(currentAvatar || 'goose1');
+  const [avatarData, setAvatarData] = useState<Array<{id: string, url: string, name: string}>>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [selectedAvatar, setSelectedAvatar] = useState(currentAvatar);
+  useEffect(() => {
+    if (visible) {
+      loadAvatars();
+    }
+  }, [visible]);
 
-  const handleAvatarSelect = (avatar: any) => {
-    setSelectedAvatar(avatar);
+  const loadAvatars = async () => {
+    setLoading(true);
+    try {
+      const avatars = await getAllAvatarUrls();
+      setAvatarData(avatars);
+    } catch (error) {
+      console.error('Error loading avatars:', error);
+      const fallbackAvatars = AVATAR_OPTIONS.map(option => ({
+        id: option.id,
+        url: '',
+        name: option.name
+      }));
+      setAvatarData(fallbackAvatars);
+    }
+    setLoading(false);
+  };
+
+  const handleAvatarSelect = (avatarId: string) => {
+    setSelectedAvatarId(avatarId);
   };
 
   const handleConfirm = () => {
-    onAvatarSelect(selectedAvatar);
+    onAvatarSelect(selectedAvatarId);
     onClose();
+  };
+
+  const getAvatarSource = (avatar: {id: string, url: string}) => {
+    if (avatar.url) {
+      return { uri: avatar.url };
+    }
+    
+    switch(avatar.id) {
+      case 'classic_goose': return require('../../../assets/profilePictures/pp1.png');
+      case 'cowboy_goose': return require('../../../assets/profilePictures/pp2.png');
+      case 'party_goose': return require('../../../assets/profilePictures/pp3.png');
+      case 'floral_goose': return require('../../../assets/profilePictures/pp4.png');
+      case 'blossom_goose': return require('../../../assets/profilePictures/pp5.png');
+      case 'vintage_goose': return require('../../../assets/profilePictures/pp6.png');
+      default: return require('../../../assets/profilePictures/pp1.png');
+    }
   };
 
   return (
@@ -67,35 +94,43 @@ const GooseAvatarPicker: React.FC<GooseAvatarPickerProps> = ({
             </TouchableOpacity>
           </View>
 
-          <ScrollView 
-            contentContainerStyle={styles.avatarsContainer}
-            showsVerticalScrollIndicator={false}
-          >
-            {gooseImages.map((goose) => (
-              <TouchableOpacity
-                key={goose.id}
-                style={[
-                  styles.avatarItem,
-                  selectedAvatar === goose.image && styles.avatarItemSelected,
-                ]}
-                onPress={() => handleAvatarSelect(goose.image)}
-              >
-                <View style={styles.avatarImageContainer}>
-                  <Image
-                    source={goose.image}
-                    style={styles.avatarImage}
-                    resizeMode="cover"
-                  />
-                  {selectedAvatar === goose.image && (
-                    <View style={styles.selectedIndicator}>
-                      <Feather name="check" size={20} color="#FFFFFF" />
-                    </View>
-                  )}
-                </View>
-                <Text style={styles.avatarName}>{goose.name}</Text>
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+          {loading ? (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="large" color={VintageColors.iconPink} />
+              <Text style={styles.loadingText}>Loading avatars...</Text>
+            </View>
+          ) : (
+            <ScrollView 
+              contentContainerStyle={styles.avatarsContainer}
+              showsVerticalScrollIndicator={false}
+            >
+              {avatarData.map((avatar) => (
+                <TouchableOpacity
+                  key={avatar.id}
+                  style={[
+                    styles.avatarItem,
+                    selectedAvatarId === avatar.id && styles.avatarItemSelected,
+                  ]}
+                  onPress={() => handleAvatarSelect(avatar.id)}
+                >
+                  <View style={styles.avatarImageContainer}>
+                    <Image
+                      source={getAvatarSource(avatar)}
+                      style={styles.avatarImage}
+                      resizeMode="cover"
+                      onError={(e) => console.log('Error loading avatar:', avatar.id, e.nativeEvent.error)}
+                    />
+                    {selectedAvatarId === avatar.id && (
+                      <View style={styles.selectedIndicator}>
+                        <Feather name="check" size={20} color="#FFFFFF" />
+                      </View>
+                    )}
+                  </View>
+                  <Text style={styles.avatarName}>{avatar.name}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          )}
 
           <View style={styles.footer}>
             <TouchableOpacity
@@ -107,6 +142,7 @@ const GooseAvatarPicker: React.FC<GooseAvatarPickerProps> = ({
             <TouchableOpacity
               style={styles.confirmButton}
               onPress={handleConfirm}
+              disabled={loading}
             >
               <Text style={styles.confirmButtonText}>Select Avatar</Text>
             </TouchableOpacity>
@@ -162,6 +198,15 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: VintageColors.border,
+  },
+  loadingContainer: {
+    padding: 40,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  loadingText: {
+    marginTop: 10,
+    color: VintageColors.secondaryText,
   },
   avatarsContainer: {
     flexDirection: 'row',
@@ -241,6 +286,9 @@ const styles = StyleSheet.create({
     backgroundColor: VintageColors.signOutButton,
     borderWidth: 1,
     borderColor: VintageColors.iconPink,
+  },
+  confirmButtonDisabled: {
+    opacity: 0.5,
   },
   cancelButtonText: {
     color: VintageColors.primaryText,
