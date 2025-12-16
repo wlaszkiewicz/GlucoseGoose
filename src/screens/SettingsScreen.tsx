@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { 
   View, 
   Text, 
@@ -27,13 +27,15 @@ import { useAuth } from "../contexts/AuthContext";
 import NumberPicker from "../components/common/NumberPicker";
 import { updateUserProfile } from "../services/userProfileService";
 import GooseAvatarPicker from "../components/settings/GooseAvatarPicker";
+import { getAvatarUrl } from "../services/avatarservice";
+import { getLocalAvatarImage } from '../utils/avatarHelper';
 
 const gooseImage = require("../../assets/goose1.png");
 
 const SettingsScreen = () => {
   const navigation = useNavigation();
   const { reset } = useNightscout();
-  const { userData, firebaseUser } = useAuth();
+  const { userData, firebaseUser, updateUserData } = useAuth();
   
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
@@ -43,11 +45,57 @@ const SettingsScreen = () => {
   const [height, setHeight] = useState<number>(userData?.height || 170);
   const [age, setAge] = useState(userData?.age?.toString() || "");
   const [gender, setGender] = useState(userData?.gender || "");
-  const [selectedAvatar, setSelectedAvatar] = useState(gooseImage);
 
   const [isWeightPickerVisible, setIsWeightPickerVisible] = useState(false);
   const [isHeightPickerVisible, setIsHeightPickerVisible] = useState(false);
+
+  const [selectedAvatarId, setSelectedAvatarId] = useState<string>(userData?.avatar || 'goose1');
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(userData?.avatarUrl);
+
+  useEffect(() => {
+    const loadCurrentAvatar = async () => {
+      if (selectedAvatarId) {
+        try {
+          const url = await getAvatarUrl(selectedAvatarId as any);
+          setAvatarUrl(url);
+        } catch (error) {
+          console.error('Error loading avatar URL:', error);
+        }
+      }
+    };
+    
+    loadCurrentAvatar();
+  }, [selectedAvatarId]);
+
+  const handleAvatarSelect = async (avatarId: string) => {
+  setSelectedAvatarId(avatarId);
   
+  if (!firebaseUser?.uid) {
+    console.error("No user ID available");
+    return;
+  }
+
+  try {
+    const result = await updateUserProfile(firebaseUser.uid, {
+      avatar: avatarId,
+      updatedAt: Date.now(),
+    });
+
+    if (result.success) {
+      console.log("Avatar ID saved to Firestore");
+      
+      if (updateUserData) {
+        updateUserData({ avatar: avatarId });
+      }
+      
+      setIsAvatarPickerVisible(false);
+    } else {
+      console.error("Failed to save avatar:", result.error);
+    }
+  } catch (error) {
+    console.error("Error saving avatar:", error);
+  }
+};
 
   const handleLogout = async () => {
     const result = await logoutUser();
@@ -80,11 +128,6 @@ const SettingsScreen = () => {
     setIsAvatarPickerVisible(true);
   };
 
-  const handleAvatarSelect = (avatarImage: any) => {
-    setSelectedAvatar(avatarImage);
-    // logic will be there 
-    console.log("Avatar selected:", avatarImage);
-  };
 
   const handleGenderSelect = (selectedGender: string) => {
     setGender(selectedGender);
@@ -119,7 +162,7 @@ const SettingsScreen = () => {
       age: age ? parseInt(age) : undefined,
       gender,
       updatedAt: Date.now(),
-      avatar: selectedAvatar,
+      avatar: selectedAvatarId,
     };
 
 
@@ -156,19 +199,19 @@ const SettingsScreen = () => {
 
         {/* Profile */}
         <View style={VintageStyles.profileSection}>
-          <TouchableOpacity 
-            style={VintageStyles.gooseAvatarCircle}
-            onPress={openAvatarPicker}
-          >
-            <Image
-              source={selectedAvatar}
-              style={VintageStyles.gooseAvatarImage}
-              resizeMode="cover"
-            />
-            <View style={VintageStyles.editAvatarIcon}>
-              <Feather name="edit-2" size={16} color={VintageColors.primaryText} />
-            </View>
-          </TouchableOpacity>
+         <TouchableOpacity 
+          style={VintageStyles.gooseAvatarCircle}
+          onPress={openAvatarPicker}
+        >
+          <Image
+            source={getLocalAvatarImage(selectedAvatarId)}
+            style={VintageStyles.gooseAvatarImage}
+            resizeMode="cover"
+          />
+          <View style={VintageStyles.editAvatarIcon}>
+            <Feather name="edit-2" size={16} color={VintageColors.primaryText} />
+          </View>
+        </TouchableOpacity>
 
             <Text style={VintageStyles.profileName}>{userData?.username || "Goose"}</Text>
 
@@ -603,7 +646,7 @@ const SettingsScreen = () => {
         visible={isAvatarPickerVisible}
         onClose={() => setIsAvatarPickerVisible(false)}
         onAvatarSelect={handleAvatarSelect}
-        currentAvatar={selectedAvatar}
+        currentAvatar={selectedAvatarId}
       />
 
       {/* Weight Picker */}
