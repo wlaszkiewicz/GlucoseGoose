@@ -14,7 +14,7 @@ import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
-} from "../../utils/cloud_functions";
+} from "../../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
@@ -22,7 +22,7 @@ import alert from "../../utils/alert";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors";
 import { VintageStylesFood } from "../../themes/vintage/styles_vintage_food";
-import { analyzeMealCloud } from "../../utils/cloud_functions";
+import { analyzeMeal } from "../../utils/cloudFunctions";
 import {
   getMealTypeFromEvent,
   getTodaysMealsNutrition,
@@ -32,6 +32,8 @@ import {
   getConfidenceColor,
   getConfidenceText,
 } from "../../utils/journalUtils/mealsAndActivitiesUtils";
+import TimePicker from "../../components/common/TimePicker";
+
 import { pickImage, takePhoto } from "../../utils/photoUpload";
 import {
   AIAnalysisResult,
@@ -39,12 +41,17 @@ import {
   NutritionInfo,
   mealTypes,
 } from "../../types/events";
+import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
 
 interface FoodSectionProps {
   selectedDate: Date;
+  meals: NightscoutTreatment[];
 }
 
-const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
+const FoodSection: React.FC<FoodSectionProps> = ({
+  selectedDate,
+  meals: todayMeals,
+}) => {
   const [selectedMealType, setSelectedMealType] =
     useState<MealType>("Breakfast");
   const [mealDescription, setMealDescription] = useState("");
@@ -53,6 +60,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   const [editingMealId, setEditingMealId] = useState<string | null>(null);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [aiAnalysis, setAiAnalysis] = useState<AIAnalysisResult | null>(null);
+  const [showTimePicker, setShowTimePicker] = useState(false);
 
   const [nutritionInfo, setNutritionInfo] = useState<NutritionInfo>({
     calories: 0,
@@ -63,21 +71,31 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   });
 
   const { firebaseUser, userData } = useAuth();
-  const { meals: nightscoutMeals, loadFullDay: fetchUpdates } = useNightscout();
+  const { fetchTreatments } = useNightscout();
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
-
-  const todayMeals = useMemo(() => {
-    const todayString = selectedDate.toISOString().split("T")[0];
-    return nightscoutMeals.filter(
-      (meal) =>
-        meal.created_at?.startsWith(todayString) &&
-        meal.eventType?.includes("Meal:")
-    );
-  }, [nightscoutMeals, selectedDate]);
 
   const totalNutrition = useMemo(() => {
     return getTodaysMealsNutrition(todayMeals);
   }, [todayMeals]);
+
+  const { currentTime, getNowTimeString } = useLiveTime({
+    format24Hour: true,
+  });
+
+  const [mealTime, setMealTime] = useState<string>(currentTime);
+
+  useEffect(() => {
+    setMealTime(currentTime);
+  }, [currentTime]);
+
+  const handleTimeChange = (time: string) => {
+    setMealTime(time);
+    setShowTimePicker(false);
+  };
+
+  const openTimePicker = () => {
+    setShowTimePicker(true);
+  };
 
   const handleTakePhoto = async () => {
     try {
@@ -88,8 +106,8 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       }
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
-        setMealDescription("Meal photo uploaded");
-        await handleAnalyzePhoto(result.assets[0].base64);
+        //    await handleAnalyzePhoto(result.assets[0].base64, mealDescription);
+        // we dont want to auto anylyze anymore
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -106,8 +124,8 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
-        setMealDescription("Meal photo uploaded, analyzing...");
-        await handleAnalyzePhoto(result.assets[0].base64);
+        //  await handleAnalyzePhoto(result.assets[0].base64, mealDescription);
+        //  we dont want to auto anylyze anymore
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -115,7 +133,10 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     }
   };
 
-  const handleAnalyzePhoto = async (imageBase64: string) => {
+  const handleAnalyzePhoto = async (
+    imageBase64: string,
+    description?: string
+  ) => {
     setIsAnalyzing(true);
     setAiAnalysis(null);
     setShowManualInput(false);
@@ -126,14 +147,20 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         return;
       }
 
-      const result = await analyzeMealCloud(
+      const result = await analyzeMeal(
         imageBase64,
         CLOUD_FUNCTIONS_HOST,
-        await firebaseUser.getIdToken()
+        await firebaseUser.getIdToken(),
+        description,
+        userData?.geminiAPIKey || ""
       );
 
       if (result.error) {
-        alert("AI Analysis Error", result.error);
+        if (result.userMessage) {
+          alert("Analysis Limit", result.userMessage);
+        } else {
+          alert("AI Analysis Error", result.error);
+        }
         return;
       }
 
@@ -145,8 +172,6 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
       setAiAnalysis(result);
 
-      console.log("AI Analysis Result:", result);
-
       setNutritionInfo({
         calories: result.totals?.calories || 0,
         carbs: result.totals?.carbs_grams || 0,
@@ -155,12 +180,17 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         fiber: result.totals?.fiber_grams || 0,
       });
 
+      // const foodNames =
+      //   result.food_items?.map((item: any) => item.name).join(", ") ||
+      //   "Analyzed meal";
       const foodNames =
+        result.description ||
         result.food_items?.map((item: any) => item.name).join(", ") ||
         "Analyzed meal";
       setMealDescription(foodNames);
     } catch (error: any) {
       console.error("Error analyzing meal:", error);
+      console.log("AI raw response:", error.response);
       alert(
         "Analysis Error",
         `Failed to analyze meal: ${error.message || "Unknown error"}`
@@ -196,6 +226,13 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     setNutritionInfo(nutrition);
     setShowManualInput(true);
     setAiAnalysis(null);
+
+    const mealDate = new Date(meal.created_at);
+    const mealTimeString = mealDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    setMealTime(mealTimeString);
   };
 
   const clearForm = () => {
@@ -242,14 +279,11 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         onPress: async () => {
           try {
             if (!userData.nightscoutUrl) return;
-            const token = await firebaseUser.getIdToken();
 
             const success = await deleteTreatment(
-              CLOUD_FUNCTIONS_HOST,
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              meal._id!,
-              token
+              meal._id!
             );
 
             if (!success) {
@@ -257,7 +291,10 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
               console.error("Failed to delete meal:", meal);
               return;
             }
-            await fetchUpdates();
+            setMealTime(getNowTimeString());
+
+            await fetchTreatments(selectedDate);
+
             alert("Success", `${mealType} deleted successfully!`);
 
             if (editingMealId === meal._id) {
@@ -290,6 +327,10 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       return;
     }
 
+    const [hours24, minutes] = mealTime.split(":").map(Number);
+    const timeDate = new Date(selectedDate);
+    timeDate.setHours(hours24, minutes, 0, 0);
+
     const treatmentData: NightscoutTreatment = {
       eventType: `Meal: ${selectedMealType}`,
       notes: mealDescription,
@@ -298,7 +339,8 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       fat: nutritionInfo?.fat || 0,
       fiber: nutritionInfo?.fiber || 0,
       calories: nutritionInfo?.calories || 0,
-      created_at: selectedDate.toISOString(),
+      created_at: timeDate.toISOString(),
+      enteredBy: "GlucoseGoose App",
     };
 
     if (aiAnalysis) {
@@ -311,19 +353,15 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       if (editingMealId) {
         treatmentData._id = editingMealId;
         success = await updateTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       } else {
         success = await addTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       }
 
@@ -335,8 +373,9 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
         console.error("Failed to save meal to Nightscout:", treatmentData);
         return;
       }
+      setMealTime(getNowTimeString());
 
-      await fetchUpdates();
+      await fetchTreatments(selectedDate);
 
       alert(
         "Success",
@@ -353,6 +392,16 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       );
     }
   };
+
+  const renderTimePicker = () => (
+    <TimePicker
+      visible={showTimePicker}
+      onClose={() => setShowTimePicker(false)}
+      onTimeSelect={handleTimeChange}
+      selectedTime={mealTime}
+      selectedDate={selectedDate}
+    />
+  );
 
   const renderMealTypeSelector = () => (
     <View style={VintageStylesFood.sectionContainer}>
@@ -415,6 +464,83 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     </View>
   );
 
+  const renderAnalyzeButton = () => {
+    if (selectedImage && !mealDescription.trim() && !isAnalyzing) {
+      return (
+        <View style={VintageStylesFood.sectionContainer}>
+          <TouchableOpacity
+            style={VintageStylesFood.analyzeButton}
+            onPress={() => handleAnalyzePhoto(selectedImage.split(",")[1])}
+            disabled={isAnalyzing}
+          >
+            <Ionicons
+              name="sparkles"
+              size={18}
+              color="#FFFFFF"
+              style={{ marginRight: 8 }}
+            />
+            <Text style={VintageStylesFood.analyzeButtonText}>
+              {isAnalyzing ? "Analyzing..." : "Analyze Photo"}
+            </Text>
+          </TouchableOpacity>
+
+          <View style={VintageStylesFood.analyzeHintCard}>
+            <Ionicons
+              name="information-circle-outline"
+              size={16}
+              color={VintageColors.secondaryText}
+            />
+            <Text style={VintageStylesFood.analyzeHintText}>
+              Adding a description with details about the meal (size,
+              ingredients) will make the results much more accurate!
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (
+      selectedImage &&
+      mealDescription.trim() &&
+      !aiAnalysis &&
+      !isAnalyzing
+    ) {
+      return (
+        <View style={VintageStylesFood.sectionContainer}>
+          <TouchableOpacity
+            style={VintageStylesFood.analyzeButton}
+            onPress={() =>
+              handleAnalyzePhoto(selectedImage.split(",")[1], mealDescription)
+            }
+            disabled={isAnalyzing}
+          >
+            <Ionicons
+              name="sparkles"
+              size={18}
+              color="#FFFFFF"
+              style={{ marginRight: 8 }}
+            />
+            <Text style={VintageStylesFood.analyzeButtonText}>
+              Analyze Photo with Description
+            </Text>
+          </TouchableOpacity>
+
+          <View style={VintageStylesFood.analyzeHintCard}>
+            <Ionicons name="checkmark-circle" size={16} color="#4CAF50" />
+            <Text
+              style={[VintageStylesFood.analyzeHintText, { color: "#4CAF50" }]}
+            >
+              Great! The description will help AI provide more accurate
+              nutrition analysis.
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    return null;
+  };
+
   const renderMealDescription = () => (
     <View style={VintageStylesFood.sectionContainer}>
       <View style={VintageStyles.sectionHeader}>
@@ -427,7 +553,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
       <View style={VintageStylesFood.descriptionCard}>
         <TextInput
           style={VintageStylesFood.descriptionInput}
-          placeholder="Describe your meal in detail (e.g., ingredients, portion size) or take a photo for AI analysis"
+          placeholder="Describe your meal in detail (e.g. ingredients, portion size) and/or take a photo for AI analysis"
           value={mealDescription}
           onChangeText={setMealDescription}
           multiline
@@ -487,7 +613,9 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
           </View>
           <Text style={VintageStylesFood.uploadTitle}>Take a Photo</Text>
           <Text style={VintageStylesFood.uploadSubtitle}>
-            Get instant AI nutrition analysis
+            {!mealDescription.trim()
+              ? "Upload a photo, then describe your meal for accurate AI analysis"
+              : "Great! Now upload a photo for AI analysis"}
           </Text>
           <View style={VintageStylesFood.uploadButtons}>
             <TouchableOpacity
@@ -844,6 +972,8 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
 
     if (editingMealId) return null;
 
+    if (selectedImage) return null;
+
     return (
       <View style={VintageStylesFood.sectionContainer}>
         <TouchableOpacity
@@ -894,11 +1024,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
           const mealColor = getMealColor(mealType);
 
           return (
-            <TouchableOpacity
-              key={meal._id || meal.id}
-              style={VintageStylesFood.mealCard}
-              onPress={() => loadMealForEditing(meal)}
-            >
+            <View key={meal._id || meal.id} style={VintageStylesFood.mealCard}>
               <View style={VintageStylesFood.mealHeader}>
                 <View style={VintageStylesFood.mealHeaderLeft}>
                   <View
@@ -931,15 +1057,28 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
                       {nutrition.calories} kcal
                     </Text>
                   )}
-                  <TouchableOpacity
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleDeleteMeal(meal);
-                    }}
-                    style={VintageStylesFood.actionButton}
-                  >
-                    <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
-                  </TouchableOpacity>
+                  <View style={VintageStylesFood.actionButtonsContainer}>
+                    <TouchableOpacity
+                      onPress={() => loadMealForEditing(meal)}
+                      style={VintageStylesFood.actionButton}
+                    >
+                      <Ionicons
+                        name="create-outline"
+                        size={18}
+                        color={VintageColors.primaryText}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteMeal(meal)}
+                      style={VintageStylesFood.actionButton}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color="#FF6B6B"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
               <Text style={VintageStylesFood.mealDescription}>
@@ -955,7 +1094,7 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
                   </Text>
                 </View>
               )}
-            </TouchableOpacity>
+            </View>
           );
         })}
         <View style={VintageStylesFood.totalNutritionCard}>
@@ -1110,6 +1249,44 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
     </View>
   );
 
+  const renderTimeSelection = () => (
+    <View style={VintageStylesFood.sectionContainer}>
+      <View style={VintageStyles.sectionHeader}>
+        <Text style={VintageStyles.sectionTitle}>Meal Time</Text>
+        <View style={VintageStyles.featherAccent}>
+          <Feather name="clock" size={16} color={VintageColors.primaryText} />
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={VintageStylesFood.timeCard}
+        onPress={openTimePicker}
+        activeOpacity={0.7}
+      >
+        <View style={VintageStylesFood.timeCardLeft}>
+          <View style={VintageStylesFood.timeIconContainer}>
+            <Feather name="clock" size={20} color={VintageColors.primaryText} />
+          </View>
+          <View>
+            <Text style={VintageStylesFood.timeLabel}>Time</Text>
+            <Text style={VintageStylesFood.timeValue}>{mealTime}</Text>
+          </View>
+        </View>
+        <View style={VintageStylesFood.timeCardRight}>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={VintageColors.secondaryText}
+          />
+        </View>
+      </TouchableOpacity>
+
+      {/* <Text style={VintageStylesFood.timeHelpText}>
+        Meal will be logged for {selectedDate.toLocaleDateString()}
+      </Text> */}
+    </View>
+  );
+
   const renderAnalyzingMessage = () => {
     if (!isAnalyzing) return null;
 
@@ -1140,22 +1317,27 @@ const FoodSection: React.FC<FoodSectionProps> = ({ selectedDate }) => {
   };
 
   return (
-    <ScrollView
-      style={VintageStylesFood.container}
-      showsVerticalScrollIndicator={false}
-    >
-      {renderMealTypeSelector()}
-      {renderMealDescription()}
-      {renderPhotoUpload()}
-      {renderAnalyzingMessage()}
-      {renderAIAnalysis()}
-      {renderManualInputToggle()}
-      {renderManualInputs()}
-      {renderSaveMealButton()}
-      {renderTodayMeals()}
-      <View style={VintageStyles.spacing60} />
-    </ScrollView>
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={VintageStylesFood.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {renderMealTypeSelector()}
+        {renderTimeSelection()}
+        {renderMealDescription()}
+        {renderPhotoUpload()}
+        {renderAnalyzeButton()}
+        {renderAnalyzingMessage()}
+        {renderAIAnalysis()}
+        {renderManualInputToggle()}
+        {renderManualInputs()}
+        {renderSaveMealButton()}
+        {renderTodayMeals()}
+        <View style={VintageStyles.spacing60} />
+      </ScrollView>
+
+      {renderTimePicker()}
+    </View>
   );
 };
-
 export default FoodSection;

@@ -3,12 +3,12 @@ import { EventCategory, EventPosition } from "../../types/chart";
 export const CHART_COLORS = {
   // Meal colors
   mealBreakfast: "#F9BAD4FF",
-  mealLunch: "#A2F6D7FF",
+  mealLunch: "#96BFD6FF",
   mealDinner: "#B1BCE7FF",
   mealSnack: "#FCCAA9FF",
   mealOther: "#D5EDAEFF",
 
-  mornigSnack: "#E597D8FF",
+  mornigSnack: "#B77AADFF",
   afternoonSnack: "#B5A3F3FF",
   eveningSnack: "#F4A0AEFF",
   otherSnack: "#FECBA9FF",

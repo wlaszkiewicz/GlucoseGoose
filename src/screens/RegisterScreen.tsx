@@ -10,7 +10,6 @@ import {
   ScrollView,
 } from "react-native";
 import { RegisterScreenProps } from "../types/navigation";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useState, useRef } from "react";
 import { registerUser, logoutUser } from "../services/authService";
 import { isUsernameAvailable } from "../services/userService";

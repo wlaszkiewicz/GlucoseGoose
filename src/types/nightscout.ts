@@ -86,14 +86,7 @@ export interface NightscoutTreatment {
 export interface NightscoutBundleResponse {
   timestamp: number;
   entries: NightscoutEntry[];
-  treatments: NightscoutTreatment[];
+  otherTreatments: NightscoutTreatment[];
   meals: NightscoutTreatment[];
   activities?: NightscoutTreatment[];
-}
-
-// query params
-export interface QueryParams {
-  url?: string;
-  secret?: string;
-  minutes?: string;
 }

@@ -12,7 +12,7 @@ import {
   addTreatment,
   updateTreatment,
   deleteTreatment,
-} from "../../utils/cloud_functions";
+} from "../../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
@@ -35,11 +35,18 @@ import {
   getActivityColor,
 } from "../../utils/journalUtils/mealsAndActivitiesUtils";
 
+import TimePicker from "../../components/common/TimePicker";
+import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
+
 interface ActivitySectionProps {
   selectedDate: Date;
+  activities: NightscoutTreatment[];
 }
 
-const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
+const SportsSection: React.FC<ActivitySectionProps> = ({
+  selectedDate,
+  activities: todayActivities,
+}) => {
   const [selectedActivityType, setSelectedActivityType] =
     useState<ActivityType>("Walking");
   const [activityDescription, setActivityDescription] = useState("");
@@ -64,19 +71,38 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
   const [manualDistance, setManualDistance] = useState("");
 
   const { firebaseUser, userData } = useAuth();
-  const { activities: nightscoutActivities, loadFullDay: fetchUpdates } =
-    useNightscout();
+  const { activities: nightscoutActivities, fetchTreatments } = useNightscout();
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
-  const todayActivities = useMemo(() => {
-    const todayString = selectedDate.toISOString().split("T")[0];
-    return nightscoutActivities.filter(
-      (activity) =>
-        activity.created_at?.startsWith(todayString) &&
-        (activity.eventType?.toLowerCase().includes("activity") ||
-          activity.eventType?.toLowerCase().includes("exercise"))
-    );
-  }, [nightscoutActivities, selectedDate]);
+  const [showTimePicker, setShowTimePicker] = useState(false);
+
+  const { currentTime, getNowTimeString } = useLiveTime({
+    format24Hour: true,
+  });
+
+  const [activityTime, setActivityTime] = useState<string>(currentTime);
+
+  useEffect(() => {
+    setActivityTime(currentTime);
+  }, [currentTime]);
+
+  const handleTimeChange = (time: string) => {
+    setActivityTime(time);
+    setShowTimePicker(false);
+  };
+
+  const openTimePicker = () => {
+    setShowTimePicker(true);
+  };
+  const renderTimePicker = () => (
+    <TimePicker
+      visible={showTimePicker}
+      onClose={() => setShowTimePicker(false)}
+      onTimeSelect={handleTimeChange}
+      selectedTime={activityTime}
+      selectedDate={selectedDate}
+    />
+  );
 
   const totalActivityStats = useMemo(() => {
     return getTodayActivityStats(todayActivities);
@@ -148,6 +174,13 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     setManualDistance(metrics.distance?.toString() || "");
     setShowManualInput(false);
     setCalculationDetails(null);
+
+    const activityDate = new Date(activity.created_at);
+    const activityTimeString = activityDate.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+    setActivityTime(activityTimeString);
   };
 
   const clearForm = () => {
@@ -196,11 +229,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
               if (!userData.nightscoutUrl) return;
 
               const success = await deleteTreatment(
-                CLOUD_FUNCTIONS_HOST,
                 userData.nightscoutUrl,
                 userData.nightscoutSecret ?? "",
-                activity._id!,
-                await firebaseUser.getIdToken()
+                activity._id!
               );
 
               if (!success) {
@@ -208,7 +239,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                 console.error("Failed to delete activity:", activity);
                 return;
               }
-              await fetchUpdates();
+              setActivityTime(getNowTimeString());
+
+              await fetchTreatments(selectedDate);
               alert(
                 "Success",
                 `${activityType} activity deleted successfully!`
@@ -279,6 +312,10 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       }
     }
 
+    const [hours24, minutes] = activityTime.split(":").map(Number);
+    const timeDate = new Date(selectedDate);
+    timeDate.setHours(hours24, minutes, 0, 0);
+
     const treatmentData: NightscoutTreatment = {
       eventType: `Activity: ${selectedActivityType}`,
       notes: activityDescription,
@@ -288,7 +325,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       caloriesBurned: caloriesBurned,
       heartRate: manualHeartRate ? parseInt(manualHeartRate) : undefined,
       distance: distance,
-      created_at: selectedDate.toISOString(),
+      created_at: timeDate.toISOString(),
+      createdBy: "GlucoseGoose App",
     };
 
     try {
@@ -296,19 +334,15 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
       if (editingActivityId) {
         treatmentData._id = editingActivityId;
         success = await updateTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       } else {
         success = await addTreatment(
-          CLOUD_FUNCTIONS_HOST,
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData,
-          await firebaseUser.getIdToken()
+          treatmentData
         );
       }
 
@@ -323,7 +357,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
         return;
       }
 
-      await fetchUpdates();
+      setActivityTime(getNowTimeString());
+
+      await fetchTreatments(selectedDate);
 
       alert(
         "Success",
@@ -787,10 +823,9 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
           const activityColor = getActivityColor(activityType);
 
           return (
-            <TouchableOpacity
+            <View
               key={`${activity._id || activity.id}_${activity.created_at}`}
               style={VintageStylesSports.activityCard}
-              onPress={() => loadActivityForEditing(activity)}
             >
               <View style={VintageStylesSports.activityHeader}>
                 <View style={VintageStylesSports.activityHeaderLeft}>
@@ -824,15 +859,28 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                       {metrics.duration} min
                     </Text>
                   )}
-                  <TouchableOpacity
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleDeleteActivity(activity);
-                    }}
-                    style={VintageStylesSports.deleteButton}
-                  >
-                    <Ionicons name="trash-outline" size={18} color="#FF6B6B" />
-                  </TouchableOpacity>
+                  <View style={VintageStylesSports.actionButtonsContainer}>
+                    <TouchableOpacity
+                      onPress={() => loadActivityForEditing(activity)}
+                      style={VintageStylesSports.actionButton}
+                    >
+                      <Ionicons
+                        name="create-outline"
+                        size={18}
+                        color={VintageColors.primaryText}
+                      />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      onPress={() => handleDeleteActivity(activity)}
+                      style={VintageStylesSports.actionButton}
+                    >
+                      <Ionicons
+                        name="trash-outline"
+                        size={18}
+                        color="#FF6B6B"
+                      />
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
               <Text style={VintageStylesSports.activityDescription}>
@@ -882,7 +930,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
                   </View>
                 </View>
               )}
-            </TouchableOpacity>
+            </View>
           );
         })}
 
@@ -1011,24 +1059,60 @@ const SportsSection: React.FC<ActivitySectionProps> = ({ selectedDate }) => {
     );
   };
 
+  const renderTimeSelection = () => (
+    <View style={VintageStylesSports.sectionContainer}>
+      <View style={VintageStyles.sectionHeader}>
+        <Text style={VintageStyles.sectionTitle}>Activity Time</Text>
+        <View style={VintageStyles.featherAccent}>
+          <Feather name="clock" size={16} color={VintageColors.primaryText} />
+        </View>
+      </View>
+
+      <TouchableOpacity
+        style={VintageStylesSports.timeCard}
+        onPress={openTimePicker}
+        activeOpacity={0.7}
+      >
+        <View style={VintageStylesSports.timeCardLeft}>
+          <View style={VintageStylesSports.timeIconContainer}>
+            <Feather name="clock" size={20} color={VintageColors.primaryText} />
+          </View>
+          <View>
+            <Text style={VintageStylesSports.timeLabel}>Time</Text>
+            <Text style={VintageStylesSports.timeValue}>{activityTime}</Text>
+          </View>
+        </View>
+        <View style={VintageStylesSports.timeCardRight}>
+          <Ionicons
+            name="chevron-forward"
+            size={20}
+            color={VintageColors.secondaryText}
+          />
+        </View>
+      </TouchableOpacity>
+    </View>
+  );
+
   return (
-    <ScrollView
-      style={VintageStylesSports.container}
-      showsVerticalScrollIndicator={false}
-    >
-      {renderActivityTypeSelector()}
-      {renderActivityDescription()}
-      {renderDurationInput()}
+    <View style={{ flex: 1 }}>
+      <ScrollView
+        style={VintageStylesSports.container}
+        showsVerticalScrollIndicator={false}
+      >
+        {renderActivityTypeSelector()}
+        {renderTimeSelection()}
+        {renderActivityDescription()}
+        {renderDurationInput()}
+        {renderWeightWarning()}
+        {renderInputToggle()}
+        {showManualInput ? renderManualInputs() : renderAIEstimation()}
+        {renderLogActivityButton()}
+        {renderTodayActivities()}
+        <View style={VintageStyles.spacing60} />
+      </ScrollView>
 
-      {renderWeightWarning()}
-      {renderInputToggle()}
-      {showManualInput ? renderManualInputs() : renderAIEstimation()}
-
-      {renderLogActivityButton()}
-      {renderTodayActivities()}
-
-      <View style={VintageStyles.spacing60} />
-    </ScrollView>
+      {renderTimePicker()}
+    </View>
   );
 };
 
