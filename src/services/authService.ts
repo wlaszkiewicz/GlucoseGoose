@@ -8,7 +8,7 @@ import {
   browserSessionPersistence,
 } from "firebase/auth";
 import { deleteDoc, doc, setDoc } from "firebase/firestore";
-import { getEmailFromUsername } from "../utils/cloud_functions";
+import { getEmailFromUsername } from "../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { StorageService } from "./localStorageService";
 import { Platform } from "react-native";
@@ -65,7 +65,8 @@ export async function loginWithUsername(
   nightscoutUrl?: string,
   nightscoutSecretHash?: string,
   storeLocally: boolean = false,
-  rememberMe: boolean = true
+  rememberMe: boolean = true,
+  geminiAPIKey?: string
 ) {
   try {
     if (Platform.OS === "web") {
@@ -99,6 +100,9 @@ export async function loginWithUsername(
     }
     if (result.user && storeLocally && nightscoutUrl) {
       await StorageService.set("nightscoutUrl", nightscoutUrl, rememberMe);
+    }
+    if (result.user && geminiAPIKey) {
+      await StorageService.set("geminiAPIKey", geminiAPIKey, rememberMe);
     }
 
     return { success: true, user: result.user };

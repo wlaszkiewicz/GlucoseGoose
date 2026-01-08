@@ -41,7 +41,9 @@ export default function App() {
     <AuthProvider>
       <NightscoutProvider>
         <NavigationContainer>
-          <AppContent />
+          <SafeAreaView style={{ flex: 1 }}>
+            <AppContent />
+          </SafeAreaView>
         </NavigationContainer>
       </NightscoutProvider>
     </AuthProvider>

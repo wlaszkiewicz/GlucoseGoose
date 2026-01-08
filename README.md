@@ -1,5 +1,13 @@
 # 🧠 How To Run The Project
 
+## ADDED:
+
+If you want to test using the **browser**, you need to firstly run the server in seperate termial:
+
+```bash
+node server.ts
+```
+
 ## 0. Clone the Project
 
 ```bash
@@ -10,7 +18,7 @@ Then open the folder in VS Code.
 
 ## 1. Create .env
 
-Create a .env in the project root!!
+Create a .env in the project root!! (Ask your collegue for it)
 
 > ⚠ Do not commit .env to git. Each developer needs their own copy. !!!!!!! DO NOT COMMIT IT
 

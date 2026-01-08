@@ -2,6 +2,7 @@ import React from "react";
 import { StatusBar } from "expo-status-bar";
 import {
   Text,
+  Linking,
   TextInput,
   View,
   TouchableOpacity,
@@ -12,13 +13,17 @@ import {
 import { getPlatformStyles } from "../themes/styles";
 import { useWindowDimensions } from "react-native";
 import { LoginScreenProps } from "../types/navigation";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { useState } from "react";
 import { loginWithUsername } from "../services/authService";
 import { ActivityIndicator } from "react-native";
 import { VintageColors } from "../themes/vintage/colors";
 import { VintageStylesAuth } from "../themes/vintage/styles_vintage_auth";
-import { Ionicons, Feather, FontAwesome5 } from "@expo/vector-icons";
+import {
+  Ionicons,
+  Feather,
+  FontAwesome5,
+  MaterialIcons,
+} from "@expo/vector-icons";
 const gooseImage = require("../../assets/goose1.png");
 import * as sha1 from "js-sha1";
 import { getStoreLocallyFlag } from "../services/userService";
@@ -31,16 +36,20 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
   const [password, setPassword] = useState("");
   const [nightscoutSecret, setNightscoutSecret] = useState("");
   const [nightscoutUrl, setNightscoutUrl] = useState("");
+  const [geminiApiKey, setGeminiApiKey] = useState("");
+  const [useCustomGemini, setUseCustomGemini] = useState(false);
   const isWeb = Platform.OS === "web";
   const [rememberMe, setRememberMe] = useState(!isWeb);
   const [storeLocally, setStoreLocally] = useState(false);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
+  const [showGeminiDetails, setShowGeminiDetails] = useState(false);
 
   const identifierRef = React.useRef<TextInput>(null);
   const passwordRef = React.useRef<TextInput>(null);
   const nightscoutUrlRef = React.useRef<TextInput>(null);
   const nightscoutSecretRef = React.useRef<TextInput>(null);
+  const geminiApiKeyRef = React.useRef<TextInput>(null);
 
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<{
@@ -48,6 +57,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     password?: string;
     firebase?: string;
     nightscoutUrl?: string;
+    geminiApiKey?: string;
   }>({});
 
   const handleIdentifierChange = async (value: string) => {
@@ -68,6 +78,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     if (errors.identifier) identifierRef.current?.focus();
     else if (errors.password) passwordRef.current?.focus();
     else if (errors.nightscoutUrl) nightscoutUrlRef.current?.focus();
+    else if (errors.geminiApiKey) geminiApiKeyRef.current?.focus();
   };
 
   async function handleLogin() {
@@ -90,7 +101,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         nightscoutUrl ? nightscoutUrl : "",
         nightscoutSecretHash || undefined,
         storeLocally,
-        rememberMe
+        rememberMe,
+        useCustomGemini ? geminiApiKey : undefined
       );
 
       if (!result.success) {
@@ -116,6 +128,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     setPassword("");
     setNightscoutSecret("");
     setNightscoutUrl("");
+    setGeminiApiKey("");
     setErrors({});
     setFocusedInput(null);
   };
@@ -132,6 +145,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     if (showUrlInput && !nightscoutUrl) {
       newErrors.nightscoutUrl = "Please enter your Nightscout URL.";
     }
+
+    if (useCustomGemini && !geminiApiKey) {
+      newErrors.geminiApiKey = "Please enter your Gemini API Key.";
+    }
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -362,6 +380,238 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               </Text>
             </View>
 
+            {/* Gemini AI API Key Option - Beautiful Card */}
+            <View
+              style={[
+                VintageStylesAuth.geminiCard,
+                useCustomGemini && VintageStylesAuth.geminiCardActive,
+              ]}
+            >
+              <TouchableOpacity
+                style={[
+                  VintageStylesAuth.geminiHeader,
+                  useCustomGemini && VintageStylesAuth.geminiHeaderActive,
+                ]}
+                onPress={() => setShowGeminiDetails(!showGeminiDetails)}
+                activeOpacity={0.7}
+              >
+                <View style={VintageStylesAuth.geminiHeaderLeft}>
+                  <View
+                    style={[
+                      VintageStylesAuth.geminiIconContainer,
+                      useCustomGemini
+                        ? { backgroundColor: VintageColors.formAccent2 }
+                        : { backgroundColor: VintageColors.iconPurple },
+                    ]}
+                  >
+                    <MaterialIcons name="smart-toy" size={20} color="#FFFFFF" />
+                  </View>
+                  <View>
+                    <Text style={VintageStylesAuth.geminiTitle}>
+                      {useCustomGemini
+                        ? "Using Your Gemini API Key"
+                        : "Use Your Own Gemini Key?"}
+                    </Text>
+                    <Text style={VintageStylesAuth.geminiSubtitle}>
+                      {useCustomGemini
+                        ? "Enhanced AI features"
+                        : "For Enhanced AI features"}
+                    </Text>
+                  </View>
+                </View>
+
+                <View style={VintageStylesAuth.headerRight}>
+                  <TouchableOpacity
+                    style={VintageStylesAuth.toggleSwitchSmall}
+                    onPress={(e) => {
+                      e.stopPropagation();
+                      setUseCustomGemini(!useCustomGemini);
+                    }}
+                    activeOpacity={0.8}
+                  >
+                    <View
+                      style={[
+                        VintageStylesAuth.toggleKnobSmall,
+                        useCustomGemini &&
+                          VintageStylesAuth.toggleKnobSmallActive,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                  <Ionicons
+                    name={showGeminiDetails ? "chevron-up" : "chevron-down"}
+                    size={20}
+                    color={
+                      useCustomGemini
+                        ? VintageColors.formAccent2
+                        : VintageColors.primaryText
+                    }
+                  />
+                </View>
+              </TouchableOpacity>
+
+              {/* Expandable Gemini Details Section */}
+              {showGeminiDetails && (
+                <View style={VintageStylesAuth.geminiContent}>
+                  {useCustomGemini ? (
+                    <>
+                      <View style={VintageStylesAuth.inputGroup}>
+                        <View
+                          style={[
+                            VintageStylesAuth.inputLabelContainer,
+                            { paddingTop: 10 },
+                          ]}
+                        >
+                          <View
+                            style={[
+                              VintageStylesAuth.inputIcon,
+                              { backgroundColor: VintageColors.formAccent2 },
+                            ]}
+                          >
+                            <MaterialIcons
+                              name="key"
+                              size={16}
+                              color={VintageColors.primaryText}
+                            />
+                          </View>
+                          <Text style={VintageStylesAuth.inputLabel}>
+                            Gemini API Key *
+                          </Text>
+                        </View>
+                        <TextInput
+                          style={[
+                            VintageStylesAuth.input,
+                            focusedInput === "geminiApiKey" &&
+                              VintageStylesAuth.inputFocused,
+                            errors.geminiApiKey && VintageStylesAuth.inputError,
+                          ]}
+                          ref={geminiApiKeyRef}
+                          placeholder="AIza... (your Gemini API key)"
+                          placeholderTextColor={VintageColors.secondaryText}
+                          autoCapitalize="none"
+                          value={geminiApiKey}
+                          onChangeText={setGeminiApiKey}
+                          secureTextEntry={true}
+                          onFocus={() => setFocusedInput("geminiApiKey")}
+                          onBlur={() => setFocusedInput(null)}
+                        />
+                        {errors.geminiApiKey && (
+                          <View style={VintageStylesAuth.errorContainer}>
+                            <Ionicons
+                              name="alert-circle"
+                              size={14}
+                              color="#D32F2F"
+                            />
+                            <Text style={VintageStylesAuth.errorText}>
+                              {errors.geminiApiKey}
+                            </Text>
+                          </View>
+                        )}
+                      </View>
+
+                      <View style={VintageStylesAuth.descriptionContainer}>
+                        <View style={VintageStylesAuth.featureItem}>
+                          <View
+                            style={[
+                              VintageStylesAuth.featureIcon,
+                              { backgroundColor: VintageColors.iconGreen },
+                            ]}
+                          >
+                            <Ionicons
+                              name="sparkles"
+                              size={14}
+                              color={VintageColors.primaryText}
+                            />
+                          </View>
+                          <Text style={VintageStylesAuth.featureText}>
+                            Access to Gemini AI features without limitations
+                          </Text>
+                        </View>
+                        <View style={VintageStylesAuth.featureItem}>
+                          <View
+                            style={[
+                              VintageStylesAuth.featureIcon,
+                              { backgroundColor: VintageColors.iconBlue },
+                            ]}
+                          >
+                            <Ionicons
+                              name="shield"
+                              size={14}
+                              color={VintageColors.primaryText}
+                            />
+                          </View>
+                          <Text style={VintageStylesAuth.featureText}>
+                            Your API key is only stored locally and not shared
+                          </Text>
+                        </View>
+                        <View style={VintageStylesAuth.featureItem}>
+                          <View
+                            style={[
+                              VintageStylesAuth.featureIcon,
+                              { backgroundColor: VintageColors.iconYellow },
+                            ]}
+                          >
+                            <Ionicons
+                              name="flash"
+                              size={14}
+                              color={VintageColors.primaryText}
+                            />
+                          </View>
+                          <Text style={VintageStylesAuth.featureText}>
+                            Enhanced AI insights for your glucose data
+                          </Text>
+                        </View>
+                      </View>
+                    </>
+                  ) : (
+                    <View style={VintageStylesAuth.descriptionContainer}>
+                      <Text style={VintageStylesAuth.geminiInfoText}>
+                        <Ionicons
+                          name="information-circle"
+                          size={16}
+                          color={VintageColors.secondaryText}
+                          style={{ marginRight: 8 }}
+                        />
+                        By default, GlucoseGoose uses its own Gemini API key for
+                        AI features. You can optionally provide your own for
+                        personalized usage.
+                      </Text>
+
+                      <TouchableOpacity
+                        style={VintageStylesAuth.geminiLink}
+                        onPress={() =>
+                          Linking.openURL(
+                            "https://ai.google.dev/gemini-api/docs/api-key"
+                          )
+                        }
+                      >
+                        <Ionicons
+                          name="link"
+                          size={16}
+                          color={VintageColors.formAccent2}
+                          style={{ marginRight: 8 }}
+                        />
+                        <Text style={VintageStylesAuth.geminiLinkText}>
+                          Get a Gemini API key from Google AI Studio
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  )}
+
+                  <View style={VintageStylesAuth.securityNote}>
+                    <Ionicons
+                      name="lock-closed"
+                      size={16}
+                      color={VintageColors.primaryText}
+                    />
+                    <Text style={VintageStylesAuth.securityText}>
+                      All API keys are only stored locally. Your key will only
+                      be used for your account's AI features.
+                    </Text>
+                  </View>
+                </View>
+              )}
+            </View>
+
             {/* Remember Me checkbox - Web only */}
             {isWeb && (
               <View style={VintageStylesAuth.inputGroup}>
@@ -415,7 +665,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                     color="#FFFFFF"
                     style={{ marginRight: 8 }}
                   />
-                  <Text style={VintageStylesAuth.buttonText}>Sign In</Text>
+                  <Text style={VintageStylesAuth.buttonText}>
+                    Sign In {useCustomGemini && "with AI"}
+                  </Text>
                 </View>
               )}
             </TouchableOpacity>

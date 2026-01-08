@@ -9,12 +9,8 @@ import React, {
 } from "react";
 import Constants from "expo-constants";
 import { useAuth } from "./AuthContext";
-import { fetchBundle } from "../utils/cloud_functions";
-import {
-  NightscoutEntry,
-  NightscoutTreatment,
-  NightscoutBundleResponse,
-} from "../types/nightscout";
+import { fetchBundle, fetchTreatmentsDate } from "../utils/cloudFunctions";
+import { NightscoutEntry, NightscoutTreatment } from "../types/nightscout";
 
 interface NightscoutContextType {
   entries: NightscoutEntry[];
@@ -24,6 +20,7 @@ interface NightscoutContextType {
   fetchIncremental: () => Promise<void>;
   startPolling: () => void;
   stopPolling: () => void;
+  fetchTreatments: (date: Date) => Promise<void>;
   reset: () => void;
   isLoading: boolean;
   error: string | null;
@@ -33,9 +30,7 @@ interface NightscoutContextType {
 const NightscoutContext = createContext<NightscoutContextType | null>(null);
 
 export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
-  const CLOUD = Constants.expoConfig?.extra?.cloudFunctionsHost;
-
-  const { firebaseUser, userData } = useAuth();
+  const { userData } = useAuth();
   const nightscoutUrl = userData?.nightscoutUrl;
   const secret = userData?.nightscoutSecret;
 
@@ -65,7 +60,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const loadFullDay = useCallback(async () => {
-    if (!firebaseUser || !nightscoutUrl) return;
+    if (!nightscoutUrl) return;
 
     console.log("Loading full day of Nightscout data...");
 
@@ -74,11 +69,9 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const bundle = await fetchBundle(
-        CLOUD,
         nightscoutUrl,
         secret ?? "",
-        1440, // last 24h,
-        await firebaseUser.getIdToken()
+        1440 // last 24h,
       );
 
       const since = Date.now() - 1440 * 60 * 1000;
@@ -86,11 +79,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
       setEntries(bundle.entries.filter((e) => e.date >= since));
       setMeals(bundle.meals ?? []);
       setActivities(bundle.activities ?? []);
-      const otherTreatments = bundle.treatments.filter(
-        (t) =>
-          !t.eventType.includes("Meal") && !t.eventType.includes("Activity")
-      );
-      setOtherEntries(otherTreatments);
+      setOtherEntries(bundle.otherTreatments ?? []);
 
       lastEntryDateRef.current = bundle.entries[0]?.date ?? null;
     } catch (err: any) {
@@ -98,34 +87,33 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     } finally {
       setIsLoading(false);
     }
-  }, [CLOUD, firebaseUser, nightscoutUrl, secret]);
+  }, [nightscoutUrl, secret]);
 
   const fetchIncremental = useCallback(async () => {
-    if (!firebaseUser || !nightscoutUrl) return;
-    if (!lastEntryDateRef.current) return;
+    if (!nightscoutUrl) return;
+    if (!lastEntryDateRef.current) return; // no last date to compare to
 
     const now = Date.now();
     const last = lastEntryDateRef.current;
 
-    const minutesToFetch = Math.ceil((now - last) / 1000 / 60);
-    if (minutesToFetch <= 0) return;
+    let minutesToFetch = Math.ceil((now - last) / 1000 / 60);
+    if (minutesToFetch <= 5) return; // don't fetch if less than 5 minutes have passed
+
+    if (minutesToFetch > 1440) {
+      minutesToFetch = 1440; // cap at 24 hours so it doesn't get too large
+    }
 
     try {
       const bundle = await fetchBundle(
-        CLOUD,
         nightscoutUrl,
         secret ?? "",
-        minutesToFetch,
-        await firebaseUser.getIdToken()
+        minutesToFetch
       );
 
       const newEntries = bundle.entries;
       const newMeals = bundle.meals ?? [];
       const newActivities = bundle.activities ?? [];
-      const newOtherEntries = bundle.treatments.filter(
-        (t) =>
-          !t.eventType.includes("Meal") && !t.eventType.includes("Activity")
-      );
+      const newOtherEntries = bundle.otherTreatments ?? [];
 
       const getId = (o: any) => o?._id ?? o?.id;
 
@@ -168,10 +156,10 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     } catch (err: any) {
       setError(err.message ?? "Incremental update failed");
     }
-  }, [CLOUD, firebaseUser, nightscoutUrl, secret]);
+  }, [nightscoutUrl, secret]);
 
   const startPolling = useCallback(() => {
-    if (!firebaseUser || !nightscoutUrl) return;
+    if (!nightscoutUrl) return;
 
     console.log("Starting Nightscout polling...");
     if (pollingRef.current) return;
@@ -179,7 +167,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     pollingRef.current = setInterval(fetchIncremental, 5 * 60 * 1000);
 
     fetchIncremental();
-  }, [firebaseUser, nightscoutUrl, fetchIncremental]);
+  }, [nightscoutUrl, fetchIncremental]);
 
   const stopPolling = useCallback(() => {
     if (pollingRef.current) {
@@ -187,6 +175,83 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
       pollingRef.current = null;
     }
   }, []);
+
+  const mergeDayById = <
+    T extends { _id?: string; id?: string; created_at: string }
+  >(
+    prev: T[],
+    incomingDay: T[],
+    startOfDay: Date,
+    endOfDay: Date
+  ) => {
+    const getId = (o: any) => o?._id ?? o?.id;
+
+    const keep = prev.filter((item) => {
+      const d = new Date(item.created_at);
+      return d < startOfDay || d > endOfDay;
+    });
+
+    return [...incomingDay, ...keep];
+  };
+
+  const fetchTreatments = useCallback(
+    async (date: Date) => {
+      if (!nightscoutUrl) return;
+
+      setIsLoading(true);
+      setError(null);
+
+      try {
+        const startOfDay = new Date(date);
+        startOfDay.setHours(0, 0, 0, 0);
+        const endOfDay = new Date(date);
+        endOfDay.setHours(23, 59, 59, 999);
+
+        const treatments = await fetchTreatmentsDate(
+          nightscoutUrl,
+          secret ?? "",
+          date
+        );
+
+        const dayMeals = treatments.filter(
+          (t) =>
+            t.eventType.startsWith("Meal:") &&
+            new Date(t.created_at) >= startOfDay &&
+            new Date(t.created_at) <= endOfDay
+        );
+
+        const dayActivities = treatments.filter(
+          (t) =>
+            t.eventType.startsWith("Activity:") &&
+            new Date(t.created_at) >= startOfDay &&
+            new Date(t.created_at) <= endOfDay
+        );
+
+        const dayOther = treatments.filter(
+          (t) =>
+            !t.eventType.startsWith("Meal:") &&
+            !t.eventType.startsWith("Activity:") &&
+            new Date(t.created_at) >= startOfDay &&
+            new Date(t.created_at) <= endOfDay
+        );
+
+        setMeals((prev) => mergeDayById(prev, dayMeals, startOfDay, endOfDay));
+
+        setActivities((prev) =>
+          mergeDayById(prev, dayActivities, startOfDay, endOfDay)
+        );
+
+        setOtherEntries((prev) =>
+          mergeDayById(prev, dayOther, startOfDay, endOfDay)
+        );
+      } catch (err: any) {
+        setError(err.message ?? "Failed to fetch treatments");
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [nightscoutUrl, secret]
+  );
 
   return (
     <NightscoutContext.Provider
@@ -198,6 +263,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         fetchIncremental,
         startPolling,
         stopPolling,
+        fetchTreatments,
         reset,
         isLoading,
         error,

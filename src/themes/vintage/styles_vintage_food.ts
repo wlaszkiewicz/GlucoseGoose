@@ -150,6 +150,222 @@ export const VintageStylesFood = StyleSheet.create({
     width: "100%",
   },
 
+  analyzeButton: {
+    backgroundColor: VintageColors.formAccent2,
+    padding: 16,
+    borderRadius: 12,
+    alignItems: "center",
+    flexDirection: "row",
+    justifyContent: "center",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(143, 191, 143, 0.8)",
+    shadowColor: VintageColors.formAccent2,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+    elevation: 4,
+  },
+
+  analyzeButtonText: {
+    color: "#FFFFFF",
+    fontSize: 16,
+    fontWeight: "500",
+    letterSpacing: 0.3,
+  },
+
+  analyzeHintCard: {
+    flexDirection: "row",
+    alignItems: "flex-start",
+    padding: 12,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginTop: 8,
+  },
+
+  analyzeHintText: {
+    flex: 1,
+    fontSize: 13,
+    color: VintageColors.secondaryText,
+    marginLeft: 8,
+    lineHeight: 18,
+    fontStyle: "italic",
+  },
+
+  // Time Selection Styles
+  timeCard: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 12,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    shadowColor: VintageColors.lightBorder,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.05,
+    shadowRadius: 6,
+    elevation: 2,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+
+  timeCardLeft: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+
+  timeIconContainer: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    backgroundColor: VintageColors.iconYellow,
+    justifyContent: "center",
+    alignItems: "center",
+    marginRight: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  timeLabel: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontWeight: "500",
+    marginBottom: 2,
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+
+  timeValue: {
+    fontSize: 18,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+
+  timeCardRight: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  timeHelpText: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    marginTop: 8,
+    fontStyle: "italic",
+  },
+
+  // Time Picker Modal Styles
+  timePickerModal: {
+    position: "absolute",
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
+    zIndex: 1000,
+    paddingHorizontal: 20,
+  },
+
+  timePickerContainer: {
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 16,
+    width: "100%",
+    maxWidth: 400,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.1,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+
+  timePickerHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: VintageColors.border,
+  },
+
+  timePickerTitle: {
+    fontSize: 18,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    letterSpacing: 0.5,
+  },
+
+  timePickerClose: {
+    width: 32,
+    height: 32,
+    borderRadius: 16,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  timePicker: {
+    height: 200,
+    backgroundColor: VintageColors.lightBackground,
+  },
+
+  timePickerActions: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    padding: 20,
+    borderTopWidth: 1,
+    borderTopColor: VintageColors.border,
+  },
+
+  timeNowButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  timeNowText: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+    marginLeft: 6,
+  },
+
+  timePickerDone: {
+    backgroundColor: VintageColors.formAccent1,
+    paddingVertical: 10,
+    paddingHorizontal: 24,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.accentDark,
+  },
+
+  timePickerDoneText: {
+    fontSize: 14,
+    color: "#FFFFFF",
+    fontWeight: "500",
+  },
+
   // Photo Upload Styles
   photoCard: {
     backgroundColor: VintageColors.cardBackground,
@@ -601,13 +817,19 @@ export const VintageStylesFood = StyleSheet.create({
     marginRight: 12,
   },
 
+  actionButtonsContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 4,
+  },
+
   actionButton: {
     padding: 6,
     borderRadius: 6,
     backgroundColor: VintageColors.lightBackground,
     borderWidth: 1,
     borderColor: VintageColors.border,
-    marginLeft: 8,
+    marginLeft: 4,
   },
 
   mealDescription: {
