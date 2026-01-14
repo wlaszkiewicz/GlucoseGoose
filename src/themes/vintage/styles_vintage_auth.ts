@@ -699,4 +699,46 @@ export const VintageStylesAuth = StyleSheet.create({
     marginBottom: 20,
     fontStyle: "italic",
   },
+
+doctorToggleContainer: {
+  marginBottom: 24,
+},
+doctorToggleButton: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  justifyContent: 'center',
+  backgroundColor: VintageColors.cardBackground,
+  paddingVertical: 12,
+  paddingHorizontal: 20,
+  borderRadius: 12,
+  borderWidth: 2,
+  borderColor: VintageColors.border,
+},
+doctorToggleButtonActive: {
+  backgroundColor: VintageColors.formAccent1,
+  borderColor: VintageColors.accentDark,
+},
+doctorToggleText: {
+  fontSize: 16,
+  fontWeight: '600',
+  color: VintageColors.primaryText,
+  marginLeft: 8,
+},
+doctorToggleTextActive: {
+  color: '#FFFFFF',
+},
+doctorNote: {
+  flexDirection: 'row',
+  alignItems: 'center',
+  backgroundColor: 'rgba(212, 165, 165, 0.1)',
+  padding: 12,
+  borderRadius: 8,
+  marginTop: 12,
+},
+doctorNoteText: {
+  fontSize: 14,
+  color: VintageColors.formAccent1,
+  marginLeft: 8,
+  flex: 1,
+},
 });
