@@ -213,7 +213,7 @@ const SettingsScreen = () => {
           </View>
         </TouchableOpacity>
 
-            <Text style={VintageStyles.profileName}>{userData?.username || "Goose"}</Text>
+            <Text style={VintageStyles.profileName}>{username || "Goose"}</Text>
 
           <View style={VintageStyles.spacing10} />
 
