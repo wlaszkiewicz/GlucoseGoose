@@ -20,7 +20,7 @@ export async function registerUser(
   password: string,
   storeLocally: boolean,
   nightscoutUrl: string,
-
+  role: string = "patient",
   extra: any = {}
 ) {
   try {
@@ -35,6 +35,7 @@ export async function registerUser(
       createdAt: Date.now(),
       storeLocally: storeLocally,
       nightscoutUrl: storeLocally ? "" : nightscoutUrl,
+      role: role,
       ...(extra || {}),
     });
 
