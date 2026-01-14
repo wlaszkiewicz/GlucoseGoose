@@ -5,8 +5,13 @@ import { UserData } from "../contexts/AuthContext";
 export const updateUserProfile = async (uid: string, userData: Partial<UserData>) => {
   try {
     const userRef = doc(db, "users", uid);
+    
+    const cleanUserData = Object.fromEntries(
+      Object.entries(userData).filter(([_, value]) => value !== undefined)
+    );
+    
     await updateDoc(userRef, {
-      ...userData,
+      ...cleanUserData,
       updatedAt: Date.now()
     });
     return { success: true };
