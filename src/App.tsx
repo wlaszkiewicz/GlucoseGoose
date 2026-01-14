@@ -7,13 +7,15 @@ import SplashScreen from "./screens/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { NightscoutProvider } from "./contexts/NightscoutContext";
 import MainTabNavigator from "./MainTabNavigator";
+import DoctorTabNavigator from "./DoctorTabNavigator";
 import { VintageColors } from "./themes/vintage/colors";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { DoctorProvider } from "./contexts/DoctorContext";
 
 const Stack = createNativeStackNavigator();
 
 const AppContent = () => {
-  const { firebaseUser, loading } = useAuth();
+  const { firebaseUser, loading, userData } = useAuth();
 
   if (loading) return <SplashScreen />;
 
@@ -27,11 +29,20 @@ const AppContent = () => {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      <Stack.Screen
-        name="MainTabs"
-        component={MainTabNavigator}
-        options={{ headerShown: false }}
-      />
+      
+      {userData?.role === "doctor" ? (
+        <Stack.Screen
+          name="MainTabs"
+          component={DoctorTabNavigator}
+          options={{ headerShown: false }}
+        />
+      ) : (
+        <Stack.Screen
+          name="MainTabs"
+          component={MainTabNavigator}
+          options={{ headerShown: false }}
+        />
+      )}
     </Stack.Navigator>
   );
 };
@@ -40,11 +51,13 @@ export default function App() {
   return (
     <AuthProvider>
       <NightscoutProvider>
-        <NavigationContainer>
-          <SafeAreaView style={{ flex: 1 }}>
-            <AppContent />
-          </SafeAreaView>
-        </NavigationContainer>
+        <DoctorProvider>
+          <NavigationContainer>
+            <SafeAreaView style={{ flex: 1 }}>
+              <AppContent />
+            </SafeAreaView>
+          </NavigationContainer>
+        </DoctorProvider>
       </NightscoutProvider>
     </AuthProvider>
   );
