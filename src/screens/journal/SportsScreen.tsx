@@ -36,7 +36,7 @@ import {
 } from "../../utils/journalUtils/mealsAndActivitiesUtils";
 
 import TimePicker from "../../components/common/TimePicker";
-import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
+import { useLiveTime } from "../../hooks/journal/useLiveTime";
 
 interface ActivitySectionProps {
   selectedDate: Date;

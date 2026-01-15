@@ -8,7 +8,7 @@ import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { NightscoutProvider } from "./contexts/NightscoutContext";
 import MainTabNavigator from "./MainTabNavigator";
 import { VintageColors } from "./themes/vintage/colors";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
 const Stack = createNativeStackNavigator();
 
@@ -41,9 +41,24 @@ export default function App() {
     <AuthProvider>
       <NightscoutProvider>
         <NavigationContainer>
-          <SafeAreaView style={{ flex: 1 }}>
-            <AppContent />
-          </SafeAreaView>
+          <SafeAreaProvider>
+            <>
+              <SafeAreaView
+                edges={["top", "left", "right"]}
+                style={{ backgroundColor: VintageColors.background }}
+              />
+
+              <SafeAreaView
+                edges={["bottom"]}
+                style={{
+                  flex: 1,
+                  backgroundColor: VintageColors.cardBackground,
+                }}
+              >
+                <AppContent />
+              </SafeAreaView>
+            </>
+          </SafeAreaProvider>
         </NavigationContainer>
       </NightscoutProvider>
     </AuthProvider>

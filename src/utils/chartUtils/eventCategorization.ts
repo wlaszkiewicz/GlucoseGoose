@@ -43,7 +43,7 @@ export const CHART_COLORS = {
   targetMeal: "#F9C9A9FF",
   targetActivity: "#B5EAD7",
   targetHypo: "#FFB7B2",
-  targetCustom: "#E2F0CB",
+  targetCustom: "#BFDA99FF",
 
   // Device colors
   deviceSite: "#C7CEEA",

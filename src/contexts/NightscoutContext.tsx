@@ -194,7 +194,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     return [...incomingDay, ...keep];
   };
 
-  const fetchTreatments = useCallback(
+  const fetchTreatmentsForDay = useCallback(
     async (date: Date) => {
       if (!nightscoutUrl) return;
 
@@ -263,7 +263,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         fetchIncremental,
         startPolling,
         stopPolling,
-        fetchTreatments,
+        fetchTreatments: fetchTreatmentsForDay,
         reset,
         isLoading,
         error,
