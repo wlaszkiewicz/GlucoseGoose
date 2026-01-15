@@ -41,17 +41,14 @@ import {
   NutritionInfo,
   mealTypes,
 } from "../../types/events";
-import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
+import { useLiveTime } from "../../hooks/journal/useLiveTime";
+import { JournalStackParamList } from "../../JournalStackNavigator";
+import { RouteProp } from "@react-navigation/native";
+import { useJournalData } from "../../hooks/journal/useJournalData";
 
-interface FoodSectionProps {
-  selectedDate: Date;
-  meals: NightscoutTreatment[];
-}
+const FoodScreen = () => {
+  const { selectedDate, todayMeals } = useJournalData();
 
-const FoodSection: React.FC<FoodSectionProps> = ({
-  selectedDate,
-  meals: todayMeals,
-}) => {
   const [selectedMealType, setSelectedMealType] =
     useState<MealType>("Breakfast");
   const [mealDescription, setMealDescription] = useState("");
@@ -1319,9 +1316,10 @@ const FoodSection: React.FC<FoodSectionProps> = ({
   return (
     <View style={{ flex: 1 }}>
       <ScrollView
-        style={VintageStylesFood.container}
+        style={VintageStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <View style={VintageStyles.spacing30} />
         {renderMealTypeSelector()}
         {renderTimeSelection()}
         {renderMealDescription()}
@@ -1340,4 +1338,4 @@ const FoodSection: React.FC<FoodSectionProps> = ({
     </View>
   );
 };
-export default FoodSection;
+export default FoodScreen;

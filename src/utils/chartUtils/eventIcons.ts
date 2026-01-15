@@ -78,7 +78,7 @@ export const getSpecialEventIcon = (eventType: string): string => {
   if (type.includes("announcement")) {
     return "bullhorn";
   }
-  return "medical";
+  return "beaker-question-outline";
 };
 
 export const getEventIcon = (event: any): string => {

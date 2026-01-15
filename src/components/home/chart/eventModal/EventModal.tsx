@@ -123,7 +123,8 @@ export const EventModal: React.FC<EventModalProps> = ({
         >
           {isTargetEvent ||
           iconName === "bullhorn" ||
-          iconName === "file-document-alert" ? (
+          iconName === "file-document-alert" ||
+          iconName === "beaker-question-outline" ? (
             <MaterialCommunityIcons
               name={iconName as any}
               size={20}
