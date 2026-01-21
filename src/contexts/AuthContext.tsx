@@ -33,6 +33,8 @@ interface AuthContextType {
   userData: UserData | null;
   loading: boolean;
   updateUserData: (data: Partial<UserData>) => void;
+  isDoctor: () => boolean;
+  isPatient: () => boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -41,6 +43,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [firebaseUser, setFirebaseUser] = useState<FirebaseUser | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const isDoctor = () => {
+    return userData?.role === "doctor";
+  };
+
+  const isPatient = () => {
+    return !userData?.role || userData.role === "patient" || userData.role === "user";
+  };
 
   const updateUserData = (data: Partial<UserData>) => {
     setUserData(prev => prev ? { ...prev, ...data } : null);
@@ -103,7 +113,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ firebaseUser, userData, loading, updateUserData }}>
+    <AuthContext.Provider value={{ 
+      firebaseUser, 
+      userData, 
+      loading, 
+      updateUserData,
+      isDoctor,
+      isPatient 
+    }}>
       {children}
     </AuthContext.Provider>
   );
