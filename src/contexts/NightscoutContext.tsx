@@ -71,7 +71,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
       const bundle = await fetchBundle(
         nightscoutUrl,
         secret ?? "",
-        1440 // last 24h,
+        1440, // last 24h,
       );
 
       const since = Date.now() - 1440 * 60 * 1000;
@@ -107,7 +107,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
       const bundle = await fetchBundle(
         nightscoutUrl,
         secret ?? "",
-        minutesToFetch
+        minutesToFetch,
       );
 
       const newEntries = bundle.entries;
@@ -177,12 +177,12 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const mergeDayById = <
-    T extends { _id?: string; id?: string; created_at: string }
+    T extends { _id?: string; id?: string; created_at: string },
   >(
     prev: T[],
     incomingDay: T[],
     startOfDay: Date,
-    endOfDay: Date
+    endOfDay: Date,
   ) => {
     const getId = (o: any) => o?._id ?? o?.id;
 
@@ -194,7 +194,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
     return [...incomingDay, ...keep];
   };
 
-  const fetchTreatments = useCallback(
+  const fetchTreatmentsForDay = useCallback(
     async (date: Date) => {
       if (!nightscoutUrl) return;
 
@@ -210,21 +210,21 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         const treatments = await fetchTreatmentsDate(
           nightscoutUrl,
           secret ?? "",
-          date
+          date,
         );
 
         const dayMeals = treatments.filter(
           (t) =>
             t.eventType.startsWith("Meal:") &&
             new Date(t.created_at) >= startOfDay &&
-            new Date(t.created_at) <= endOfDay
+            new Date(t.created_at) <= endOfDay,
         );
 
         const dayActivities = treatments.filter(
           (t) =>
             t.eventType.startsWith("Activity:") &&
             new Date(t.created_at) >= startOfDay &&
-            new Date(t.created_at) <= endOfDay
+            new Date(t.created_at) <= endOfDay,
         );
 
         const dayOther = treatments.filter(
@@ -232,17 +232,17 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
             !t.eventType.startsWith("Meal:") &&
             !t.eventType.startsWith("Activity:") &&
             new Date(t.created_at) >= startOfDay &&
-            new Date(t.created_at) <= endOfDay
+            new Date(t.created_at) <= endOfDay,
         );
 
         setMeals((prev) => mergeDayById(prev, dayMeals, startOfDay, endOfDay));
 
         setActivities((prev) =>
-          mergeDayById(prev, dayActivities, startOfDay, endOfDay)
+          mergeDayById(prev, dayActivities, startOfDay, endOfDay),
         );
 
         setOtherEntries((prev) =>
-          mergeDayById(prev, dayOther, startOfDay, endOfDay)
+          mergeDayById(prev, dayOther, startOfDay, endOfDay),
         );
       } catch (err: any) {
         setError(err.message ?? "Failed to fetch treatments");
@@ -250,7 +250,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         setIsLoading(false);
       }
     },
-    [nightscoutUrl, secret]
+    [nightscoutUrl, secret],
   );
 
   return (
@@ -263,7 +263,7 @@ export const NightscoutProvider = ({ children }: { children: ReactNode }) => {
         fetchIncremental,
         startPolling,
         stopPolling,
-        fetchTreatments,
+        fetchTreatments: fetchTreatmentsForDay,
         reset,
         isLoading,
         error,

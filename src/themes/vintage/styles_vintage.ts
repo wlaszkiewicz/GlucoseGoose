@@ -5,7 +5,6 @@ export const VintageStyles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: VintageColors.lightBackground,
-    paddingTop: 40,
   },
 
   scrollContent: {
@@ -14,8 +13,8 @@ export const VintageStyles = StyleSheet.create({
   },
 
   headerSection: {
+    paddingTop: 24,
     marginBottom: 24,
-    paddingTop: 8,
   },
 
   header: {
@@ -301,6 +300,10 @@ export const VintageStyles = StyleSheet.create({
     height: 60,
   },
 
+  spacing30: {
+    height: 30,
+  },
+
   shadowLight: {
     shadowColor: VintageColors.lightBorder,
     shadowOffset: { width: 0, height: 2 },
@@ -335,16 +338,16 @@ export const VintageStyles = StyleSheet.create({
   // Styles for Edit Profile Modal
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: "rgba(0, 0, 0, 0.5)",
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
   },
   modalContentCenter: {
     backgroundColor: VintageColors.lightBackground,
     borderRadius: 20,
-    width: '100%',
-    maxHeight: '88%',
+    width: "100%",
+    maxHeight: "88%",
     borderWidth: 6,
     borderColor: VintageColors.lightBackground,
     shadowColor: VintageColors.lightBorder,
@@ -354,7 +357,7 @@ export const VintageStyles = StyleSheet.create({
     elevation: 8,
   },
   modalProfileSection: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: 25,
     paddingHorizontal: 20,
     marginBottom: 15,
@@ -363,8 +366,8 @@ export const VintageStyles = StyleSheet.create({
     width: 120,
     height: 120,
     borderRadius: 60,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 3,
     borderColor: VintageColors.cardBackground,
     backgroundColor: VintageColors.lightBackground,
@@ -380,25 +383,25 @@ export const VintageStyles = StyleSheet.create({
     height: 90,
     borderRadius: 45,
     backgroundColor: VintageColors.cardBackground,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     borderWidth: 2,
     borderColor: VintageColors.cardBackground,
   },
   modalProfileTitle: {
     fontSize: 24,
-    fontWeight: '300',
+    fontWeight: "300",
     color: VintageColors.primaryText,
     letterSpacing: 1,
-    textAlign: 'center',
+    textAlign: "center",
   },
   formScroll: {
     paddingHorizontal: 20,
-    maxHeight: '75%',
+    maxHeight: "75%",
   },
   rowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 20,
   },
   halfFormGroup: {
@@ -409,8 +412,8 @@ export const VintageStyles = StyleSheet.create({
     marginBottom: 20,
   },
   labelContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     marginBottom: 8,
   },
   labelIcon: {
@@ -419,7 +422,7 @@ export const VintageStyles = StyleSheet.create({
   label: {
     fontSize: 14,
     color: VintageColors.primaryText,
-    fontWeight: '400',
+    fontWeight: "400",
     letterSpacing: 0.5,
   },
   input: {
@@ -439,18 +442,18 @@ export const VintageStyles = StyleSheet.create({
     padding: 15,
     fontSize: 16,
     color: VintageColors.primaryText,
-    width: '100%',
+    width: "100%",
   },
   genderContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginTop: 5,
   },
   genderButton: {
     flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
     backgroundColor: VintageColors.cardBackground,
     borderWidth: 1,
     borderColor: VintageColors.border,
@@ -469,18 +472,18 @@ export const VintageStyles = StyleSheet.create({
     marginLeft: 8,
   },
   genderButtonTextSelected: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
   },
   buttonContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+    flexDirection: "row",
+    justifyContent: "space-between",
     marginBottom: 25,
   },
   button: {
     flex: 1,
     padding: 16,
     borderRadius: 12,
-    alignItems: 'center',
+    alignItems: "center",
     marginHorizontal: 6,
     borderWidth: 1,
   },
@@ -495,50 +498,50 @@ export const VintageStyles = StyleSheet.create({
   cancelButtonText: {
     color: VintageColors.primaryText,
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: "400",
     letterSpacing: 0.5,
   },
   saveButtonText: {
-    color: '#FFFFFF',
+    color: "#FFFFFF",
     fontSize: 16,
-    fontWeight: '400',
+    fontWeight: "400",
     letterSpacing: 0.5,
   },
 
-pickerButton: {
-  backgroundColor: VintageColors.cardBackground,
-  borderWidth: 1,
-  borderColor: VintageColors.border,
-  borderRadius: 10,
-  padding: 15,
-  flexDirection: 'row',
-  alignItems: 'center',
-  justifyContent: 'space-between',
-},
-pickerButtonText: {
-  fontSize: 16,
-  color: VintageColors.primaryText,
-  flex: 1,
-},
-pickerIcon: {
-  marginLeft: 10,
-},
-inputText: {
-  fontSize: 16,
-  color: VintageColors.primaryText,
-},
+  pickerButton: {
+    backgroundColor: VintageColors.cardBackground,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    borderRadius: 10,
+    padding: 15,
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+  },
+  pickerButtonText: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    flex: 1,
+  },
+  pickerIcon: {
+    marginLeft: 10,
+  },
+  inputText: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+  },
 
-// Styles for goose avatar picker
-editAvatarIcon: {
-    position: 'absolute' as const,
+  // Styles for goose avatar picker
+  editAvatarIcon: {
+    position: "absolute" as const,
     bottom: 10,
     right: 10,
     width: 32,
     height: 32,
     borderRadius: 16,
     backgroundColor: VintageColors.cardBackground,
-    justifyContent: 'center' as const,
-    alignItems: 'center' as const,
+    justifyContent: "center" as const,
+    alignItems: "center" as const,
     borderWidth: 2,
     borderColor: VintageColors.primaryText,
   },

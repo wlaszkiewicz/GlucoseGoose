@@ -61,7 +61,6 @@ export interface NightscoutTreatment {
   //     "carbs": 45,
   //     "protein": 20,
   //     "fat": 15,
-  //     "sugar": 5,
   //     "fiber": 3,
   //     "calories": 350,
   //     "created_at": "2025-11-29T14:23:00.000Z",

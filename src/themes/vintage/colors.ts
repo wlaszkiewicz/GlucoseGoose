@@ -9,6 +9,8 @@ export const VintageColors = {
   cardBackground: "#FFF",
   lightBackground: "#F8F5F0",
 
+  cardBackgroundLight: "#FAF7F2AE",
+
   error: "#C76B6B",
   warning: "#EFD77A",
   success: "#8FBF8F",
@@ -19,8 +21,21 @@ export const VintageColors = {
   iconBlue: "#E6F0F5",
   iconPink: "#F5E6E8",
   iconPurple: "#ECE6F5",
+  iconOrange: "#F5E8E6",
+  iconRed: "#F5E6E6",
 
-  // Stats
+  glucoseVeryLow: "#F5E6E6", // Pastel red
+  glucoseLow: "#F5E8E6", // Pastel orange
+  glucoseInRange: "#e7f5e6ff", // Pastel green
+  glucoseHigh: "#fcffddff", // Pastel yellow
+  glucoseVeryHigh: "#F5E6E8", // Pastel pink
+
+  glucoseBorderVeryLow: "#C76B6B",
+  glucoseBorderLow: "#D4A5A5",
+  glucoseBorderInRange: "#8FBF8F",
+  glucoseBorderHigh: "#F0DA84",
+  glucoseBorderVeryHigh: "#C99595",
+
   statIcon: "#8B7355",
   statValue: "#8B7355",
   statLabel: "#A8B8C8",
@@ -48,13 +63,18 @@ export const VintageColors = {
   // Tab Bar Text Colors
   tabBarTextColor: "#8B7355",
 
-  // Shadow Colors
   tabBarShadowColor: "#D1C7B7",
 
   formAccent1: "#D4A5A5", // Soft pink
   formAccent2: "#8FBF8F", // Sage green
   formAccent3: "#A8B8C8", // Soft blue
-  formAccent4: "#EFD77A", // Warm yellow
+  formAccent4: "#F0DA84", // Warm yellow
+  formAccent5: "#C99595", // Muted coral
+  formAccent6: "#BFA8D4", // Lavender
+  formAccent7: "#9DAF70",
+  formAccent8: "#B6A6C9", // Muted violet
+  formAccent9: "#9FB7B5", // Soft desaturated teal
+  formAccent10: "#E1C286FF", // Warm sand
 
   // Gradients
   gradientStart: "#FAF7F2",
