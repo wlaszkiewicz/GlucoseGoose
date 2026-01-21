@@ -5,7 +5,6 @@ import { StatusBar } from "expo-status-bar";
 import { JournalHeader } from "../components/journal/JournalHeader";
 import { DateSelector } from "../components/journal/DateSelector";
 import { CategoryCards } from "../components/journal/CategoryCards";
-import { EnergyBalance } from "../components/journal/swipeable/EnergyBalance";
 import Calendar from "../components/common/Calendar";
 
 import { useJournalData } from "../hooks/journal/useJournalData";
@@ -19,8 +18,6 @@ const JournalScreen = () => {
     selectedDate,
     showCalendar,
     todayMeals,
-    todayActivities,
-    todayNotes,
     todayEntries,
     insulinEvents,
     totalCaloriesConsumed,
@@ -54,7 +51,12 @@ const JournalScreen = () => {
           onToday={handleToday}
         />
 
-        <CategoryCards onCategoryPress={navigateToCategory} />
+        <CategoryCards
+          onCategoryPress={(category) =>
+            navigateToCategory(category, selectedDate)
+          }
+          selectedDate={selectedDate}
+        />
 
         <SwipeableStats
           todayMeals={todayMeals}
@@ -65,7 +67,6 @@ const JournalScreen = () => {
           caloriesBurned={totalCaloriesBurned}
           selectedDate={selectedDate}
         />
-
         <View style={{ height: 40 }} />
       </ScrollView>
 

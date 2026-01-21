@@ -42,12 +42,23 @@ import {
   mealTypes,
 } from "../../types/events";
 import { useLiveTime } from "../../hooks/journal/useLiveTime";
-import { JournalStackParamList } from "../../JournalStackNavigator";
+import { JournalStackParamList } from "../../navigation/JournalStackNavigator";
 import { RouteProp } from "@react-navigation/native";
 import { useJournalData } from "../../hooks/journal/useJournalData";
 
-const FoodScreen = () => {
-  const { selectedDate, todayMeals } = useJournalData();
+type FoodScreenRouteProp = RouteProp<JournalStackParamList, "Food">;
+
+interface FoodScreenProps {
+  route: FoodScreenRouteProp;
+}
+
+const FoodScreen: React.FC<FoodScreenProps> = ({ route }) => {
+  const routeSelectedDateString = route.params?.selectedDate;
+  const routeSelectedDate = routeSelectedDateString
+    ? new Date(routeSelectedDateString)
+    : new Date();
+
+  const { selectedDate, todayMeals } = useJournalData(routeSelectedDate);
 
   const [selectedMealType, setSelectedMealType] =
     useState<MealType>("Breakfast");
@@ -103,8 +114,6 @@ const FoodScreen = () => {
       }
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
-        //    await handleAnalyzePhoto(result.assets[0].base64, mealDescription);
-        // we dont want to auto anylyze anymore
       }
     } catch (error) {
       console.error("Error taking photo:", error);
@@ -121,8 +130,6 @@ const FoodScreen = () => {
 
       if (!result.canceled && result.assets[0].base64) {
         setSelectedImage(`data:image/jpeg;base64,${result.assets[0].base64}`);
-        //  await handleAnalyzePhoto(result.assets[0].base64, mealDescription);
-        //  we dont want to auto anylyze anymore
       }
     } catch (error) {
       console.error("Error picking image:", error);
@@ -132,7 +139,7 @@ const FoodScreen = () => {
 
   const handleAnalyzePhoto = async (
     imageBase64: string,
-    description?: string
+    description?: string,
   ) => {
     setIsAnalyzing(true);
     setAiAnalysis(null);
@@ -149,7 +156,7 @@ const FoodScreen = () => {
         CLOUD_FUNCTIONS_HOST,
         await firebaseUser.getIdToken(),
         description,
-        userData?.geminiAPIKey || ""
+        userData?.geminiAPIKey || "",
       );
 
       if (result.error) {
@@ -164,7 +171,7 @@ const FoodScreen = () => {
       result.totals.total_weight_grams = result.food_items.reduce(
         (total: number, item: any) =>
           total + (item.estimated_weight_grams || 0),
-        0
+        0,
       );
 
       setAiAnalysis(result);
@@ -190,7 +197,7 @@ const FoodScreen = () => {
       console.log("AI raw response:", error.response);
       alert(
         "Analysis Error",
-        `Failed to analyze meal: ${error.message || "Unknown error"}`
+        `Failed to analyze meal: ${error.message || "Unknown error"}`,
       );
     } finally {
       setIsAnalyzing(false);
@@ -280,7 +287,7 @@ const FoodScreen = () => {
             const success = await deleteTreatment(
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              meal._id!
+              meal._id!,
             );
 
             if (!success) {
@@ -300,7 +307,7 @@ const FoodScreen = () => {
           } catch (error: any) {
             alert(
               "Error",
-              `Failed to delete meal: ${error?.message || "Unknown error"}`
+              `Failed to delete meal: ${error?.message || "Unknown error"}`,
             );
           }
         },
@@ -352,20 +359,20 @@ const FoodScreen = () => {
         success = await updateTreatment(
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
         );
       } else {
         success = await addTreatment(
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
         );
       }
 
       if (!success) {
         alert(
           "Error",
-          `Failed to ${editingMealId ? "update" : "save"} meal to Nightscout.`
+          `Failed to ${editingMealId ? "update" : "save"} meal to Nightscout.`,
         );
         console.error("Failed to save meal to Nightscout:", treatmentData);
         return;
@@ -378,14 +385,14 @@ const FoodScreen = () => {
         "Success",
         `${selectedMealType} ${
           editingMealId ? "updated" : "saved"
-        } to Nightscout!`
+        } to Nightscout!`,
       );
 
       clearForm();
     } catch (error: any) {
       alert(
         "Error",
-        `Failed to save meal: ${error?.message || "Unknown error"}`
+        `Failed to save meal: ${error?.message || "Unknown error"}`,
       );
     }
   };
@@ -1230,8 +1237,8 @@ const FoodScreen = () => {
           {isAnalyzing
             ? "Analyzing..."
             : editingMealId
-            ? `Update ${selectedMealType}`
-            : `Save ${selectedMealType}`}
+              ? `Update ${selectedMealType}`
+              : `Save ${selectedMealType}`}
         </Text>
       </TouchableOpacity>
 
@@ -1314,7 +1321,7 @@ const FoodScreen = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: VintageColors.background }}>
       <ScrollView
         style={VintageStyles.scrollContent}
         showsVerticalScrollIndicator={false}

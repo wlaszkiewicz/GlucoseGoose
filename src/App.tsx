@@ -6,7 +6,7 @@ import RegisterScreen from "./screens/RegisterScreen";
 import SplashScreen from "./screens/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { NightscoutProvider } from "./contexts/NightscoutContext";
-import MainTabNavigator from "./MainTabNavigator";
+import MainTabNavigator from "./navigation/MainTabNavigator";
 import { VintageColors } from "./themes/vintage/colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 
