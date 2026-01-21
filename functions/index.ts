@@ -205,8 +205,8 @@ RULES:
   }
 );
 
-const nightscoutSecret = defineSecret("NIGHTSCOUT_API_SECRET");
-const nightscoutUrl = defineSecret("NIGHTSCOUT_URL");
+const nightscoutSecret = "508faef088174ebf9957f9b9da5d36dd7a67941c";
+const nightscoutUrl = "https://glucose-goose.mooo.com/";
 
 let lastBG = 120;
 
@@ -232,10 +232,10 @@ export function simulateBG(t: number) {
 }
 
 export const simulateGlucose = onSchedule(
-  { secrets: [nightscoutSecret, nightscoutUrl], schedule: "every 5 minutes" },
+  { schedule: "every 5 minutes" },
   async () => {
-    const url = nightscoutUrl.value();
-    const secret = nightscoutSecret.value();
+    const url = nightscoutUrl;
+    const secret = nightscoutSecret;
     const baseUrl = url.replace(/\/$/, "");
 
     const now = new Date();

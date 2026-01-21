@@ -1,16 +1,29 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
-import { useAuth } from './AuthContext';
-import { db } from '../../firebaseConfig';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { useAuth } from "./AuthContext";
+import { db } from "../../firebaseConfig";
+import {
+  collection,
+  onSnapshot,
+  query,
+  orderBy,
+  getDocs,
+} from "firebase/firestore";
 
-interface Patient {
+export interface DoctorPatient {
   uid: string;
-  email: string;
-  username?: string;
+  nightscoutUrl: string;
+  displayName?: string;
+  addedAt?: any;
 }
 
 interface DoctorContextType {
-  patients: Patient[];
+  patients: DoctorPatient[];
   loadingPatients: boolean;
   refreshPatients: () => Promise<void>;
 }
@@ -18,44 +31,92 @@ interface DoctorContextType {
 const DoctorContext = createContext<DoctorContextType | undefined>(undefined);
 
 export const DoctorProvider = ({ children }: { children: React.ReactNode }) => {
-  const { userData, isDoctor } = useAuth();
-  const [patients, setPatients] = useState<Patient[]>([]);
+  const { userData, loading } = useAuth();
+
+  const doctorUid = userData?.uid;
+  const isDoctorRole = userData?.role === "doctor";
+
+  const [patients, setPatients] = useState<DoctorPatient[]>([]);
   const [loadingPatients, setLoadingPatients] = useState(false);
 
-  useEffect(() => {
-    if (!isDoctor() || !userData?.uid) return;
+  const patientsCol = useMemo(() => {
+    if (!doctorUid) return null;
+    return collection(db, "users", doctorUid, "patients");
+  }, [doctorUid]);
 
-    const q = query(
-      collection(db, 'users'),
-      where('assignedDoctorId', '==', userData.uid)
+  useEffect(() => {
+    if (loading) return;
+    if (!doctorUid) return;
+    if (!isDoctorRole) return;
+    if (!patientsCol) return;
+
+    setLoadingPatients(true);
+
+    const q = query(patientsCol, orderBy("addedAt", "desc"));
+
+    const unsub = onSnapshot(
+      q,
+      (snap) => {
+        const list: DoctorPatient[] = snap.docs.map((d) => {
+          const data = d.data() as any;
+          return {
+            uid: d.id,
+            nightscoutUrl: data.nightscoutUrl,
+            displayName: data.displayName,
+            addedAt: data.addedAt,
+          };
+        });
+
+        setPatients(list);
+        setLoadingPatients(false);
+      },
+      (err) => {
+        console.error("Doctor patients snapshot error:", err);
+        setPatients([]);
+        setLoadingPatients(false);
+      },
     );
 
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      const patientList: Patient[] = [];
-      snapshot.forEach((doc) => {
-        patientList.push({ uid: doc.id, ...doc.data() } as Patient);
-      });
-      setPatients(patientList);
-    });
-
-    return () => unsubscribe();
-  }, [userData?.uid, isDoctor]);
+    return () => unsub();
+  }, [loading, doctorUid, isDoctorRole, patientsCol]);
 
   const refreshPatients = async () => {
-    // Implement refresh logic
+    if (loading) return;
+    if (!doctorUid) return;
+    if (!isDoctorRole) return;
+    if (!patientsCol) return;
+
+    setLoadingPatients(true);
+    try {
+      const snap = await getDocs(patientsCol);
+      const list: DoctorPatient[] = snap.docs.map((d) => {
+        const data = d.data() as any;
+        return {
+          uid: d.id,
+          nightscoutUrl: data.nightscoutUrl,
+          displayName: data.displayName,
+          addedAt: data.addedAt,
+        };
+      });
+      setPatients(list);
+    } catch (e) {
+      console.error("refreshPatients error:", e);
+    } finally {
+      setLoadingPatients(false);
+    }
   };
 
   return (
-    <DoctorContext.Provider value={{ patients, loadingPatients, refreshPatients }}>
+    <DoctorContext.Provider
+      value={{ patients, loadingPatients, refreshPatients }}
+    >
       {children}
     </DoctorContext.Provider>
   );
 };
 
 export const useDoctor = () => {
-  const context = useContext(DoctorContext);
-  if (!context) {
-    throw new Error('useDoctor must be used within a DoctorProvider');
-  }
-  return context;
+  const ctx = useContext(DoctorContext);
+  if (!ctx) throw new Error("useDoctor must be used within a DoctorProvider");
+  return ctx;
 };

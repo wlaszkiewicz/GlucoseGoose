@@ -57,7 +57,7 @@ export const useHomeScreenData = () => {
       meals,
       activities,
       otherEntries ?? [],
-      timeFilter
+      timeFilter,
     );
   }, [meals, activities, otherEntries, timeFilter, dataLoaded]);
 

@@ -6,10 +6,11 @@ import RegisterScreen from "./screens/RegisterScreen";
 import SplashScreen from "./screens/SplashScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { NightscoutProvider } from "./contexts/NightscoutContext";
-import MainTabNavigator from "./MainTabNavigator";
-import DoctorTabNavigator from "./DoctorTabNavigator";
+
+import MainTabNavigator from "./navigation/MainTabNavigator";
 import { VintageColors } from "./themes/vintage/colors";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
+import DoctorTabNavigator from "./navigation/DoctorTabNavigator";
 import { DoctorProvider } from "./contexts/DoctorContext";
 
 const Stack = createNativeStackNavigator();
@@ -29,7 +30,7 @@ const AppContent = () => {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      
+
       {userData?.role === "doctor" ? (
         <Stack.Screen
           name="MainTabs"
@@ -53,9 +54,24 @@ export default function App() {
       <NightscoutProvider>
         <DoctorProvider>
           <NavigationContainer>
-            <SafeAreaView style={{ flex: 1 }}>
-              <AppContent />
-            </SafeAreaView>
+            <SafeAreaProvider>
+              <>
+                <SafeAreaView
+                  edges={["top", "left", "right"]}
+                  style={{ backgroundColor: VintageColors.background }}
+                />
+
+                <SafeAreaView
+                  edges={["bottom"]}
+                  style={{
+                    flex: 1,
+                    backgroundColor: VintageColors.cardBackground,
+                  }}
+                >
+                  <AppContent />
+                </SafeAreaView>
+              </>
+            </SafeAreaProvider>
           </NavigationContainer>
         </DoctorProvider>
       </NightscoutProvider>
