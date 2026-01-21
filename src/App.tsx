@@ -10,7 +10,7 @@ import { NightscoutProvider } from "./contexts/NightscoutContext";
 import MainTabNavigator from "./navigation/MainTabNavigator";
 import { VintageColors } from "./themes/vintage/colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import DoctorTabNavigator from "./DoctorTabNavigator";
+import DoctorTabNavigator from "./navigation/DoctorTabNavigator";
 import { DoctorProvider } from "./contexts/DoctorContext";
 
 const Stack = createNativeStackNavigator();
@@ -30,7 +30,7 @@ const AppContent = () => {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
-      
+
       {userData?.role === "doctor" ? (
         <Stack.Screen
           name="MainTabs"
@@ -52,28 +52,28 @@ export default function App() {
   return (
     <AuthProvider>
       <NightscoutProvider>
-       <DoctorProvider>
-        <NavigationContainer>
-          <SafeAreaProvider>
-            <>
-              <SafeAreaView
-                edges={["top", "left", "right"]}
-                style={{ backgroundColor: VintageColors.background }}
-              />
+        <DoctorProvider>
+          <NavigationContainer>
+            <SafeAreaProvider>
+              <>
+                <SafeAreaView
+                  edges={["top", "left", "right"]}
+                  style={{ backgroundColor: VintageColors.background }}
+                />
 
-              <SafeAreaView
-                edges={["bottom"]}
-                style={{
-                  flex: 1,
-                  backgroundColor: VintageColors.cardBackground,
-                }}
-              >
-                <AppContent />
-              </SafeAreaView>
-            </>
-          </SafeAreaProvider>
-        </NavigationContainer>
-       </DoctorProvider>
+                <SafeAreaView
+                  edges={["bottom"]}
+                  style={{
+                    flex: 1,
+                    backgroundColor: VintageColors.cardBackground,
+                  }}
+                >
+                  <AppContent />
+                </SafeAreaView>
+              </>
+            </SafeAreaProvider>
+          </NavigationContainer>
+        </DoctorProvider>
       </NightscoutProvider>
     </AuthProvider>
   );
