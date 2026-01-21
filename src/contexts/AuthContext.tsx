@@ -49,24 +49,28 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   const isPatient = () => {
-    return !userData?.role || userData.role === "patient" || userData.role === "user";
+    return (
+      !userData?.role || userData.role === "patient" || userData.role === "user"
+    );
   };
 
   const updateUserData = (data: Partial<UserData>) => {
-    setUserData(prev => prev ? { ...prev, ...data } : null);
+    setUserData((prev) => (prev ? { ...prev, ...data } : null));
   };
 
-  const loadAvatarUrl = async (avatarId: string | undefined): Promise<string | undefined> => {
+  const loadAvatarUrl = async (
+    avatarId: string | undefined,
+  ): Promise<string | undefined> => {
     if (!avatarId) return undefined;
-    
+
     try {
-      if (avatarId.startsWith('http')) {
+      if (avatarId.startsWith("http")) {
         return avatarId;
       }
-      
+
       return await getAvatarUrl(avatarId as any);
     } catch (error) {
-      console.error('Error loading avatar URL:', error);
+      console.error("Error loading avatar URL:", error);
       return undefined;
     }
   };
@@ -96,12 +100,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           data
             ? {
                 ...data,
+                uid: user.uid,
                 nightscoutSecret: localSecret ?? "",
                 nightscoutUrl: nightscoutUrl ?? data.nightscoutUrl,
                 geminiAPIKey: geminiAPIKey ?? "",
                 avatarUrl,
               }
-            : null
+            : null,
         );
       } else {
         setUserData(null);
@@ -113,14 +118,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ 
-      firebaseUser, 
-      userData, 
-      loading, 
-      updateUserData,
-      isDoctor,
-      isPatient 
-    }}>
+    <AuthContext.Provider
+      value={{
+        firebaseUser,
+        userData,
+        loading,
+        updateUserData,
+        isDoctor,
+        isPatient,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

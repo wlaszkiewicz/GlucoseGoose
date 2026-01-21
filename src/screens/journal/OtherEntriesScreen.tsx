@@ -20,20 +20,28 @@ import {
 import { useAuth } from "../../contexts/AuthContext";
 import { NightscoutTreatment } from "../../types/nightscout";
 import { useNightscout } from "../../contexts/NightscoutContext";
+import { useJournalData } from "../../hooks/journal/useJournalData";
+import { JournalStackParamList } from "../../navigation/JournalStackNavigator";
+import { RouteProp } from "@react-navigation/native";
 
-interface OtherSectionProps {
-  selectedDate: Date;
-  otherEntries?: NightscoutTreatment[];
+type OtherEntriesScreenRouteProp = RouteProp<JournalStackParamList, "Other">;
+
+interface OtherEntriesScreenProps {
+  route: OtherEntriesScreenRouteProp;
 }
 
-const OtherSection: React.FC<OtherSectionProps> = ({
-  selectedDate,
-  otherEntries: todayNotes,
-}) => {
+const OtherEntriesScreen: React.FC<OtherEntriesScreenProps> = ({ route }) => {
+  const routeSelectedDateString = route.params?.selectedDate;
+  const routeSelectedDate = routeSelectedDateString
+    ? new Date(routeSelectedDateString)
+    : new Date();
+
   const [otherInput, setOtherInput] = useState("");
   const [editingNoteId, setEditingNoteId] = useState<string | null>(null);
   const CLOUD_FUNCTIONS_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
   const { fetchTreatments } = useNightscout();
+
+  const { selectedDate, todayNotes } = useJournalData(routeSelectedDate);
 
   const { firebaseUser, userData } = useAuth();
 
@@ -70,14 +78,14 @@ const OtherSection: React.FC<OtherSectionProps> = ({
         success = await updateTreatment(
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
         );
       } else {
         // Add new note
         success = await addTreatment(
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
         );
       }
 
@@ -94,7 +102,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({
     } catch (error: any) {
       alert(
         "Error",
-        `Failed to save notes: ${error.message || "Unknown error"}`
+        `Failed to save notes: ${error.message || "Unknown error"}`,
       );
     }
   };
@@ -126,7 +134,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({
             const success = await deleteTreatment(
               userData.nightscoutUrl,
               userData.nightscoutSecret ?? "",
-              noteId
+              noteId,
             );
 
             if (!success) {
@@ -145,7 +153,7 @@ const OtherSection: React.FC<OtherSectionProps> = ({
           } catch (error: any) {
             alert(
               "Error",
-              `Failed to delete note: ${error.message || "Unknown error"}`
+              `Failed to delete note: ${error.message || "Unknown error"}`,
             );
           }
         },
@@ -385,18 +393,21 @@ const OtherSection: React.FC<OtherSectionProps> = ({
   );
 
   return (
-    <ScrollView
-      style={VintageStylesOther.container}
-      showsVerticalScrollIndicator={false}
-      contentContainerStyle={{ paddingBottom: 40 }}
-    >
-      {renderNotesInput()}
-      {renderActionButtons()}
-      {renderSaveButton()}
-      {renderSavedNotes()}
-      <View style={VintageStyles.spacing60} />
-    </ScrollView>
+    <View style={{ flex: 1, backgroundColor: VintageColors.background }}>
+      <ScrollView
+        style={VintageStyles.scrollContent}
+        showsVerticalScrollIndicator={false}
+      >
+        <View style={VintageStyles.spacing30} />
+
+        {renderNotesInput()}
+        {renderActionButtons()}
+        {renderSaveButton()}
+        {renderSavedNotes()}
+        <View style={VintageStyles.spacing60} />
+      </ScrollView>
+    </View>
   );
 };
 
-export default OtherSection;
+export default OtherEntriesScreen;

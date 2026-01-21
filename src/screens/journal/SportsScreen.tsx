@@ -36,24 +36,32 @@ import {
 } from "../../utils/journalUtils/mealsAndActivitiesUtils";
 
 import TimePicker from "../../components/common/TimePicker";
-import { useLiveTime } from "../../hooks/useJournal/useLiveTime";
+import { useLiveTime } from "../../hooks/journal/useLiveTime";
+import { useJournalData } from "../../hooks/journal/useJournalData";
+import { JournalStackParamList } from "../../navigation/JournalStackNavigator";
+import { RouteProp } from "@react-navigation/native";
 
-interface ActivitySectionProps {
-  selectedDate: Date;
-  activities: NightscoutTreatment[];
+type SportsScreenRouteProp = RouteProp<JournalStackParamList, "Sports">;
+
+interface SportsScreenProps {
+  route: SportsScreenRouteProp;
 }
 
-const SportsSection: React.FC<ActivitySectionProps> = ({
-  selectedDate,
-  activities: todayActivities,
-}) => {
+const SportsScreen: React.FC<SportsScreenProps> = ({ route }) => {
+  const routeSelectedDateString = route.params?.selectedDate;
+  const routeSelectedDate = routeSelectedDateString
+    ? new Date(routeSelectedDateString)
+    : new Date();
+
+  const { selectedDate, todayActivities } = useJournalData(routeSelectedDate);
+
   const [selectedActivityType, setSelectedActivityType] =
     useState<ActivityType>("Walking");
   const [activityDescription, setActivityDescription] = useState("");
   const [isCalculatingCalories, setIsCalculatingCalories] = useState(false);
   const [showManualInput, setShowManualInput] = useState(false);
   const [editingActivityId, setEditingActivityId] = useState<string | null>(
-    null
+    null,
   );
   const [calculationDetails, setCalculationDetails] = useState<{
     metValue: number;
@@ -111,7 +119,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
   const calculateCaloriesWithAI = async (
     activityType: ActivityType,
     duration: number,
-    intensity: "Low" | "Medium" | "High"
+    intensity: "Low" | "Medium" | "High",
   ): Promise<{
     calories: number;
     estimatedDistance?: number;
@@ -142,7 +150,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
         const estimatedDistance = estimateDistance(
           activityType,
           duration,
-          intensity
+          intensity,
         );
 
         setCalculationDetails(calculation.details);
@@ -231,7 +239,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
               const success = await deleteTreatment(
                 userData.nightscoutUrl,
                 userData.nightscoutSecret ?? "",
-                activity._id!
+                activity._id!,
               );
 
               if (!success) {
@@ -244,7 +252,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
               await fetchTreatments(selectedDate);
               alert(
                 "Success",
-                `${activityType} activity deleted successfully!`
+                `${activityType} activity deleted successfully!`,
               );
 
               if (editingActivityId === activity._id) {
@@ -255,12 +263,12 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
                 "Error",
                 `Failed to delete activity: ${
                   error?.message || "Unknown error"
-                }`
+                }`,
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -295,7 +303,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
         const result = await calculateCaloriesWithAI(
           selectedActivityType,
           parseInt(manualDuration),
-          manualIntensity
+          manualIntensity,
         );
 
         if (!manualCaloriesBurned) {
@@ -336,13 +344,13 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
         success = await updateTreatment(
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
         );
       } else {
         success = await addTreatment(
           userData.nightscoutUrl,
           userData.nightscoutSecret ?? "",
-          treatmentData
+          treatmentData,
         );
       }
 
@@ -351,7 +359,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
           "Error",
           `Failed to ${
             editingActivityId ? "update" : "save"
-          } activity to Nightscout.`
+          } activity to Nightscout.`,
         );
         console.error("Failed to save activity to Nightscout:", treatmentData);
         return;
@@ -365,14 +373,14 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
         "Success",
         `${selectedActivityType} activity ${
           editingActivityId ? "updated" : "saved"
-        } to Nightscout!`
+        } to Nightscout!`,
       );
 
       clearForm();
     } catch (error: any) {
       alert(
         "Error",
-        `Failed to save activity: ${error?.message || "Unknown error"}`
+        `Failed to save activity: ${error?.message || "Unknown error"}`,
       );
     }
   };
@@ -390,7 +398,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
           const result = await calculateCaloriesWithAI(
             selectedActivityType,
             parseInt(manualDuration),
-            manualIntensity
+            manualIntensity,
           );
 
           setManualCaloriesBurned(result.calories.toString());
@@ -463,7 +471,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
                   calculateCaloriesWithAI(
                     activityType,
                     parseInt(manualDuration),
-                    manualIntensity
+                    manualIntensity,
                   ).then((result) => {
                     setManualCaloriesBurned(result.calories.toString());
                     if (result.estimatedDistance) {
@@ -549,7 +557,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
                   calculateCaloriesWithAI(
                     selectedActivityType,
                     parseInt(text),
-                    manualIntensity
+                    manualIntensity,
                   ).then((result) => {
                     setManualCaloriesBurned(result.calories.toString());
                     if (result.estimatedDistance) {
@@ -586,7 +594,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
                     calculateCaloriesWithAI(
                       selectedActivityType,
                       parseInt(manualDuration),
-                      intensity
+                      intensity,
                     ).then((result) => {
                       setManualCaloriesBurned(result.calories.toString());
                       if (result.estimatedDistance) {
@@ -818,7 +826,7 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
         {todayActivities.map((activity) => {
           const metrics = extractMetricsFromActivity(activity);
           const activityType = getActivityTypeFromEvent(
-            activity.eventType || ""
+            activity.eventType || "",
           );
           const activityColor = getActivityColor(activityType);
 
@@ -1022,8 +1030,8 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
           {isCalculatingCalories
             ? "Calculating..."
             : editingActivityId
-            ? `Update ${selectedActivityType}`
-            : `Log ${selectedActivityType} Activity`}
+              ? `Update ${selectedActivityType}`
+              : `Log ${selectedActivityType} Activity`}
         </Text>
       </TouchableOpacity>
 
@@ -1094,11 +1102,12 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
   );
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, backgroundColor: VintageColors.background }}>
       <ScrollView
-        style={VintageStylesSports.container}
+        style={VintageStyles.scrollContent}
         showsVerticalScrollIndicator={false}
       >
+        <View style={VintageStyles.spacing30} />
         {renderActivityTypeSelector()}
         {renderTimeSelection()}
         {renderActivityDescription()}
@@ -1116,4 +1125,4 @@ const SportsSection: React.FC<ActivitySectionProps> = ({
   );
 };
 
-export default SportsSection;
+export default SportsScreen;
