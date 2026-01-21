@@ -2,12 +2,13 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Animated, View, StyleSheet, Settings } from "react-native";
-import { VintageColors } from "./themes/vintage/colors";
-import DoctorDashboardScreen from "./screens/doctor/DoctorDashboardScreen";
-import DoctorPatientsScreen from "./screens/doctor/DoctorPatientsScreen";
-import DoctorAnalyticsScreen from "./screens/doctor/DoctorAnalyticsScreen";
-import SettingsScreen from "./screens/SettingsScreen";
+import { VintageColors } from "../themes/vintage/colors";
+import DoctorDashboardScreen from "../screens/doctor/DoctorDashboardScreen";
+import DoctorPatientsScreen from "../screens/doctor/DoctorPatientsScreen";
+import DoctorAnalyticsScreen from "../screens/doctor/DoctorAnalyticsScreen";
+import SettingsScreen from "../screens/SettingsScreen";
 
+import DoctorPatientsStack from "./DoctorPatientsStack";
 
 const Tab = createBottomTabNavigator();
 
@@ -72,7 +73,6 @@ const CustomTabBarLabel = ({
   );
 };
 
-
 const DoctorTabNavigator = () => {
   return (
     <Tab.Navigator
@@ -111,7 +111,7 @@ const DoctorTabNavigator = () => {
       />
       <Tab.Screen
         name="DoctorPatients"
-        component={DoctorPatientsScreen}
+        component={DoctorPatientsStack}
         options={{
           title: "Patients",
           tabBarIcon: ({ focused, color, size }) => (
@@ -163,7 +163,6 @@ const DoctorTabNavigator = () => {
     </Tab.Navigator>
   );
 };
-
 
 const styles = StyleSheet.create({
   labelContainer: {

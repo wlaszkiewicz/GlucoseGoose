@@ -4,7 +4,8 @@ export type StorageKey =
   | "nightscoutSecret"
   | "rememberMe"
   | "nightscoutUrl"
-  | "geminiAPIKey";
+  | "geminiAPIKey"
+  | `nightscoutSecret_${string}`;
 //   | "openAiKey"
 
 const isWeb =
@@ -59,5 +60,21 @@ export const StorageService = {
       ];
       await Promise.all(keys.map((k) => SecureStore.deleteItemAsync(k)));
     }
+  },
+  patientSecretKey(patientUid: string): StorageKey {
+    const safeUid = patientUid.replace(/[^a-zA-Z0-9._-]/g, "_");
+    return `nightscoutSecret_${safeUid}` as StorageKey;
+  },
+
+  async getPatientSecret(patientUid: string) {
+    return await this.get(this.patientSecretKey(patientUid));
+  },
+
+  async setPatientSecret(patientUid: string, secret: string) {
+    return await this.set(this.patientSecretKey(patientUid), secret, true);
+  },
+
+  async clearPatientSecret(patientUid: string) {
+    return await this.clear(this.patientSecretKey(patientUid));
   },
 };
