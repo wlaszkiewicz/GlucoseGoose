@@ -31,7 +31,24 @@ export const BasalAnalysis: React.FC<BasalAnalysisProps> = ({
         </View>
       </View>
 
-      <View style={styles.card}></View>
+      <View style={styles.card}>
+        <View style={placeholderStyles.emptyState}>
+          <Ionicons
+            name="calendar-outline"
+            size={28}
+            color={VintageColors.secondaryText}
+            style={placeholderStyles.emptyIcon}
+          />
+        </View>
+
+        <Text style={placeholderStyles.emptyText}>
+          Basal analysis is not yet available.
+        </Text>
+
+        <Text style={placeholderStyles.emptySubtext}>
+          Coming in a future update!
+        </Text>
+      </View>
     </View>
   );
 };
@@ -179,5 +196,35 @@ const styles: any = {
   targetInfoValue: {
     fontWeight: "600",
     color: VintageColors.formAccent2,
+  },
+};
+
+const placeholderStyles: any = {
+  container: {
+    alignItems: "center",
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  emptyIcon: {
+    marginBottom: 8,
+    opacity: 0.6,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  emptySubtext: {
+    fontSize: 11,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    fontStyle: "italic",
+    marginTop: 2,
   },
 };

@@ -70,7 +70,6 @@ export const SwipeableStats: React.FC<SwipeableStatsProps> = ({
         <View style={styles.cardContainer}>
           <CarbsInsulinBalance
             todayMeals={todayMeals}
-            glucoseEntries={glucoseEntries}
             insulinEvents={insulinEvents}
             selectedDate={selectedDate}
           />
@@ -89,7 +88,10 @@ export const SwipeableStats: React.FC<SwipeableStatsProps> = ({
         </View>
 
         <View style={styles.cardContainer}>
-          <GlucoseSummary glucoseEntries={glucoseEntries} />
+          <GlucoseSummary
+            glucoseEntries={glucoseEntries}
+            selectedDate={selectedDate}
+          />
         </View>
 
         <View style={styles.cardContainer}>
@@ -141,7 +143,7 @@ export const SwipeableStats: React.FC<SwipeableStatsProps> = ({
                 {label}
               </Text>
             </View>
-          )
+          ),
         )}
       </View>
     </View>

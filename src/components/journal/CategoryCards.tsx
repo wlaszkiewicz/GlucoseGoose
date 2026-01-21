@@ -4,11 +4,13 @@ import { Ionicons, Feather } from "@expo/vector-icons";
 import { VintageColors } from "../../themes/vintage/colors";
 
 interface CategoryCardsProps {
-  onCategoryPress: (category: string) => void;
+  onCategoryPress: (category: string, selectedDate: Date) => void;
+  selectedDate: Date;
 }
 
 export const CategoryCards: React.FC<CategoryCardsProps> = ({
   onCategoryPress,
+  selectedDate,
 }) => {
   const categories = [
     {
@@ -58,9 +60,19 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({
           <TouchableOpacity
             key={category.id}
             style={styles.card}
-            onPress={() => onCategoryPress(category.id)}
+            onPress={() => onCategoryPress(category.id, selectedDate)}
             activeOpacity={0.8}
           >
+            {/* <View
+              style={[
+                styles.vintageCorner,
+                {
+                  borderRightColor: category.accentColor,
+                  borderBottomColor: category.accentColor,
+                },
+              ]}
+            /> */}
+
             {/* Icon Container */}
             <View
               style={[
@@ -70,7 +82,7 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({
             >
               <Ionicons
                 name={category.icon as any}
-                size={24}
+                size={22}
                 color={VintageColors.primaryText}
               />
             </View>
@@ -81,25 +93,21 @@ export const CategoryCards: React.FC<CategoryCardsProps> = ({
               <Text style={styles.cardSubtitle}>{category.subtitle}</Text>
             </View>
 
-            {/* Arrow Indicator */}
-            <View style={styles.arrowContainer}>
+            {/* Subtle directional hint at bottom */}
+            <View style={styles.directionHint}>
+              <View
+                style={[
+                  styles.directionLine,
+                  { backgroundColor: category.accentColor },
+                ]}
+              />
               <Feather
-                name="arrow-right"
-                size={16}
+                name="chevron-right"
+                size={12}
                 color={category.accentColor}
+                style={styles.directionIcon}
               />
             </View>
-
-            {/* Vintage corner accent */}
-            <View
-              style={[
-                styles.vintageCorner,
-                {
-                  borderRightColor: category.accentColor,
-                  borderBottomColor: category.accentColor,
-                },
-              ]}
-            />
           </TouchableOpacity>
         ))}
       </View>
@@ -139,8 +147,8 @@ const styles: any = {
   },
   card: {
     flex: 1,
-    backgroundColor: "rgba(255, 255, 255, 0.9)",
-    borderRadius: 14,
+    backgroundColor: "rgba(255, 255, 255, 0.95)",
+    borderRadius: 16,
     padding: 16,
     borderWidth: 1,
     borderColor: VintageColors.border,
@@ -150,52 +158,9 @@ const styles: any = {
     overflow: "hidden",
     shadowColor: VintageColors.lightBorder,
     shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
-  },
-  iconContainer: {
-    width: 52,
-    height: 52,
-    borderRadius: 14,
-    justifyContent: "center",
-    alignItems: "center",
-    marginBottom: 12,
-    borderWidth: 1,
-    borderColor: "rgba(139, 115, 85, 0.15)",
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.08,
-    shadowRadius: 3,
-    elevation: 2,
-  },
-  cardContent: {
-    alignItems: "center",
-    marginBottom: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    color: VintageColors.primaryText,
-    fontWeight: "600",
-    marginBottom: 4,
-    textAlign: "center",
-  },
-  cardSubtitle: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    textAlign: "center",
-    lineHeight: 16,
-    fontStyle: "italic",
-  },
-  arrowContainer: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: VintageColors.lightBackground,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: VintageColors.border,
+    shadowRadius: 8,
+    elevation: 3,
   },
   vintageCorner: {
     position: "absolute",
@@ -211,5 +176,58 @@ const styles: any = {
     borderTopRightRadius: 14,
     borderBottomLeftRadius: 0,
     borderBottomRightRadius: 0,
+  },
+  iconContainer: {
+    width: 56,
+    height: 56,
+    borderRadius: 16,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: "rgba(139, 115, 85, 0.15)",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 3,
+    elevation: 2,
+  },
+  cardContent: {
+    alignItems: "center",
+    flex: 1,
+    justifyContent: "center",
+  },
+  cardTitle: {
+    fontSize: 16,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 4,
+    textAlign: "center",
+  },
+  cardSubtitle: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    lineHeight: 16,
+    fontStyle: "italic",
+  },
+  directionHint: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 2,
+    paddingTop: 6,
+    borderTopWidth: 1,
+    borderTopColor: VintageColors.border + "30",
+    width: "80%",
+    justifyContent: "center",
+  },
+  directionLine: {
+    height: 1,
+    flex: 1,
+    marginRight: 4,
+    borderRadius: 1,
+  },
+  directionIcon: {
+    opacity: 0.7,
   },
 };

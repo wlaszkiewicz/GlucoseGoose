@@ -15,25 +15,23 @@ export const CarbsInsulinBalance: React.FC<CarbsInsulinBalanceProps> = ({
   insulinEvents,
   selectedDate,
 }) => {
-  // Calculate totals
   const totalCarbs = todayMeals.reduce(
     (sum, meal) => sum + (meal.carbs || 0),
-    0
+    0,
   );
 
   const insulinAnalysis = calculateInsulinStats(insulinEvents);
 
-  // Separate insulin events by type for the graph
   const separateInsulinByType = () => {
     const mealInsulinEvents = insulinEvents.filter(
       (event) =>
         event.eventType === "Meal Bolus" ||
         event.eventType === "Bolus Wizard" ||
-        event.eventType === "Bolus"
+        event.eventType === "Bolus",
     );
 
     const correctionInsulinEvents = insulinEvents.filter(
-      (event) => event.eventType === "Correction Bolus"
+      (event) => event.eventType === "Correction Bolus",
     );
 
     return { mealInsulinEvents, correctionInsulinEvents };
@@ -44,7 +42,7 @@ export const CarbsInsulinBalance: React.FC<CarbsInsulinBalanceProps> = ({
 
   const getTimelineData = () => {
     const timelineHours = [0, 4, 8, 12, 16, 20];
-    const hourLabels = ["00:00", "04:00", "08:00", "12:00", "16:00", "20:00"];
+    const hourLabels = ["00-04", "04-08", "08-12", "12-16", "16-20", "20-24"];
 
     return timelineHours.map((hour, index) => {
       const hourStart = hour;
@@ -77,7 +75,7 @@ export const CarbsInsulinBalance: React.FC<CarbsInsulinBalanceProps> = ({
             ? sum + (event.insulin || 0)
             : sum;
         },
-        0
+        0,
       );
 
       return {
@@ -97,43 +95,40 @@ export const CarbsInsulinBalance: React.FC<CarbsInsulinBalanceProps> = ({
   const timelineData = getTimelineData();
   const hasData = timelineData.some((slot) => slot.hasData);
 
-  // Find max values for scaling
   const maxCarbs = Math.max(...timelineData.map((s) => s.carbs), 1);
   const maxMealInsulin = Math.max(...timelineData.map((s) => s.mealInsulin), 1);
   const maxCorrectionInsulin = Math.max(
     ...timelineData.map((s) => s.correctionInsulin),
-    1
+    1,
   );
 
   const TimelineBarGroup = ({ data, isLast }: any) => {
-    // Calculate heights (scaled to max 50px)
     const carbsHeight = Math.min((data.carbs / maxCarbs) * 50, 50);
     const mealInsulinHeight = Math.min(
       (data.mealInsulin / maxMealInsulin) * 50,
-      50
+      50,
     );
     const correctionInsulinHeight = Math.min(
       (data.correctionInsulin / maxCorrectionInsulin) * 50,
-      50
+      50,
     );
 
     return (
       <View style={timelineStyles.barGroup}>
-        {/* Value labels on top of bars */}
         <View style={timelineStyles.valueLabels}>
-          {data.carbs > 0 && (
-            <Text style={timelineStyles.carbsValueLabel}>{data.carbs}</Text>
-          )}
-          {data.mealInsulin > 0 && (
-            <Text style={timelineStyles.mealValueLabel}>
-              {data.mealInsulin.toFixed(1)}
-            </Text>
-          )}
-          {data.correctionInsulin > 0 && (
-            <Text style={timelineStyles.correctionValueLabel}>
-              {data.correctionInsulin.toFixed(1)}
-            </Text>
-          )}
+          <Text style={timelineStyles.carbsValueLabel}>
+            {data.carbs > 0 ? data.carbs : ""}
+          </Text>
+
+          <Text style={timelineStyles.mealValueLabel}>
+            {data.mealInsulin > 0 ? data.mealInsulin.toFixed(1) : ""}
+          </Text>
+
+          <Text style={timelineStyles.correctionValueLabel}>
+            {data.correctionInsulin > 0
+              ? data.correctionInsulin.toFixed(1)
+              : ""}
+          </Text>
         </View>
 
         {/* Main bars container */}
@@ -470,7 +465,7 @@ const timelineStyles: any = {
     right: 0,
     flexDirection: "row",
     justifyContent: "space-between",
-    paddingHorizontal: 3,
+    paddingHorizontal: 4,
     height: 16,
     alignItems: "flex-start",
   },
@@ -481,7 +476,6 @@ const timelineStyles: any = {
     backgroundColor: "rgba(255,255,255,0.9)",
     borderRadius: 3,
     paddingHorizontal: 2,
-    paddingVertical: 1,
     overflow: "hidden",
   },
   mealValueLabel: {
@@ -491,7 +485,6 @@ const timelineStyles: any = {
     backgroundColor: "rgba(255,255,255,0.9)",
     borderRadius: 3,
     paddingHorizontal: 2,
-    paddingVertical: 1,
     overflow: "hidden",
   },
   correctionValueLabel: {
@@ -501,7 +494,6 @@ const timelineStyles: any = {
     backgroundColor: "rgba(255,255,255,0.9)",
     borderRadius: 3,
     paddingHorizontal: 2,
-    paddingVertical: 1,
     overflow: "hidden",
   },
   barsContainer: {

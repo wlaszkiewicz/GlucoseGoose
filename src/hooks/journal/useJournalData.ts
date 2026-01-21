@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo } from "react";
 import { useNightscout } from "../../contexts/NightscoutContext";
-import { useLiveTime } from "./useLiveTime";
 
 const getDayRange = (date: Date) => {
   const start = new Date(date);
@@ -12,34 +11,23 @@ const getDayRange = (date: Date) => {
   return { start, end };
 };
 
-export const useJournalData = () => {
-  const [selectedDate, setSelectedDate] = useState(new Date());
+export const useJournalData = (initialDate?: Date) => {
+  const [selectedDate, setSelectedDate] = useState<Date>(
+    initialDate || new Date(),
+  );
+
   const [showCalendar, setShowCalendar] = useState(false);
-
-  const { currentDate: liveCurrentDate } = useLiveTime({
-    format24Hour: true,
-  });
-
-  useEffect(() => {
-    const now = new Date();
-    const selected = new Date(selectedDate);
-
-    const isDifferentDay =
-      now.getDate() !== selected.getDate() ||
-      now.getMonth() !== selected.getMonth() ||
-      now.getFullYear() !== selected.getFullYear();
-
-    if (isDifferentDay && selected < now) {
-      setSelectedDate(now);
-    }
-  }, [liveCurrentDate]);
 
   const { fetchTreatments, meals, activities, otherEntries, entries } =
     useNightscout();
 
   useEffect(() => {
     fetchTreatments(selectedDate);
-  }, [selectedDate]);
+  }, [selectedDate, fetchTreatments]);
+
+  useEffect(() => {
+    fetchTreatments(selectedDate);
+  }, [selectedDate, fetchTreatments]);
 
   const {
     todayMeals,
@@ -63,12 +51,10 @@ export const useJournalData = () => {
       return d >= start && d <= end;
     });
 
-    const filteredNotes = otherEntries
-      ? otherEntries.filter((m) => {
-          const d = new Date(m.created_at);
-          return d >= start && d <= end;
-        })
-      : [];
+    const filteredNotes = otherEntries?.filter((m) => {
+      const d = new Date(m.created_at);
+      return d >= start && d <= end && m.eventType === "Note";
+    });
 
     const filteredEntries = entries.filter((e) => {
       const d = new Date(e.date);
@@ -77,12 +63,12 @@ export const useJournalData = () => {
 
     const caloriesConsumed = filteredMeals.reduce(
       (sum, meal) => sum + (meal.calories || 0),
-      0
+      0,
     );
     const caloriesBurned = filteredActivities.reduce(
       (sum, activity) =>
         sum + (activity.caloriesBurned || activity.calories || 0),
-      0
+      0,
     );
 
     const insulinEvents =

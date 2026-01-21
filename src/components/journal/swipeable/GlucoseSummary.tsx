@@ -1,22 +1,66 @@
 import React, { useState } from "react";
-import { View, Text, TouchableOpacity } from "react-native";
-import {
-  Ionicons,
-  Feather,
-  MaterialIcons,
-  MaterialCommunityIcons,
-} from "@expo/vector-icons";
+import { View, Text } from "react-native";
+import { Ionicons, Feather, MaterialCommunityIcons } from "@expo/vector-icons";
 import { Svg, Circle, Path } from "react-native-svg";
 import { VintageColors } from "../../../themes/vintage/colors";
 
 interface GlucoseSummaryProps {
   glucoseEntries: any[];
+  selectedDate: Date;
 }
 
 export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
   glucoseEntries,
+  selectedDate,
 }) => {
   const [showTargetInfo, setShowTargetInfo] = useState(false);
+
+  const isToday = () => {
+    const today = new Date();
+    return (
+      selectedDate.getDate() === today.getDate() &&
+      selectedDate.getMonth() === today.getMonth() &&
+      selectedDate.getFullYear() === today.getFullYear()
+    );
+  };
+
+  if (!isToday()) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.headerLeft}>
+            <Text style={styles.title}>Glucose Summary</Text>
+          </View>
+          <View style={styles.featherAccent}>
+            <Ionicons
+              name="pulse"
+              size={20}
+              color={VintageColors.primaryText}
+            />
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <View style={placeholderStyles.emptyState}>
+            <Ionicons
+              name="calendar-outline"
+              size={28}
+              color={VintageColors.secondaryText}
+              style={placeholderStyles.emptyIcon}
+            />
+          </View>
+
+          <Text style={placeholderStyles.emptyText}>
+            Glucose summary for other days than today is not implemented yet
+          </Text>
+
+          <Text style={placeholderStyles.emptySubtext}>
+            Coming in a future update!
+          </Text>
+        </View>
+      </View>
+    );
+  }
 
   const calculateMetrics = () => {
     if (glucoseEntries.length === 0) {
@@ -45,21 +89,21 @@ export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
     const glucoseValues = validReadings.map((entry) => entry.sgv);
 
     const averageGlucose = Math.round(
-      glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length
+      glucoseValues.reduce((a, b) => a + b, 0) / glucoseValues.length,
     );
 
     const veryLowCount = validReadings.filter((entry) => entry.sgv < 54).length;
     const lowCount = validReadings.filter(
-      (entry) => entry.sgv >= 54 && entry.sgv < 70
+      (entry) => entry.sgv >= 54 && entry.sgv < 70,
     ).length;
     const inRangeCount = validReadings.filter(
-      (entry) => entry.sgv >= 70 && entry.sgv <= 180
+      (entry) => entry.sgv >= 70 && entry.sgv <= 180,
     ).length;
     const highCount = validReadings.filter(
-      (entry) => entry.sgv > 180 && entry.sgv <= 250
+      (entry) => entry.sgv > 180 && entry.sgv <= 250,
     ).length;
     const veryHighCount = validReadings.filter(
-      (entry) => entry.sgv > 250
+      (entry) => entry.sgv > 250,
     ).length;
 
     const timeInRangeRaw = (inRangeCount / validReadings.length) * 100;
@@ -71,7 +115,7 @@ export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
     const variance =
       glucoseValues.reduce(
         (sum, value) => sum + Math.pow(value - averageGlucose, 2),
-        0
+        0,
       ) / glucoseValues.length;
     const stdDev = Math.sqrt(variance);
     const cv = (stdDev / averageGlucose) * 100;
@@ -255,8 +299,8 @@ export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
                         Math.sin(((segment.startAngle - 90) * Math.PI) / 180)
                     }
                     A ${radius} ${radius} 0 ${
-                    segment.endAngle - segment.startAngle > 180 ? 1 : 0
-                  } 1
+                      segment.endAngle - segment.startAngle > 180 ? 1 : 0
+                    } 1
                     ${
                       center +
                       radius *
@@ -286,8 +330,8 @@ export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
                         Math.sin(((segment.startAngle - 90) * Math.PI) / 180)
                     }
                     A ${radius} ${radius} 0 ${
-                    segment.endAngle - segment.startAngle > 180 ? 1 : 0
-                  } 1
+                      segment.endAngle - segment.startAngle > 180 ? 1 : 0
+                    } 1
                     ${
                       center +
                       radius *
@@ -392,14 +436,16 @@ export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
           <TimeInRangeRing />
 
           <View style={legendStyles.container}>
-            <LegendItem
-              label="70-180"
-              value={metrics.timeInRange}
-              count={metrics.inRangeCount!!}
-              color={VintageColors.glucoseInRange}
-              borderColor={VintageColors.glucoseBorderInRange}
-              icon="checkmark-circle"
-            />
+            {metrics.veryHighCount > 0 && (
+              <LegendItem
+                label=">250"
+                value={metrics.timeVeryHigh!!}
+                count={metrics.veryHighCount}
+                color={VintageColors.glucoseVeryHigh}
+                borderColor={VintageColors.glucoseBorderVeryHigh}
+                icon="arrow-up"
+              />
+            )}
 
             {metrics.highCount > 0 && (
               <LegendItem
@@ -412,16 +458,14 @@ export const GlucoseSummary: React.FC<GlucoseSummaryProps> = ({
               />
             )}
 
-            {metrics.veryHighCount > 0 && (
-              <LegendItem
-                label=">250"
-                value={metrics.timeVeryHigh!!}
-                count={metrics.veryHighCount}
-                color={VintageColors.glucoseVeryHigh}
-                borderColor={VintageColors.glucoseBorderVeryHigh}
-                icon="arrow-up"
-              />
-            )}
+            <LegendItem
+              label="70-180"
+              value={metrics.timeInRange}
+              count={metrics.inRangeCount!!}
+              color={VintageColors.glucoseInRange}
+              borderColor={VintageColors.glucoseBorderInRange}
+              icon="checkmark-circle"
+            />
 
             {metrics.lowCount > 0 && (
               <LegendItem
@@ -601,10 +645,42 @@ const styles: any = {
   },
 };
 
+const placeholderStyles: any = {
+  container: {
+    alignItems: "center",
+    paddingVertical: 32,
+    paddingHorizontal: 20,
+  },
+  emptyState: {
+    alignItems: "center",
+    justifyContent: "center",
+    padding: 24,
+  },
+  emptyIcon: {
+    marginBottom: 8,
+    opacity: 0.6,
+  },
+  emptyText: {
+    fontSize: 13,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+  emptySubtext: {
+    fontSize: 11,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    fontStyle: "italic",
+    marginTop: 2,
+  },
+};
+
 const legendStyles: any = {
   container: {
     flex: 1,
     marginLeft: 16,
+    minHeight: 120,
+    justifyContent: "center",
   },
   item: {
     flexDirection: "row",
@@ -670,18 +746,6 @@ const legendStyles: any = {
   percentageBarFill: {
     height: "100%",
     borderRadius: 2,
-  },
-  debug: {
-    marginTop: 8,
-    paddingTop: 8,
-    borderTopWidth: 1,
-    borderTopColor: VintageColors.border + "40",
-  },
-  debugText: {
-    fontSize: 9,
-    color: VintageColors.secondaryText + "80",
-    fontStyle: "italic",
-    textAlign: "center",
   },
 };
 

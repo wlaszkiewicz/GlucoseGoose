@@ -2,12 +2,12 @@ import React from "react";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { Ionicons } from "@expo/vector-icons";
 import { Animated, View, StyleSheet } from "react-native";
-import HomeScreen from "./screens/HomeScreen";
-import JournalScreen from "./screens/JournalScreen";
-import TrendsScreen from "./screens/TrendsScreen";
-import SettingsScreen from "./screens/SettingsScreen";
-import { MainTabParamList } from "./types/navigation";
-import { VintageColors } from "./themes/vintage/colors";
+import HomeScreen from "../screens/HomeScreen";
+import JournalScreen from "../screens/JournalScreen";
+import TrendsScreen from "../screens/TrendsScreen";
+import SettingsScreen from "../screens/SettingsScreen";
+import { MainTabParamList } from "../types/navigation";
+import { VintageColors } from "../themes/vintage/colors";
 import JournalStackNavigator from "./JournalStackNavigator";
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
