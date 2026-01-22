@@ -545,4 +545,12 @@ export const VintageStyles = StyleSheet.create({
     borderWidth: 2,
     borderColor: VintageColors.primaryText,
   },
+
+profileSpecialization: {
+  fontSize: 14,
+  color: VintageColors.secondaryText,
+  fontStyle: 'italic',
+  marginTop: 4,
+  textAlign: 'center',
+},
 });
