@@ -26,6 +26,8 @@ export interface UserData {
   gender?: string;
   avatar?: string;
   avatarUrl?: string;
+  licenseNumber?: string;
+  specialization?: string;
 }
 
 interface AuthContextType {
