@@ -18,6 +18,17 @@ export async function getEmailFromUsername(
   return data.email as string;
 }
 
+function makeAuthError(status: number) {
+  const err: any = new Error("AUTH_REQUIRED");
+  err.code = "AUTH_REQUIRED";
+  err.status = status;
+  return err;
+}
+
+function ensureArray<T = any>(x: any): T[] {
+  return Array.isArray(x) ? (x as T[]) : [];
+}
+
 export async function fetchBundle(
   nsUrl: string,
   secret: string = "",
@@ -25,18 +36,15 @@ export async function fetchBundle(
 ): Promise<NightscoutBundleResponse> {
   if (Platform.OS === "web") {
     const query = `http://localhost:3001/bundle?url=${nsUrl}&secret=${secret}&minutes=${minutes}`;
-
     const res = await fetch(query);
-
-    if (!res.ok) {
+    if (!res.ok)
       throw new Error(`Error fetching bundle: ${res.status} ${res.statusText}`);
-    }
-
-    const data = await res.json();
-    return data as NightscoutBundleResponse;
-  } else {
-    return await fetchBundleDirect(nsUrl, secret, minutes);
+    return (await res.json()) as NightscoutBundleResponse;
   }
+<<<<<<< Updated upstream
+=======
+  return await fetchBundleDirect(nsUrl, secret, minutes);
+>>>>>>> Stashed changes
 }
 
 export async function fetchBundleDirect(
@@ -49,11 +57,10 @@ export async function fetchBundleDirect(
   const sinceISO = new Date(sinceTimestamp).toISOString();
   const count = Math.floor(minutes / 5);
 
-  console.log("Fetching Nightscout bundle directly…" + minutes + " minutes");
-
   const headers: any = {};
-  if (secret) headers["api-secret"] = secret;
+  if (secret?.trim()) headers["api-secret"] = secret.trim();
 
+<<<<<<< Updated upstream
   try {
     const entriesRes = await fetch(
       `${baseUrl}/api/v1/entries.json?count=${count}`,
@@ -91,7 +98,56 @@ export async function fetchBundleDirect(
   } catch (err) {
     console.error("Failed to fetch Nightscout bundle:", err);
     throw err;
+=======
+  // entries
+  const entriesRes = await fetch(
+    `${baseUrl}/api/v1/entries.json?count=${count}`,
+    { headers },
+  );
+
+  if (!entriesRes.ok) {
+    if (entriesRes.status === 401 || entriesRes.status === 403)
+      throw makeAuthError(entriesRes.status);
+    throw new Error(`Nightscout entries error: ${entriesRes.status}`);
+>>>>>>> Stashed changes
   }
+
+  const entries = ensureArray(await entriesRes.json());
+
+  // treatments
+  const treatmentsRes = await fetch(
+    `${baseUrl}/api/v1/treatments?find[created_at][$gte]=${sinceISO}`,
+    { headers },
+  );
+
+  if (!treatmentsRes.ok) {
+    // Some setups also protect treatments
+    if (treatmentsRes.status === 401 || treatmentsRes.status === 403)
+      throw makeAuthError(treatmentsRes.status);
+    throw new Error(`Nightscout treatments error: ${treatmentsRes.status}`);
+  }
+
+  const treatments = ensureArray(await treatmentsRes.json());
+
+  const meals = treatments.filter((t: any) =>
+    t?.eventType?.toLowerCase?.().includes("meal"),
+  );
+  const activities = treatments.filter((t: any) =>
+    t?.eventType?.toLowerCase?.().includes("activity"),
+  );
+  const otherTreatments = treatments.filter(
+    (t: any) =>
+      !t?.eventType?.toLowerCase?.().includes("meal") &&
+      !t?.eventType?.toLowerCase?.().includes("activity"),
+  );
+
+  return {
+    timestamp: Date.now(),
+    entries,
+    otherTreatments,
+    meals,
+    activities,
+  };
 }
 
 export async function fetchTreatmentsDate(
@@ -103,22 +159,16 @@ export async function fetchTreatmentsDate(
     const query = `http://localhost:3001/treatmentsByDate?url=${nsUrl}&secret=${secret}&date=${date.toISOString()}`;
     const res = await fetch(query, {
       method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
+      headers: { "Content-Type": "application/json" },
     });
-
-    if (!res.ok) {
+    if (!res.ok)
       throw new Error(
         `Error fetching treatments for date: ${res.status} ${res.statusText}`
       );
-    }
-
-    const data = await res.json();
-    return data as NightscoutTreatment[];
-  } else {
-    return await fetchTreatmentsDateDirect(nsUrl, secret, date);
+    return (await res.json()) as NightscoutTreatment[];
   }
+
+  return await fetchTreatmentsDateDirect(nsUrl, secret, date);
 }
 
 export async function fetchTreatmentsDateDirect(
@@ -134,18 +184,20 @@ export async function fetchTreatmentsDateDirect(
   endOfDay.setHours(23, 59, 59, 999);
 
   const headers: any = {};
+  if (secret?.trim()) headers["api-secret"] = secret.trim();
 
-  if (secret) headers["api-secret"] = secret;
-
-  console.log(`Fetching Nightscout treatments for ${date.toDateString()}`);
-
-  const treatmentsRes = await fetch(
+  const res = await fetch(
     `${baseUrl}/api/v1/treatments?find[created_at][$gte]=${startOfDay.toISOString()}&find[created_at][$lte]=${endOfDay.toISOString()}`,
     { headers }
   );
 
-  const treatments = await treatmentsRes.json();
-  return treatments;
+  if (!res.ok) {
+    if (res.status === 401 || res.status === 403)
+      throw makeAuthError(res.status);
+    throw new Error(`Nightscout treatments error: ${res.status}`);
+  }
+
+  return ensureArray(await res.json());
 }
 
 export async function addTreatment(
