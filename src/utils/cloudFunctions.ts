@@ -39,6 +39,13 @@ export async function fetchBundle(
   }
 }
 
+function makeAuthError(status: number) {
+  const err: any = new Error("AUTH_REQUIRED");
+  err.code = "AUTH_REQUIRED";
+  err.status = status;
+  return err;
+}
+
 export async function fetchBundleDirect(
   nsUrl: string,
   secret: string = "",
@@ -59,6 +66,14 @@ export async function fetchBundleDirect(
       `${baseUrl}/api/v1/entries.json?count=${count}`,
       { headers },
     );
+
+    if (!entriesRes.ok) {
+      if (entriesRes.status === 401 || entriesRes.status === 403) {
+        throw makeAuthError(entriesRes.status);
+      }
+      throw new Error(`Nightscout entries error: ${entriesRes.status}`);
+    }
+
     const entries = await entriesRes.json();
 
     const treatmentsRes = await fetch(
