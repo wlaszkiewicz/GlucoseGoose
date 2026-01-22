@@ -202,7 +202,6 @@ const DoctorPatientDetailScreen = () => {
             </View>
           </View>
         </View>
-
         {/* Patient Info Card */}
         <View style={styles.heroCard}>
           <View style={styles.iconBox}>
@@ -242,7 +241,38 @@ const DoctorPatientDetailScreen = () => {
           </TouchableOpacity>
         </View>
 
-        {/* Status Section */}
+        {/* !secret?.trim() ? ({" "}
+        <View style={styles.warningCard}>
+          {" "}
+          <View style={styles.warningHeader}>
+            {" "}
+            <Feather
+              name="shield"
+              size={20}
+              color={VintageColors.iconOrange}
+            />{" "}
+            <Text style={styles.warningTitle}>Secret required</Text>{" "}
+          </View>{" "}
+          <Text style={styles.warningText}>
+            {" "}
+            To fetch glucose & insulin for this patient, enter their API
+            secret.{" "}
+          </Text>{" "}
+          <TouchableOpacity
+            style={styles.primaryButton}
+            onPress={() => setShowSecretModal(true)}
+            activeOpacity={0.85}
+          >
+            {" "}
+            <Feather
+              name="key"
+              size={14}
+              color={VintageColors.primaryText}
+            />{" "}
+            <Text style={styles.primaryButtonText}>Enter secret</Text>{" "}
+          </TouchableOpacity>{" "}
+        </View>{" "}
+        ) : ns.isLoading ?Status Section */}
         {ns.isLoading ? (
           <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color={VintageColors.primaryText} />
@@ -422,7 +452,6 @@ const DoctorPatientDetailScreen = () => {
             </View>
           </>
         )}
-
         <View style={VintageStyles.spacing60} />
       </ScrollView>
 
