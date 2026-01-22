@@ -7,6 +7,8 @@ import {
   TextInput,
   TouchableOpacity,
   Modal,
+  ActivityIndicator,
+  Dimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
@@ -40,13 +42,27 @@ const DoctorPatientDetailScreen = () => {
             { paddingTop: 40 },
           ]}
         >
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Missing patient data</Text>
-            <Text style={styles.cardSub}>
-              This screen needs navigation params:{"\n"}
-              <Text style={styles.metaLabel}>patient.uid</Text> and{" "}
-              <Text style={styles.metaLabel}>patient.nightscoutUrl</Text>.
+          <View style={styles.errorCard}>
+            <Feather
+              name="alert-circle"
+              size={32}
+              color={VintageColors.secondaryText}
+            />
+            <Text style={styles.errorTitle}>Missing patient data</Text>
+            <Text style={styles.errorText}>
+              This screen needs navigation params.
             </Text>
+            <TouchableOpacity
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}
+            >
+              <Feather
+                name="arrow-left"
+                size={16}
+                color={VintageColors.primaryText}
+              />
+              <Text style={styles.backButtonText}>Go Back</Text>
+            </TouchableOpacity>
           </View>
         </ScrollView>
       </View>
@@ -55,9 +71,9 @@ const DoctorPatientDetailScreen = () => {
 
   const [secret, setSecret] = useState<string>("");
   const [secretLoaded, setSecretLoaded] = useState(false);
-
   const [showSecretModal, setShowSecretModal] = useState(false);
   const [secretDraft, setSecretDraft] = useState("");
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     let mounted = true;
@@ -65,7 +81,6 @@ const DoctorPatientDetailScreen = () => {
     (async () => {
       try {
         setSecretLoaded(false);
-
         const saved = await StorageService.getPatientSecret(patient.uid);
         if (!mounted) return;
 
@@ -102,20 +117,18 @@ const DoctorPatientDetailScreen = () => {
 
   const onSaveSecret = async () => {
     try {
+      setLoading(true);
       const raw = (secretDraft ?? "").trim();
-      if (!raw) return;
-
-      const hashed = sha1.sha1(raw);
+      const hashed = raw ? sha1.sha1(raw) : "";
 
       await StorageService.setPatientSecret(patient.uid, hashed);
-
       setSecret(hashed);
       setSecretDraft("");
       setShowSecretModal(false);
-
-      console.log("Saved hashed secret length:", hashed.length);
     } catch (e) {
       console.error("Saving secret failed:", e);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -134,10 +147,296 @@ const DoctorPatientDetailScreen = () => {
     (ns.activities?.length ?? 0) +
     (ns.otherEntries?.length ?? 0);
 
+  const getInitials = (name: string) => {
+    return (
+      name
+        ?.split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2) || "PT"
+    );
+  };
+
+  const getGlucoseStatus = (sgv: number) => {
+    if (sgv < 70) return "Low";
+    if (sgv > 180) return "High";
+    return "In Range";
+  };
+
+  const getGlucoseColor = (sgv: number) => {
+    if (sgv < 70) return VintageColors.iconRed;
+    if (sgv > 180) return VintageColors.iconOrange;
+    return VintageColors.iconGreen;
+  };
+
   return (
     <View style={VintageStyles.container}>
       <StatusBar style="auto" />
 
+      <ScrollView
+        style={{ flex: 1 }}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={VintageStyles.scrollContent}
+      >
+        {/* Header with Back Button */}
+        <View style={[VintageStyles.headerSection, { marginBottom: 8 }]}>
+          <View style={styles.headerRow}>
+            <TouchableOpacity
+              onPress={() => navigation.goBack()}
+              activeOpacity={0.75}
+              style={styles.backArrow}
+            >
+              <Feather
+                name="chevron-left"
+                size={20}
+                color={VintageColors.primaryText}
+              />
+            </TouchableOpacity>
+
+            <View style={styles.headerCenter}>
+              <View style={VintageStyles.headerDecoration}>
+                <View style={VintageStyles.headerLine} />
+                <Text style={VintageStyles.headerTitle}>Patient Details</Text>
+                <View style={VintageStyles.headerLine} />
+              </View>
+            </View>
+          </View>
+        </View>
+
+        {/* Patient Info Card */}
+        <View style={styles.heroCard}>
+          <View style={styles.iconBox}>
+            <Text style={styles.patientInitials}>
+              {getInitials(patient.displayName || "Patient")}
+            </Text>
+          </View>
+
+          <View style={{ flex: 1 }}>
+            <Text style={styles.heroTitle}>
+              {patient.displayName ?? "Patient"}
+            </Text>
+            <View style={styles.urlRow}>
+              <Feather
+                name="link"
+                size={12}
+                color={VintageColors.secondaryText}
+              />
+              <Text style={styles.heroSub} numberOfLines={1}>
+                {patient.nightscoutUrl}
+              </Text>
+            </View>
+          </View>
+
+          <TouchableOpacity
+            style={styles.secretPill}
+            onPress={() => setShowSecretModal(true)}
+          >
+            <Feather
+              name={secret?.trim() ? "lock" : "unlock"}
+              size={14}
+              color={VintageColors.primaryText}
+            />
+            <Text style={styles.secretPillText}>
+              {secret?.trim() ? "secret set" : "needs secret"}
+            </Text>
+          </TouchableOpacity>
+        </View>
+
+        {/* Status Section */}
+        {!secret?.trim() ? (
+          <View style={styles.warningCard}>
+            <View style={styles.warningHeader}>
+              <Feather
+                name="shield"
+                size={20}
+                color={VintageColors.iconOrange}
+              />
+              <Text style={styles.warningTitle}>Secret required</Text>
+            </View>
+            <Text style={styles.warningText}>
+              To fetch glucose & insulin for this patient, enter their API
+              secret.
+            </Text>
+            <TouchableOpacity
+              style={styles.primaryButton}
+              onPress={() => setShowSecretModal(true)}
+              activeOpacity={0.85}
+            >
+              <Feather name="key" size={14} color={VintageColors.primaryText} />
+              <Text style={styles.primaryButtonText}>Enter secret</Text>
+            </TouchableOpacity>
+          </View>
+        ) : ns.isLoading ? (
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={VintageColors.primaryText} />
+            <Text style={styles.loadingText}>Loading…</Text>
+            <Text style={styles.loadingSubtext}>
+              Fetching glucose & insulin
+            </Text>
+          </View>
+        ) : ns.error ? (
+          <View style={styles.errorCard}>
+            <View style={styles.errorHeader}>
+              <Feather
+                name="wifi-off"
+                size={20}
+                color={VintageColors.iconRed}
+              />
+              <Text style={styles.errorTitle}>Couldn't load Nightscout</Text>
+            </View>
+            <Text style={styles.errorText}>{ns.error}</Text>
+            <View style={styles.actionRow}>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => ns.loadFullDay()}
+              >
+                <Feather
+                  name="refresh-cw"
+                  size={14}
+                  color={VintageColors.primaryText}
+                />
+                <Text style={styles.secondaryButtonText}>Retry</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.secondaryButton}
+                onPress={() => setShowSecretModal(true)}
+              >
+                <Feather
+                  name="edit"
+                  size={14}
+                  color={VintageColors.primaryText}
+                />
+                <Text style={styles.secondaryButtonText}>Update secret</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        ) : (
+          <>
+            {/* Glucose Card */}
+            <View style={styles.glucoseCard}>
+              <Text style={styles.cardTitle}>Current glucose</Text>
+              <View style={styles.glucoseRow}>
+                <Text style={styles.glucoseValue}>
+                  {latest?.sgv != null ? latest.sgv : "—"}
+                </Text>
+                <Text style={styles.glucoseUnit}>mg/dL</Text>
+              </View>
+
+              {latest?.sgv != null && (
+                <View style={styles.statusRow}>
+                  <View
+                    style={[
+                      styles.statusBadge,
+                      { backgroundColor: getGlucoseColor(latest.sgv) },
+                    ]}
+                  >
+                    <Text style={styles.statusText}>
+                      {getGlucoseStatus(latest.sgv)}
+                    </Text>
+                  </View>
+                  {latest?.direction && (
+                    <View style={styles.trendContainer}>
+                      <Feather
+                        name={
+                          latest.direction === "DoubleUp"
+                            ? "arrow-up"
+                            : latest.direction === "SingleUp"
+                              ? "arrow-up"
+                              : latest.direction === "FortyFiveUp"
+                                ? "arrow-up-right"
+                                : latest.direction === "Flat"
+                                  ? "minus"
+                                  : latest.direction === "FortyFiveDown"
+                                    ? "arrow-down-right"
+                                    : latest.direction === "SingleDown"
+                                      ? "arrow-down"
+                                      : "arrow-down"
+                        }
+                        size={16}
+                        color={VintageColors.primaryText}
+                      />
+                      <Text style={styles.trendText}>
+                        {latest.direction.replace(/([A-Z])/g, " $1").trim()}
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
+
+              {latest?.date && (
+                <Text style={styles.glucoseTime}>
+                  {new Date(Number(latest.date)).toLocaleString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                    month: "short",
+                    day: "numeric",
+                  })}
+                </Text>
+              )}
+            </View>
+
+            {/* Data Summary */}
+            <View style={styles.dataCard}>
+              <Text style={styles.cardTitle}>Data summary</Text>
+              <View style={styles.dataGrid}>
+                <View style={styles.dataItem}>
+                  <Text style={styles.dataValue}>{ns.entries.length}</Text>
+                  <Text style={styles.dataLabel}>Readings</Text>
+                </View>
+                <View style={styles.dataDivider} />
+                <View style={styles.dataItem}>
+                  <Text style={styles.dataValue}>{totalTreatments}</Text>
+                  <Text style={styles.dataLabel}>Treatments</Text>
+                </View>
+                <View style={styles.dataDivider} />
+                <View style={styles.dataItem}>
+                  <Text style={styles.dataValue}>{ns.meals?.length || 0}</Text>
+                  <Text style={styles.dataLabel}>Meals</Text>
+                </View>
+              </View>
+            </View>
+
+            {/* Actions */}
+            <View style={styles.actionsCard}>
+              <Text style={styles.cardTitle}>Actions</Text>
+              <View style={styles.actionButtons}>
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => setShowSecretModal(true)}
+                >
+                  <View style={styles.actionIcon}>
+                    <Feather
+                      name="key"
+                      size={20}
+                      color={VintageColors.primaryText}
+                    />
+                  </View>
+                  <Text style={styles.actionButtonText}>Change secret</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={styles.actionButton}
+                  onPress={() => ns.loadFullDay()}
+                >
+                  <View style={styles.actionIcon}>
+                    <Feather
+                      name="refresh-cw"
+                      size={20}
+                      color={VintageColors.primaryText}
+                    />
+                  </View>
+                  <Text style={styles.actionButtonText}>Refresh data</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </>
+        )}
+
+        <View style={VintageStyles.spacing60} />
+      </ScrollView>
+
+      {/* Secret Modal */}
       <Modal
         visible={showSecretModal}
         transparent
@@ -177,18 +476,19 @@ const DoctorPatientDetailScreen = () => {
                 paddingBottom: 20,
               }}
             >
-              <Text style={styles.label}>API Secret</Text>
-
-              <TextInput
-                value={secretDraft}
-                onChangeText={(t) => setSecretDraft(t)}
-                placeholder="paste api-secret here"
-                placeholderTextColor={VintageColors.secondaryText}
-                autoCapitalize="none"
-                autoCorrect={false}
-                secureTextEntry
-                style={styles.input}
-              />
+              <View style={styles.formGroup}>
+                <Text style={styles.label}>API Secret</Text>
+                <TextInput
+                  value={secretDraft}
+                  onChangeText={(t) => setSecretDraft(t)}
+                  placeholder="paste api-secret here"
+                  placeholderTextColor={VintageColors.secondaryText}
+                  autoCapitalize="none"
+                  autoCorrect={false}
+                  secureTextEntry
+                  style={styles.input}
+                />
+              </View>
 
               <View style={styles.btnRow}>
                 <TouchableOpacity
@@ -203,150 +503,24 @@ const DoctorPatientDetailScreen = () => {
                   style={[styles.btn, styles.btnPrimary]}
                   activeOpacity={0.85}
                   onPress={onSaveSecret}
+                  disabled={loading}
                 >
-                  <Text style={styles.btnPrimaryText}>Save</Text>
+                  {loading ? (
+                    <ActivityIndicator size="small" color="#FFFFFF" />
+                  ) : (
+                    <Text style={styles.btnPrimaryText}>Save</Text>
+                  )}
                 </TouchableOpacity>
               </View>
 
               <Text style={styles.modalHint}>
-                Tip: if this patient’s Nightscout is public, you can keep it
+                Tip: if this patient's Nightscout is public, you can keep it
                 empty — but in your case you need a secret.
               </Text>
             </ScrollView>
           </View>
         </View>
       </Modal>
-
-      <ScrollView
-        style={{ flex: 1 }}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={VintageStyles.scrollContent}
-      >
-        <View style={[VintageStyles.headerSection, { marginBottom: 8 }]}>
-          <View style={styles.headerRow}>
-            {/* Back arrow (absolute, does NOT affect centering) */}
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.75}
-              style={styles.backArrow}
-            >
-              <Feather
-                name="chevron-left"
-                size={20}
-                color={VintageColors.primaryText}
-              />
-            </TouchableOpacity>
-
-            {/* Centered header */}
-            <View style={styles.headerCenter}>
-              <View style={VintageStyles.headerDecoration}>
-                <View style={VintageStyles.headerLine} />
-                <Text style={VintageStyles.headerTitle}>Patient Details</Text>
-                <View style={VintageStyles.headerLine} />
-              </View>
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.heroCard}>
-          <View style={styles.iconBox}>
-            <Feather name="user" size={18} color={VintageColors.primaryText} />
-          </View>
-
-          <View style={{ flex: 1 }}>
-            <Text style={styles.heroTitle}>
-              {patient.displayName ?? "Patient"}
-            </Text>
-            <Text style={styles.heroSub} numberOfLines={1}>
-              <Text style={styles.metaLabel}>URL: </Text>
-              {patient.nightscoutUrl}
-            </Text>
-          </View>
-
-          <View style={styles.secretPill}>
-            <Feather
-              name={secret?.trim() ? "check" : "alert-circle"}
-              size={14}
-              color={VintageColors.primaryText}
-            />
-            <Text style={styles.secretPillText}>
-              {secret?.trim() ? "secret set" : "needs secret"}
-            </Text>
-          </View>
-        </View>
-
-        {!secret?.trim() ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Secret required</Text>
-            <Text style={styles.cardSub}>
-              To fetch glucose & insulin for this patient, enter their API
-              secret.
-            </Text>
-
-            <TouchableOpacity
-              style={[styles.smallBtn, { marginTop: 12 }]}
-              onPress={() => setShowSecretModal(true)}
-              activeOpacity={0.85}
-            >
-              <Feather name="key" size={14} color={VintageColors.primaryText} />
-              <Text style={styles.smallBtnText}>Enter secret</Text>
-            </TouchableOpacity>
-          </View>
-        ) : ns.isLoading ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Loading…</Text>
-            <Text style={styles.cardSub}>Fetching glucose & insulin</Text>
-          </View>
-        ) : ns.error ? (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Couldn’t load Nightscout</Text>
-            <Text style={styles.cardSub}>{ns.error}</Text>
-
-            <TouchableOpacity
-              style={[styles.smallBtn, { marginTop: 12 }]}
-              onPress={() => setShowSecretModal(true)}
-              activeOpacity={0.85}
-            >
-              <Feather name="key" size={14} color={VintageColors.primaryText} />
-              <Text style={styles.smallBtnText}>Update secret</Text>
-            </TouchableOpacity>
-          </View>
-        ) : (
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Latest glucose</Text>
-            <Text style={styles.big}>
-              {latest?.sgv != null ? `${latest.sgv} mg/dL` : "—"}
-            </Text>
-            <Text style={styles.cardSub}>
-              {latest?.date
-                ? new Date(Number(latest.date)).toLocaleString()
-                : "No recent entry"}
-            </Text>
-
-            <View style={{ height: 10 }} />
-
-            <Text style={styles.cardSub}>
-              Entries loaded:{" "}
-              <Text style={styles.metaLabel}>{ns.entries.length}</Text>
-            </Text>
-            <Text style={styles.cardSub}>
-              Treatments loaded:{" "}
-              <Text style={styles.metaLabel}>{totalTreatments}</Text>
-            </Text>
-
-            <TouchableOpacity
-              style={[styles.smallBtn, { marginTop: 12 }]}
-              onPress={() => setShowSecretModal(true)}
-              activeOpacity={0.85}
-            >
-              <Feather name="key" size={14} color={VintageColors.primaryText} />
-              <Text style={styles.smallBtnText}>Change secret</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        <View style={{ height: 40 }} />
-      </ScrollView>
     </View>
   );
 };
@@ -356,11 +530,9 @@ const styles = StyleSheet.create({
     height: 44,
     justifyContent: "center",
   },
-
   headerCenter: {
     alignItems: "center",
   },
-
   backArrow: {
     position: "absolute",
     left: 0,
@@ -373,7 +545,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-
   heroCard: {
     backgroundColor: VintageColors.cardBackground,
     padding: 16,
@@ -383,16 +554,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -400,19 +566,26 @@ const styles = StyleSheet.create({
     borderColor: VintageColors.border,
     backgroundColor: VintageColors.lightBackground,
   },
+  patientInitials: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+  },
   heroTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: VintageColors.primaryText,
     marginBottom: 6,
   },
+  urlRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
   heroSub: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-  },
-  metaLabel: {
-    color: VintageColors.primaryText,
-    fontWeight: "600",
+    flex: 1,
   },
   secretPill: {
     flexDirection: "row",
@@ -430,8 +603,81 @@ const styles = StyleSheet.create({
     color: VintageColors.primaryText,
     fontWeight: "600",
   },
-
-  card: {
+  warningCard: {
+    backgroundColor: VintageColors.cardBackground,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  warningHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  warningTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+  },
+  warningText: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  loadingCard: {
+    backgroundColor: VintageColors.cardBackground,
+    padding: 32,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    alignItems: "center",
+  },
+  loadingText: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+    marginTop: 16,
+    marginBottom: 4,
+  },
+  loadingSubtext: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+  },
+  errorCard: {
+    backgroundColor: VintageColors.cardBackground,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  errorHeader: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+    marginBottom: 8,
+  },
+  errorTitle: {
+    fontSize: 16,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+  },
+  errorText: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    lineHeight: 16,
+    marginBottom: 12,
+  },
+  actionRow: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  glucoseCard: {
     backgroundColor: VintageColors.cardBackground,
     padding: 16,
     borderRadius: 16,
@@ -443,26 +689,133 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: VintageColors.primaryText,
-    marginBottom: 6,
+    marginBottom: 12,
   },
-  cardSub: {
+  glucoseRow: {
+    flexDirection: "row",
+    alignItems: "baseline",
+    marginBottom: 12,
+  },
+  glucoseValue: {
+    fontSize: 36,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+  },
+  glucoseUnit: {
+    fontSize: 16,
+    color: VintageColors.secondaryText,
+    marginLeft: 8,
+    fontWeight: "500",
+  },
+  statusRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: 12,
+  },
+  statusBadge: {
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 12,
+  },
+  statusText: {
+    fontSize: 12,
+    fontWeight: "600",
+    color: "#FFFFFF",
+    textTransform: "uppercase",
+    letterSpacing: 0.5,
+  },
+  trendContainer: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 6,
+  },
+  trendText: {
+    fontSize: 13,
+    color: VintageColors.secondaryText,
+  },
+  glucoseTime: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    lineHeight: 16,
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: VintageColors.border,
   },
-  big: {
+  dataCard: {
+    backgroundColor: VintageColors.cardBackground,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  dataGrid: {
+    flexDirection: "row",
+    alignItems: "center",
+  },
+  dataItem: {
+    flex: 1,
+    alignItems: "center",
+  },
+  dataValue: {
     fontSize: 24,
     fontWeight: "600",
     color: VintageColors.primaryText,
-    marginTop: 6,
     marginBottom: 4,
   },
-
-  smallBtn: {
+  dataLabel: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+  },
+  dataDivider: {
+    width: 1,
+    height: 24,
+    backgroundColor: VintageColors.border,
+  },
+  actionsCard: {
+    backgroundColor: VintageColors.cardBackground,
+    padding: 16,
+    borderRadius: 16,
+    marginBottom: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  actionButtons: {
+    flexDirection: "row",
+    gap: 12,
+  },
+  actionButton: {
+    flex: 1,
+    alignItems: "center",
+    padding: 16,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  actionIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: VintageColors.cardBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  actionButtonText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: VintageColors.primaryText,
+  },
+  primaryButton: {
     flexDirection: "row",
     alignItems: "center",
+    justifyContent: "center",
     gap: 8,
-    alignSelf: "flex-start",
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 12,
@@ -470,12 +823,63 @@ const styles = StyleSheet.create({
     borderColor: VintageColors.border,
     backgroundColor: VintageColors.lightBackground,
   },
-  smallBtnText: {
+  primaryButtonText: {
     fontSize: 12,
     color: VintageColors.primaryText,
     fontWeight: "600",
   },
-
+  secondaryButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    backgroundColor: VintageColors.lightBackground,
+  },
+  secondaryButtonText: {
+    fontSize: 12,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+  },
+  backButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 6,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    backgroundColor: VintageColors.lightBackground,
+  },
+  backButtonText: {
+    fontSize: 12,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+  },
+  formGroup: {
+    marginBottom: 16,
+  },
+  label: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    marginBottom: 8,
+  },
+  input: {
+    backgroundColor: VintageColors.cardBackground,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    borderRadius: 10,
+    padding: 15,
+    fontSize: 16,
+    color: VintageColors.primaryText,
+  },
   modalSub: {
     marginTop: 10,
     fontSize: 12,
@@ -493,21 +897,6 @@ const styles = StyleSheet.create({
     color: VintageColors.secondaryText,
     lineHeight: 15,
     textAlign: "center",
-  },
-  label: {
-    fontSize: 14,
-    color: VintageColors.primaryText,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: VintageColors.cardBackground,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    borderRadius: 10,
-    padding: 15,
-    fontSize: 16,
-    color: VintageColors.primaryText,
   },
   btnRow: {
     flexDirection: "row",
@@ -538,27 +927,6 @@ const styles = StyleSheet.create({
     color: "#fff",
     fontSize: 14,
     fontWeight: "700",
-  },
-  topRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 10,
-  },
-  backBtn: {
-    flexDirection: "row",
-    alignItems: "center",
-    gap: 6,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 14,
-    backgroundColor: VintageColors.cardBackground,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  backText: {
-    fontSize: 13,
-    fontWeight: "700",
-    color: VintageColors.primaryText,
   },
 });
 
