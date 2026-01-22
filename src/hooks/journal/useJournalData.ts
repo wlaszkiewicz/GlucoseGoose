@@ -1,5 +1,6 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useNightscout } from "../../contexts/NightscoutContext";
+import { AppState, AppStateStatus } from "react-native";
 
 const getDayRange = (date: Date) => {
   const start = new Date(date);
@@ -25,9 +26,24 @@ export const useJournalData = (initialDate?: Date) => {
     fetchTreatments(selectedDate);
   }, [selectedDate, fetchTreatments]);
 
+  const appState = useRef(AppState.currentState);
+
   useEffect(() => {
-    fetchTreatments(selectedDate);
-  }, [selectedDate, fetchTreatments]);
+    const onChange = (nextState: AppStateStatus) => {
+      const wasBackground =
+        appState.current === "inactive" || appState.current === "background";
+      const isActive = nextState === "active";
+
+      if (wasBackground && isActive) {
+        setSelectedDate(new Date());
+      }
+
+      appState.current = nextState;
+    };
+
+    const sub = AppState.addEventListener("change", onChange);
+    return () => sub.remove();
+  }, []);
 
   const {
     todayMeals,
