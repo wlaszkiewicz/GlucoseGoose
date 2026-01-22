@@ -30,12 +30,10 @@ import GooseAvatarPicker from "../components/settings/GooseAvatarPicker";
 import { getAvatarUrl } from "../services/avatarservice";
 import { getLocalAvatarImage } from '../utils/avatarHelper';
 
-const gooseImage = require("../../assets/goose1.png");
-
 const SettingsScreen = () => {
   const navigation = useNavigation();
   const { reset } = useNightscout();
-  const { userData, firebaseUser, updateUserData } = useAuth();
+  const { userData, firebaseUser, updateUserData, isDoctor } = useAuth();
   
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
   const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
@@ -45,6 +43,10 @@ const SettingsScreen = () => {
   const [height, setHeight] = useState<number>(userData?.height || 170);
   const [age, setAge] = useState(userData?.age?.toString() || "");
   const [gender, setGender] = useState(userData?.gender || "");
+  
+  // Pola tylko dla lekarzy
+  const [licenseNumber, setLicenseNumber] = useState(userData?.licenseNumber || "");
+  const [specialization, setSpecialization] = useState(userData?.specialization || "");
 
   const [isWeightPickerVisible, setIsWeightPickerVisible] = useState(false);
   const [isHeightPickerVisible, setIsHeightPickerVisible] = useState(false);
@@ -68,34 +70,34 @@ const SettingsScreen = () => {
   }, [selectedAvatarId]);
 
   const handleAvatarSelect = async (avatarId: string) => {
-  setSelectedAvatarId(avatarId);
-  
-  if (!firebaseUser?.uid) {
-    console.error("No user ID available");
-    return;
-  }
-
-  try {
-    const result = await updateUserProfile(firebaseUser.uid, {
-      avatar: avatarId,
-      updatedAt: Date.now(),
-    });
-
-    if (result.success) {
-      console.log("Avatar ID saved to Firestore");
-      
-      if (updateUserData) {
-        updateUserData({ avatar: avatarId });
-      }
-      
-      setIsAvatarPickerVisible(false);
-    } else {
-      console.error("Failed to save avatar:", result.error);
+    setSelectedAvatarId(avatarId);
+    
+    if (!firebaseUser?.uid) {
+      console.error("No user ID available");
+      return;
     }
-  } catch (error) {
-    console.error("Error saving avatar:", error);
-  }
-};
+
+    try {
+      const result = await updateUserProfile(firebaseUser.uid, {
+        avatar: avatarId,
+        updatedAt: Date.now(),
+      });
+
+      if (result.success) {
+        console.log("Avatar ID saved to Firestore");
+        
+        if (updateUserData) {
+          updateUserData({ avatar: avatarId });
+        }
+        
+        setIsAvatarPickerVisible(false);
+      } else {
+        console.error("Failed to save avatar:", result.error);
+      }
+    } catch (error) {
+      console.error("Error saving avatar:", error);
+    }
+  };
 
   const handleLogout = async () => {
     const result = await logoutUser();
@@ -116,18 +118,23 @@ const SettingsScreen = () => {
   };
 
   const closeProfileModal = () => {
-  setIsProfileModalVisible(false);
-  setUsername(userData?.username || "");
-  setWeight(userData?.weight || 70);
-  setHeight(userData?.height || 170);
-  setAge(userData?.age?.toString() || "");
-  setGender(userData?.gender || "");
+    setIsProfileModalVisible(false);
+    setUsername(userData?.username || "");
+    setWeight(userData?.weight || 70);
+    setHeight(userData?.height || 170);
+    setAge(userData?.age?.toString() || "");
+    setGender(userData?.gender || "");
+    
+    // Resetuj pola lekarza tylko jeśli użytkownik jest lekarzem
+    if (isDoctor()) {
+      setLicenseNumber(userData?.licenseNumber || "");
+      setSpecialization(userData?.specialization || "");
+    }
   };
 
   const openAvatarPicker = () => {
     setIsAvatarPickerVisible(true);
   };
-
 
   const handleGenderSelect = (selectedGender: string) => {
     setGender(selectedGender);
@@ -155,7 +162,8 @@ const SettingsScreen = () => {
       return;
     }
 
-    const profileData = {
+    // Podstawowe dane dla wszystkich użytkowników
+    const profileData: any = {
       username,
       weight,
       height,
@@ -165,12 +173,22 @@ const SettingsScreen = () => {
       avatar: selectedAvatarId,
     };
 
+    // Dodaj pola lekarza tylko jeśli użytkownik jest lekarzem
+    if (isDoctor()) {
+      profileData.licenseNumber = licenseNumber;
+      profileData.specialization = specialization;
+    }
 
     try {
       const result = await updateUserProfile(firebaseUser.uid, profileData);
 
       if (result.success) {
         console.log("Profile saved successfully");
+        
+        // Aktualizuj dane w kontekście auth
+        if (updateUserData) {
+          updateUserData(profileData);
+        }
       } else {
         console.error("Failed to save profile:", result.error);
       }
@@ -192,28 +210,37 @@ const SettingsScreen = () => {
         <View style={[VintageStyles.headerSection]}>
           <View style={VintageStyles.headerDecoration}>
             <View style={VintageStyles.headerLine} />
-            <Text style={VintageStyles.headerTitle}>My Profile</Text>
+            <Text style={VintageStyles.headerTitle}>
+              {isDoctor() ? "Doctor Profile" : "My Profile"}
+            </Text>
             <View style={VintageStyles.headerLine} />
           </View>
         </View>
 
-        {/* Profile */}
+        {/* Profile Section */}
         <View style={VintageStyles.profileSection}>
-         <TouchableOpacity 
-          style={VintageStyles.gooseAvatarCircle}
-          onPress={openAvatarPicker}
-        >
-          <Image
-            source={getLocalAvatarImage(selectedAvatarId)}
-            style={VintageStyles.gooseAvatarImage}
-            resizeMode="cover"
-          />
-          <View style={VintageStyles.editAvatarIcon}>
-            <Feather name="edit-2" size={16} color={VintageColors.primaryText} />
-          </View>
-        </TouchableOpacity>
+          <TouchableOpacity 
+            style={VintageStyles.gooseAvatarCircle}
+            onPress={openAvatarPicker}
+          >
+            <Image
+              source={getLocalAvatarImage(selectedAvatarId)}
+              style={VintageStyles.gooseAvatarImage}
+              resizeMode="cover"
+            />
+            <View style={VintageStyles.editAvatarIcon}>
+              <Feather name="edit-2" size={16} color={VintageColors.primaryText} />
+            </View>
+          </TouchableOpacity>
 
-            <Text style={VintageStyles.profileName}>{username || "Goose"}</Text>
+          <Text style={VintageStyles.profileName}>{username || (isDoctor() ? "Doctor Goose" : "Goose")}</Text>
+          
+          {/* Dodaj informację o specjalizacji dla lekarzy */}
+          {isDoctor() && userData?.specialization && (
+            <Text style={[VintageStyles.profileSpecialization, { color: VintageColors.secondaryText, fontStyle: 'italic', marginTop: 4 }]}>
+              {userData.specialization}
+            </Text>
+          )}
 
           <View style={VintageStyles.spacing10} />
 
@@ -257,7 +284,7 @@ const SettingsScreen = () => {
           </View>
         </View>
 
-        {/* Cards */}
+        {/* Settings Cards */}
         <View style={VintageStyles.settingsList}>
           <View style={VintageStyles.sectionHeader}>
             <Text style={VintageStyles.sectionTitle}>
@@ -291,7 +318,7 @@ const SettingsScreen = () => {
             <View style={VintageStyles.settingTextContainer}>
               <Text style={VintageStyles.settingText}>Account & Profile</Text>
               <Text style={VintageStyles.settingSubtext}>
-                Update personal information
+                Update personal {isDoctor() ? "and professional" : ""} information
               </Text>
             </View>
             <View style={VintageStyles.vintageArrow}>
@@ -457,8 +484,35 @@ const SettingsScreen = () => {
                     />
                   </View>
                 </View>
-                <Text style={VintageStyles.modalProfileTitle}>Account Settings</Text>
+                <Text style={VintageStyles.modalProfileTitle}>
+                  {isDoctor() ? "Doctor Settings" : "Account Settings"}
+                </Text>
               </View>
+
+              {/* Number Pickers */}
+              <NumberPicker
+                visible={isWeightPickerVisible}
+                onClose={() => setIsWeightPickerVisible(false)}
+                onValueSelect={handleWeightSelect}
+                selectedValue={Number(weight)}
+                title="Select Weight"
+                unit="kg"
+                min={30}
+                max={200}
+                step={1}
+              />
+
+              <NumberPicker
+                visible={isHeightPickerVisible}
+                onClose={() => setIsHeightPickerVisible(false)}
+                onValueSelect={handleHeightSelect}
+                selectedValue={Number(height)}
+                title="Select Height"
+                unit="cm"
+                min={100}
+                max={250}
+                step={1}
+              />
 
               <ScrollView 
                 style={VintageStyles.formScroll}
@@ -467,15 +521,15 @@ const SettingsScreen = () => {
               >
                 <View style={VintageStyles.formGroup}>
                   <View style={VintageStyles.labelContainer}>
-                  <Feather name="user" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
-                  <Text style={VintageStyles.label}>Username</Text>
+                    <Feather name="user" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                    <Text style={VintageStyles.label}>Username</Text>
                   </View>
                   <TextInput 
-                  style={VintageStyles.input}
-                  placeholder="Enter username"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={username}
-                  onChangeText={setUsername}
+                    style={VintageStyles.input}
+                    placeholder="Enter username"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={username}
+                    onChangeText={setUsername}
                   />
                 </View>
 
@@ -527,16 +581,16 @@ const SettingsScreen = () => {
 
                 <View style={VintageStyles.formGroup}>
                   <View style={VintageStyles.labelContainer}>
-                  <Feather name="calendar" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
-                  <Text style={VintageStyles.label}>Age</Text>
+                    <Feather name="calendar" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                    <Text style={VintageStyles.label}>Age</Text>
                   </View>
                   <TextInput 
-                  style={VintageStyles.input}
-                  placeholder="Enter age"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={age}
-                  onChangeText={setAge}
-                  keyboardType="numeric"
+                    style={VintageStyles.input}
+                    placeholder="Enter age"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={age}
+                    onChangeText={setAge}
+                    keyboardType="numeric"
                   />
                 </View>
 
@@ -620,6 +674,39 @@ const SettingsScreen = () => {
                   </View>
                 </View>
 
+                {/* Pola tylko dla lekarzy */}
+                {isDoctor() && (
+                  <>
+                    <View style={VintageStyles.formGroup}>
+                      <View style={VintageStyles.labelContainer}>
+                        <Feather name="shield" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                        <Text style={VintageStyles.label}>License Number</Text>
+                      </View>
+                      <TextInput 
+                        style={VintageStyles.input}
+                        placeholder="Enter medical license number"
+                        placeholderTextColor={VintageColors.secondaryText}
+                        value={licenseNumber}
+                        onChangeText={setLicenseNumber}
+                      />
+                    </View>
+
+                    <View style={VintageStyles.formGroup}>
+                      <View style={VintageStyles.labelContainer}>
+                        <Feather name="briefcase" size={16} color={VintageColors.primaryText} style={VintageStyles.labelIcon} />
+                        <Text style={VintageStyles.label}>Specialization</Text>
+                      </View>
+                      <TextInput 
+                        style={VintageStyles.input}
+                        placeholder="e.g., Endocrinology, Diabetology"
+                        placeholderTextColor={VintageColors.secondaryText}
+                        value={specialization}
+                        onChangeText={setSpecialization}
+                      />
+                    </View>
+                  </>
+                )}
+
                 <View style={VintageStyles.buttonContainer}>
                   <TouchableOpacity 
                     style={[VintageStyles.button, VintageStyles.cancelButton]}
@@ -647,32 +734,6 @@ const SettingsScreen = () => {
         onClose={() => setIsAvatarPickerVisible(false)}
         onAvatarSelect={handleAvatarSelect}
         currentAvatar={selectedAvatarId}
-      />
-
-      {/* Weight Picker */}
-      <NumberPicker
-        visible={isWeightPickerVisible}
-        onClose={() => setIsWeightPickerVisible(false)}
-        onValueSelect={handleWeightSelect}
-        selectedValue={Number(weight)}
-        title="Select Weight"
-        unit="kg"
-        min={30}
-        max={200}
-        step={1}
-      />
-
-      {/* Height Picker */}
-      <NumberPicker
-        visible={isHeightPickerVisible}
-        onClose={() => setIsHeightPickerVisible(false)}
-        onValueSelect={handleHeightSelect}
-        selectedValue={Number(height)}
-        title="Select Height"
-        unit="cm"
-        min={100}
-        max={250}
-        step={1}
       />
     </View>
   );

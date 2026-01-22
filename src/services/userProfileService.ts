@@ -6,14 +6,20 @@ export const updateUserProfile = async (uid: string, userData: Partial<UserData>
   try {
     const userRef = doc(db, "users", uid);
     
-    const cleanUserData = Object.fromEntries(
-      Object.entries(userData).filter(([_, value]) => value !== undefined)
-    );
+    const allowedFields = [
+      'username', 'weight', 'height', 'age', 'gender', 'avatar',
+      'licenseNumber', 'specialization' 
+    ];
     
-    await updateDoc(userRef, {
-      ...cleanUserData,
-      updatedAt: Date.now()
+    const updateData: any = { updatedAt: Date.now() };
+    
+    allowedFields.forEach(field => {
+      if (userData[field] !== undefined) {
+        updateData[field] = userData[field];
+      }
     });
+    
+    await updateDoc(userRef, updateData);
     return { success: true };
   } catch (error: any) {
     console.error("Error updating user profile:", error);
