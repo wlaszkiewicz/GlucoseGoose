@@ -1,3 +1,4 @@
+// hooks/useNightscoutData.ts (fixed AUTH_REQUIRED propagation everywhere)
 import { useCallback, useRef, useState } from "react";
 import { fetchBundle, fetchTreatmentsDate } from "../utils/cloudFunctions";
 import { NightscoutEntry, NightscoutTreatment } from "../types/nightscout";

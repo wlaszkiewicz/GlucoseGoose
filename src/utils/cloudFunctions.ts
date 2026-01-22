@@ -41,17 +41,7 @@ export async function fetchBundle(
       throw new Error(`Error fetching bundle: ${res.status} ${res.statusText}`);
     return (await res.json()) as NightscoutBundleResponse;
   }
-<<<<<<< Updated upstream
-=======
   return await fetchBundleDirect(nsUrl, secret, minutes);
->>>>>>> Stashed changes
-}
-
-function makeAuthError(status: number) {
-  const err: any = new Error("AUTH_REQUIRED");
-  err.code = "AUTH_REQUIRED";
-  err.status = status;
-  return err;
 }
 
 export async function fetchBundleDirect(
@@ -67,53 +57,6 @@ export async function fetchBundleDirect(
   const headers: any = {};
   if (secret?.trim()) headers["api-secret"] = secret.trim();
 
-<<<<<<< Updated upstream
-  try {
-    const entriesRes = await fetch(
-      `${baseUrl}/api/v1/entries.json?count=${count}`,
-      { headers },
-    );
-
-    if (!entriesRes.ok) {
-      if (entriesRes.status === 401 || entriesRes.status === 403) {
-        throw makeAuthError(entriesRes.status);
-      }
-      throw new Error(`Nightscout entries error: ${entriesRes.status}`);
-    }
-
-    const entries = await entriesRes.json();
-
-    const treatmentsRes = await fetch(
-      `${baseUrl}/api/v1/treatments?find[created_at][$gte]=${sinceISO}`,
-      { headers },
-    );
-
-    const treatments = await treatmentsRes.json();
-
-    const meals = treatments?.filter((t: any) =>
-      t.eventType?.toLowerCase().includes("meal"),
-    );
-
-    const activities = treatments?.filter((t: any) =>
-      t.eventType?.toLowerCase().includes("activity"),
-    );
-
-    const otherTreatments = treatments?.filter(
-      (t: any) =>
-        !t.eventType?.toLowerCase().includes("meal") &&
-        !t.eventType?.toLowerCase().includes("activity"),
-    );
-    return {
-      timestamp: Date.now(),
-      entries,
-      otherTreatments,
-      meals,
-      activities,
-    };
-  } catch (err) {
-    console.error("Failed to fetch Nightscout bundle:", err);
-    throw err;
-=======
   // entries
   const entriesRes = await fetch(
     `${baseUrl}/api/v1/entries.json?count=${count}`,
@@ -124,7 +67,6 @@ export async function fetchBundleDirect(
     if (entriesRes.status === 401 || entriesRes.status === 403)
       throw makeAuthError(entriesRes.status);
     throw new Error(`Nightscout entries error: ${entriesRes.status}`);
->>>>>>> Stashed changes
   }
 
   const entries = ensureArray(await entriesRes.json());
