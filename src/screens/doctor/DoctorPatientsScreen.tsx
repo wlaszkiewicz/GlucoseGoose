@@ -5,6 +5,7 @@ import {
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Dimensions,
 } from "react-native";
 import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
@@ -14,9 +15,22 @@ import { useDoctor } from "../../contexts/DoctorContext";
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors";
 
+const { width } = Dimensions.get("window");
+
 const DoctorPatientsScreen = () => {
   const { patients, loadingPatients } = useDoctor();
   const navigation = useNavigation<any>();
+
+  const getInitials = (name: string) => {
+    return (
+      name
+        ?.split(" ")
+        .map((n) => n[0])
+        .join("")
+        .toUpperCase()
+        .substring(0, 2) || "PT"
+    );
+  };
 
   return (
     <View style={VintageStyles.container}>
@@ -27,6 +41,7 @@ const DoctorPatientsScreen = () => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={VintageStyles.scrollContent}
       >
+        {/* Header */}
         <View style={[VintageStyles.headerSection, { marginBottom: 8 }]}>
           <View style={VintageStyles.header}>
             <View style={VintageStyles.headerDecoration}>
@@ -37,6 +52,29 @@ const DoctorPatientsScreen = () => {
           </View>
         </View>
 
+        {/* Stats Row */}
+        <View style={styles.statsRow}>
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>{patients.length}</Text>
+            <Text style={styles.statLabel}>Total</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>
+              {patients.filter((p) => p.displayName).length}
+            </Text>
+            <Text style={styles.statLabel}>Named</Text>
+          </View>
+          <View style={styles.statDivider} />
+          <View style={styles.statCard}>
+            <Text style={styles.statNumber}>
+              {patients.filter((p) => !p.displayName).length}
+            </Text>
+            <Text style={styles.statLabel}>Unnamed</Text>
+          </View>
+        </View>
+
+        {/* Patient List Section */}
         <View style={styles.sectionHeader}>
           <Text style={styles.sectionTitle}>
             {loadingPatients ? "Loading…" : `Patients (${patients.length})`}
@@ -48,6 +86,13 @@ const DoctorPatientsScreen = () => {
 
         {loadingPatients && patients.length === 0 ? (
           <View style={styles.emptyCard}>
+            <View style={styles.emptyIcon}>
+              <Feather
+                name="loader"
+                size={24}
+                color={VintageColors.secondaryText}
+              />
+            </View>
             <Text style={styles.emptyTitle}>Fetching patient list…</Text>
             <Text style={styles.emptySubtext}>
               This should only take a moment.
@@ -55,10 +100,25 @@ const DoctorPatientsScreen = () => {
           </View>
         ) : patients.length === 0 ? (
           <View style={styles.emptyCard}>
+            <View style={styles.emptyIcon}>
+              <Feather
+                name="user-plus"
+                size={32}
+                color={VintageColors.secondaryText}
+              />
+            </View>
             <Text style={styles.emptyTitle}>No patients yet</Text>
             <Text style={styles.emptySubtext}>
-              When you add patients, they’ll appear here.
+              When you add patients, they'll appear here.
             </Text>
+            <TouchableOpacity style={styles.addButton}>
+              <Feather
+                name="plus"
+                size={16}
+                color={VintageColors.primaryText}
+              />
+              <Text style={styles.addButtonText}>Add Patient</Text>
+            </TouchableOpacity>
           </View>
         ) : (
           patients.map((p) => (
@@ -71,26 +131,29 @@ const DoctorPatientsScreen = () => {
               }
             >
               <View style={styles.iconBox}>
-                <Feather
-                  name="user"
-                  size={18}
-                  color={VintageColors.primaryText}
-                />
+                <Text style={styles.patientInitials}>
+                  {getInitials(p.displayName || "Patient")}
+                </Text>
               </View>
 
               <View style={styles.textCol}>
                 <Text style={styles.patientTitle}>
-                  {"Mrs. " + (p.displayName || "Patient")}
+                  {p.displayName || "Unnamed Patient"}
                 </Text>
 
-                <Text style={styles.meta}>
-                  <Text style={styles.metaLabel}>uid: </Text>
-                  {p.uid}
-                </Text>
+                <View style={styles.metaRow}>
+                  <Feather
+                    name="link"
+                    size={12}
+                    color={VintageColors.secondaryText}
+                  />
+                  <Text style={styles.meta} numberOfLines={1}>
+                    {p.nightscoutUrl}
+                  </Text>
+                </View>
 
-                <Text style={styles.meta} numberOfLines={2}>
-                  <Text style={styles.metaLabel}>nightscoutUrl: </Text>
-                  {p.nightscoutUrl}
+                <Text style={styles.patientId}>
+                  ID: {p.uid.substring(0, 8)}...
                 </Text>
               </View>
 
@@ -105,18 +168,50 @@ const DoctorPatientsScreen = () => {
           ))
         )}
 
-        <View style={{ height: 40 }} />
+        <View style={VintageStyles.spacing60} />
       </ScrollView>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  statsRow: {
+    flexDirection: "row",
+    backgroundColor: VintageColors.cardBackground,
+    borderRadius: 16,
+    padding: 20,
+    marginBottom: 20,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  statCard: {
+    flex: 1,
+    alignItems: "center",
+  },
+  statNumber: {
+    fontSize: 28,
+    fontWeight: "400",
+    color: VintageColors.primaryText,
+    marginBottom: 4,
+    fontVariant: ["tabular-nums"],
+  },
+  statLabel: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    fontWeight: "500",
+    letterSpacing: 0.5,
+    textTransform: "uppercase",
+  },
+  statDivider: {
+    width: 1,
+    height: 40,
+    backgroundColor: VintageColors.border,
+  },
   sectionHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
     alignItems: "center",
-    marginBottom: 14,
+    marginBottom: 16,
   },
   sectionTitle: {
     fontSize: 18,
@@ -134,7 +229,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-
   patientCard: {
     backgroundColor: VintageColors.cardBackground,
     padding: 16,
@@ -144,16 +238,11 @@ const styles = StyleSheet.create({
     alignItems: "center",
     borderWidth: 1,
     borderColor: VintageColors.border,
-    shadowColor: VintageColors.lightBorder,
-    shadowOffset: { width: 0, height: 3 },
-    shadowOpacity: 0.06,
-    shadowRadius: 8,
-    elevation: 3,
   },
   iconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
+    width: 48,
+    height: 48,
+    borderRadius: 24,
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -161,7 +250,14 @@ const styles = StyleSheet.create({
     borderColor: VintageColors.border,
     backgroundColor: VintageColors.lightBackground,
   },
-  textCol: { flex: 1 },
+  patientInitials: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+  },
+  textCol: {
+    flex: 1,
+  },
   patientTitle: {
     fontSize: 16,
     fontWeight: "600",
@@ -169,15 +265,22 @@ const styles = StyleSheet.create({
     marginBottom: 6,
     letterSpacing: 0.2,
   },
+  metaRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 4,
+    gap: 6,
+  },
   meta: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    marginBottom: 2,
     lineHeight: 16,
+    flex: 1,
   },
-  metaLabel: {
-    color: VintageColors.primaryText,
-    fontWeight: "600",
+  patientId: {
+    fontSize: 11,
+    color: VintageColors.secondaryText,
+    fontFamily: "monospace",
   },
   arrowCircle: {
     width: 32,
@@ -190,11 +293,22 @@ const styles = StyleSheet.create({
     borderColor: VintageColors.border,
     marginLeft: 10,
   },
-
   emptyCard: {
     backgroundColor: VintageColors.cardBackground,
-    padding: 18,
+    padding: 24,
     borderRadius: 16,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    alignItems: "center",
+  },
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: VintageColors.lightBackground,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 16,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
@@ -202,12 +316,31 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "600",
     color: VintageColors.primaryText,
-    marginBottom: 6,
+    marginBottom: 8,
   },
   emptySubtext: {
     fontSize: 12,
     color: VintageColors.secondaryText,
     lineHeight: 16,
+    textAlign: "center",
+    marginBottom: 16,
+  },
+  addButton: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "center",
+    gap: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    backgroundColor: VintageColors.lightBackground,
+  },
+  addButtonText: {
+    fontSize: 12,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
   },
 });
 
