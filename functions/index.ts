@@ -57,7 +57,7 @@ export const getEmailFromUsername = functions.https.onRequest(
       res.status(500).json({ error: err.message });
       throw new Error("Error in getEmailFromUsername: " + err.message);
     }
-  }
+  },
 );
 
 async function verifyUser(req: Request, res: Response) {
@@ -170,7 +170,7 @@ RULES:
             "x-goog-api-key": geminiAPIKey.value(),
           },
           body: JSON.stringify(body),
-        }
+        },
       );
 
       if (!response.ok) {
@@ -192,7 +192,7 @@ RULES:
           outputText
             .replace(/^```json/, "")
             .replace(/```$/, "")
-            .trim()
+            .trim(),
         );
       } catch {
         parsed = { error: "AI returned invalid JSON", raw: outputText };
@@ -202,7 +202,7 @@ RULES:
     } catch (err: any) {
       throw new Error("Error in analyzeMeal: " + err.message);
     }
-  }
+  },
 );
 
 const nightscoutSecret = "508faef088174ebf9957f9b9da5d36dd7a67941c";
@@ -251,8 +251,8 @@ export const simulateGlucose = onSchedule(
         bg - lastBG > 5
           ? "FortyFiveUp"
           : bg - lastBG < -5
-          ? "FortyFiveDown"
-          : "Flat",
+            ? "FortyFiveDown"
+            : "Flat",
       delta: bg - lastBG,
       noise: 1,
       rssi: 100,
@@ -271,5 +271,5 @@ export const simulateGlucose = onSchedule(
       },
       body: JSON.stringify([entry]),
     });
-  }
+  },
 );
