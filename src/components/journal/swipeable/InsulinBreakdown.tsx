@@ -63,7 +63,7 @@ export const InsulinBreakdown: React.FC<InsulinBreakdownProps> = ({
       endAngle: number,
       color: string,
       borderColor: string,
-      isDashed = false
+      isDashed = false,
     ) => {
       const startRad = (startAngle - 90) * (Math.PI / 180);
       const endRad = (endAngle - 90) * (Math.PI / 180);
@@ -95,8 +95,8 @@ export const InsulinBreakdown: React.FC<InsulinBreakdownProps> = ({
           currentAngle + mealAngle,
           VintageColors.iconGreen,
           VintageColors.formAccent2,
-          false
-        )
+          false,
+        ),
       );
       currentAngle += mealAngle;
     }
@@ -108,8 +108,8 @@ export const InsulinBreakdown: React.FC<InsulinBreakdownProps> = ({
           currentAngle + correctionAngle,
           VintageColors.iconPink,
           VintageColors.formAccent1,
-          false
-        )
+          false,
+        ),
       );
       currentAngle += correctionAngle;
     }
@@ -121,8 +121,8 @@ export const InsulinBreakdown: React.FC<InsulinBreakdownProps> = ({
           currentAngle + basalAngle,
           VintageColors.iconBlue,
           VintageColors.formAccent3,
-          true
-        )
+          true,
+        ),
       );
     }
 
@@ -498,17 +498,26 @@ const styles: any = {
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 20,
+    padding: 23,
+    minHeight: 170,
   },
   emptyIcon: {
-    marginBottom: 12,
-    opacity: 0.5,
+    marginBottom: 8,
+    opacity: 0.6,
   },
   emptyText: {
-    fontSize: 14,
+    fontSize: 13,
     color: VintageColors.secondaryText,
     textAlign: "center",
     fontStyle: "italic",
+  },
+  emptySubtext: {
+    fontSize: 11,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    fontStyle: "italic",
+    marginTop: 2,
+    marginBottom: 30,
   },
 };
 
