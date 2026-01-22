@@ -273,6 +273,7 @@ const DoctorPatientDetailScreen = () => {
           </TouchableOpacity>{" "}
         </View>{" "}
         ) : ns.isLoading ?Status Section */}
+
         {ns.isLoading ? (
           <View style={styles.loadingCard}>
             <ActivityIndicator size="large" color={VintageColors.primaryText} />
