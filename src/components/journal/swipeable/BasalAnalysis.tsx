@@ -200,15 +200,11 @@ const styles: any = {
 };
 
 const placeholderStyles: any = {
-  container: {
-    alignItems: "center",
-    paddingVertical: 32,
-    paddingHorizontal: 20,
-  },
   emptyState: {
     alignItems: "center",
     justifyContent: "center",
-    padding: 24,
+    padding: 23,
+    minHeight: 110,
   },
   emptyIcon: {
     marginBottom: 8,
@@ -226,5 +222,6 @@ const placeholderStyles: any = {
     textAlign: "center",
     fontStyle: "italic",
     marginTop: 2,
+    marginBottom: 30,
   },
 };
