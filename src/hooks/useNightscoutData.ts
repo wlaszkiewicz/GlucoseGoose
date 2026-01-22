@@ -45,7 +45,11 @@ export function useNightscoutData(nsUrl?: string, secret?: string) {
 
       lastEntryDateRef.current = bundle.entries[0]?.date ?? null;
     } catch (err: any) {
-      setError(err.message ?? "Failed to load Nightscout");
+      if (err?.code === "AUTH_REQUIRED") {
+        setError("AUTH_REQUIRED");
+      } else {
+        setError(err?.message ?? "Failed to load Nightscout");
+      }
     } finally {
       setIsLoading(false);
     }

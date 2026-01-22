@@ -109,7 +109,6 @@ const DoctorPatientDetailScreen = () => {
 
   useEffect(() => {
     if (!secretLoaded) return;
-    if (!secret?.trim()) return;
 
     ns.reset();
     ns.loadFullDay();
@@ -244,36 +243,27 @@ const DoctorPatientDetailScreen = () => {
         </View>
 
         {/* Status Section */}
-        {!secret?.trim() ? (
+        {ns.isLoading ? (
+          <View style={styles.loadingCard}>
+            <ActivityIndicator size="large" color={VintageColors.primaryText} />
+            <Text style={styles.loadingText}>Loading…</Text>
+          </View>
+        ) : ns.error === "AUTH_REQUIRED" ? (
           <View style={styles.warningCard}>
             <View style={styles.warningHeader}>
-              <Feather
-                name="shield"
-                size={20}
-                color={VintageColors.iconOrange}
-              />
-              <Text style={styles.warningTitle}>Secret required</Text>
+              <Feather name="lock" size={20} color={VintageColors.iconOrange} />
+              <Text style={styles.warningTitle}>Private Nightscout</Text>
             </View>
             <Text style={styles.warningText}>
-              To fetch glucose & insulin for this patient, enter their API
-              secret.
+              This Nightscout requires an API secret.
             </Text>
             <TouchableOpacity
               style={styles.primaryButton}
               onPress={() => setShowSecretModal(true)}
-              activeOpacity={0.85}
             >
               <Feather name="key" size={14} color={VintageColors.primaryText} />
               <Text style={styles.primaryButtonText}>Enter secret</Text>
             </TouchableOpacity>
-          </View>
-        ) : ns.isLoading ? (
-          <View style={styles.loadingCard}>
-            <ActivityIndicator size="large" color={VintageColors.primaryText} />
-            <Text style={styles.loadingText}>Loading…</Text>
-            <Text style={styles.loadingSubtext}>
-              Fetching glucose & insulin
-            </Text>
           </View>
         ) : ns.error ? (
           <View style={styles.errorCard}>
