@@ -92,12 +92,43 @@ const FoodScreen: React.FC<FoodScreenProps> = ({ route }) => {
 
   const [mealTime, setMealTime] = useState<string>(currentTime);
 
+  const setMealTimeBasedOnHour = (time: string) => {
+    const [hours] = time.split(":").map(Number);
+    switch (true) {
+      case hours < 6:
+        setSelectedMealType("Evening Snack");
+        break;
+      case hours < 11:
+        setSelectedMealType("Breakfast");
+        break;
+      case hours < 13:
+        setSelectedMealType("Morning Snack");
+        break;
+      case hours < 14:
+        setSelectedMealType("Lunch");
+        break;
+      case hours < 16:
+        setSelectedMealType("Afternoon Snack");
+        break;
+      case hours < 22:
+        setSelectedMealType("Dinner");
+        break;
+      case hours >= 22:
+        setSelectedMealType("Evening Snack");
+        break;
+      default:
+        setSelectedMealType("Breakfast");
+    }
+  };
+
   useEffect(() => {
     setMealTime(currentTime);
+    setMealTimeBasedOnHour(currentTime);
   }, [currentTime]);
 
   const handleTimeChange = (time: string) => {
     setMealTime(time);
+
     setShowTimePicker(false);
   };
 
