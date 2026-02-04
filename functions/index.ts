@@ -205,6 +205,47 @@ RULES:
   },
 );
 
+export const notifyLowBG = onSchedule(
+  { schedule: "every 5 minutes" },
+  async () => {
+    const user = await verifyUser(req, res);
+    if (!user) return;
+
+    const url = req.url;
+    const secret = req.query.secret || "";
+
+    const baseUrl = url.replace(/\/$/, "");
+
+    await fetch(`${baseUrl}/api/v1/entries?count=1`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        "api-secret": secret as string,
+      },
+    });
+
+    const { bg } = req.body;
+    if (typeof bg !== "number") {
+      res.status(400).json({ error: "Missing or invalid 'bg' in body" });
+      return;
+    }
+
+    if (bg < 70) {
+      sendNotification(
+        "Low Blood Glucose Alert",
+        `Your blood glucose is low at ${bg} mg/dL. Please take appropriate action.`,
+      );
+    }
+
+    res.json({ status: "ok" });
+  },
+);
+
+function sendNotification(title: string, body: string) {
+  // Placeholder for sending notifications
+  console.log("Notification:", title, body);
+}
+
 const nightscoutSecret = "508faef088174ebf9957f9b9da5d36dd7a67941c";
 const nightscoutUrl = "https://glucose-goose.mooo.com/";
 

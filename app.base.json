@@ -4,11 +4,11 @@
     "slug": "GlucoseGoose",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/goose1-nobg.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/goose1-nobg.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,14 +21,14 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/goose1-nobg.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
       "predictiveBackGestureEnabled": false,
       "package": "com.hotties.glucosegoose"
     },
     "web": {
-      "favicon": "./assets/goose1-nobg.png"
+      "favicon": "./assets/logo.png"
     },
     "plugins": ["expo-secure-store"]
   }
