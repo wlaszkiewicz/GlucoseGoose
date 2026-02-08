@@ -85,7 +85,6 @@ const DoctorDashboardScreen = () => {
     }
   }, [patients, loadingPatients]);
 
-  // Check patient access status (public vs private)
   useEffect(() => {
     const checkPatientAccess = async () => {
       const accessStatus: {
@@ -101,20 +100,16 @@ const DoctorDashboardScreen = () => {
         const hasSecret = !!secret;
 
         if (hasSecret) {
-          // Has secret, definitely accessible
           accessStatus[patient.uid] = {
             hasSecret: true,
             isPublic: false,
             isAccessible: true,
           };
         } else {
-          // No secret, check if Nightscout is public
           try {
-            // Try to fetch data without secret (test if public)
-            const minutes = 1; // Just test with minimal data
+            const minutes = 1;
             try {
               await fetchBundleDirect(patient.nightscoutUrl, "", minutes);
-              // If successful without secret, it's public
               accessStatus[patient.uid] = {
                 hasSecret: false,
                 isPublic: true,
@@ -125,14 +120,12 @@ const DoctorDashboardScreen = () => {
                 error.message === "AUTH_REQUIRED" ||
                 error.code === "AUTH_REQUIRED"
               ) {
-                // Authentication required, not public
                 accessStatus[patient.uid] = {
                   hasSecret: false,
                   isPublic: false,
                   isAccessible: false,
                 };
               } else {
-                // Other error, might be network or server issue
                 accessStatus[patient.uid] = {
                   hasSecret: false,
                   isPublic: false,
@@ -141,7 +134,6 @@ const DoctorDashboardScreen = () => {
               }
             }
           } catch {
-            // Network error or other issue
             accessStatus[patient.uid] = {
               hasSecret: false,
               isPublic: false,
@@ -167,9 +159,7 @@ const DoctorDashboardScreen = () => {
         const secret = patientSecrets[patient.uid] || "";
         const accessStatus = patientAccessStatus[patient.uid];
 
-        // Only try to load data if patient is accessible (has secret OR is public)
         if (accessStatus?.isAccessible) {
-          // Initialize patient data structure
           newPatientData[patient.uid] = {
             uid: patient.uid,
             nightscoutUrl: patient.nightscoutUrl,
@@ -182,10 +172,8 @@ const DoctorDashboardScreen = () => {
           };
 
           try {
-            // Fetch bundle (entries + treatments) - get last 24 hours
-            const minutes = 24 * 60; // 24 hours
+            const minutes = 24 * 60;
 
-            // Use empty string for public Nightscouts, secret for private ones
             const bundleSecret = accessStatus.hasSecret ? secret : "";
 
             const bundle = await fetchBundleDirect(
@@ -219,7 +207,6 @@ const DoctorDashboardScreen = () => {
             };
           }
         } else {
-          // Not accessible
           const hasSecret = !!patientSecrets[patient.uid];
           newPatientData[patient.uid] = {
             uid: patient.uid,
@@ -245,7 +232,6 @@ const DoctorDashboardScreen = () => {
     }
   }, [patients, patientSecrets, patientAccessStatus]);
 
-  // Calculate real stats based on actual data
   const calculateRealStats = useMemo(() => {
     if (patients.length === 0) {
       return [
@@ -253,39 +239,37 @@ const DoctorDashboardScreen = () => {
           label: "Active Patients",
           value: "0",
           icon: "users",
-          color: VintageColors.secondaryText,
+          color: VintageColors.iconGreen,
           subtext: "No patients yet",
         },
         {
           label: "Data Coverage",
           value: "0%",
           icon: "database",
-          color: VintageColors.secondaryText,
+          color: VintageColors.iconBlue,
           subtext: "No data available",
         },
         {
           label: "Avg Glucose",
           value: "--",
           icon: "droplet",
-          color: VintageColors.secondaryText,
+          color: VintageColors.iconPurple,
           subtext: "No readings",
         },
         {
           label: "Alerts",
           value: "0",
           icon: "bell",
-          color: VintageColors.secondaryText,
+          color: VintageColors.iconPink,
           subtext: "All clear",
         },
       ];
     }
 
-    // Calculate patients with data
     const patientsWithData = Object.values(patientData).filter(
       (patient: PatientData) => patient.entries && patient.entries.length > 0,
     ).length;
 
-    // Calculate overall average glucose from all patients with data
     let totalGlucose = 0;
     let totalReadings = 0;
     let hypoAlerts = 0;
@@ -297,7 +281,6 @@ const DoctorDashboardScreen = () => {
             totalGlucose += entry.sgv;
             totalReadings++;
 
-            // Count hypoglycemia alerts (< 70 mg/dL)
             if (entry.sgv < 70) {
               hypoAlerts++;
             }
@@ -325,10 +308,7 @@ const DoctorDashboardScreen = () => {
         label: "Data Coverage",
         value: `${dataCoverage}%`,
         icon: "database",
-        color:
-          dataCoverage >= 50
-            ? VintageColors.iconBlue
-            : VintageColors.iconOrange,
+        color: VintageColors.iconBlue,
         subtext:
           patientsWithData === patients.length
             ? "Full access"
@@ -338,10 +318,7 @@ const DoctorDashboardScreen = () => {
         label: "Avg Glucose",
         value: avgGlucose > 0 ? `${avgGlucose} mg/dL` : "--",
         icon: "droplet",
-        color:
-          avgGlucose > 0
-            ? VintageColors.iconPurple
-            : VintageColors.secondaryText,
+        color: VintageColors.iconPurple,
         subtext:
           patientsWithData > 0
             ? `From ${patientsWithData} patient${patientsWithData !== 1 ? "s" : ""}`
@@ -351,7 +328,7 @@ const DoctorDashboardScreen = () => {
         label: "Alerts",
         value: hypoAlerts.toString(),
         icon: "bell",
-        color: hypoAlerts > 0 ? VintageColors.iconRed : VintageColors.iconGreen,
+        color: VintageColors.iconPink,
         subtext: hypoAlerts > 0 ? `${hypoAlerts} low glucose` : "All clear",
       },
     ];
@@ -359,7 +336,6 @@ const DoctorDashboardScreen = () => {
 
   const stats = calculateRealStats;
 
-  // Generate recent activities based on actual patient data
   const getRecentActivities = useMemo((): Activity[] => {
     if (patients.length === 0) {
       return [
@@ -383,7 +359,6 @@ const DoctorDashboardScreen = () => {
     const activities: Activity[] = [];
     const now = new Date();
 
-    // Add system activity for patient count
     activities.push({
       type: "system",
       message: `You have ${patients.length} active patient${patients.length !== 1 ? "s" : ""}`,
@@ -392,14 +367,12 @@ const DoctorDashboardScreen = () => {
       color: VintageColors.iconBlue,
     });
 
-    // Add patient-specific activities based on real data
     patients.slice(0, 3).forEach((patient, index) => {
       const patientDataObj = patientData[patient.uid];
       const accessStatus = patientAccessStatus[patient.uid];
       const hasSecret = !!patientSecrets[patient.uid];
 
       if (!accessStatus?.isAccessible) {
-        // Patient not accessible
         activities.push({
           type: "patient",
           patient: patient.displayName || `Patient ${index + 1}`,
@@ -410,7 +383,6 @@ const DoctorDashboardScreen = () => {
           patientId: patient.uid,
         });
       } else if (patientDataObj?.loading) {
-        // Still loading data
         activities.push({
           type: "patient",
           patient: patient.displayName || `Patient ${index + 1}`,
@@ -421,7 +393,6 @@ const DoctorDashboardScreen = () => {
           patientId: patient.uid,
         });
       } else if (patientDataObj?.error) {
-        // Error loading data
         activities.push({
           type: "patient",
           patient: patient.displayName || `Patient ${index + 1}`,
@@ -432,7 +403,6 @@ const DoctorDashboardScreen = () => {
           patientId: patient.uid,
         });
       } else if (patientDataObj?.entries && patientDataObj.entries.length > 0) {
-        // Has data - show latest reading
         const latestEntry = patientDataObj.entries.reduce(
           (latest: any, entry: any) => {
             const entryTime = new Date(
@@ -489,7 +459,6 @@ const DoctorDashboardScreen = () => {
           });
         }
       } else {
-        // No data but accessible
         activities.push({
           type: "patient",
           patient: patient.displayName || `Patient ${index + 1}`,
@@ -502,12 +471,11 @@ const DoctorDashboardScreen = () => {
       }
     });
 
-    return activities.slice(0, 4); // Limit to 4 activities
+    return activities.slice(0, 4);
   }, [patients, patientData, patientAccessStatus, patientSecrets]);
 
   const recentActivities = getRecentActivities;
 
-  // Generate patient highlights based on actual data
   const getPatientHighlights = useMemo(() => {
     if (patients.length === 0) {
       return {
@@ -519,7 +487,6 @@ const DoctorDashboardScreen = () => {
 
     const highlights: any = {};
 
-    // Find patient with best time in range
     let bestPatient: any = null;
     let bestTimeInRange = 0;
 
@@ -555,7 +522,6 @@ const DoctorDashboardScreen = () => {
       };
     }
 
-    // Find patient needing attention (no data or errors)
     const patientsNeedingAttention = patients.filter((patient) => {
       const patientDataObj = patientData[patient.uid];
       const accessStatus = patientAccessStatus[patient.uid];
@@ -591,7 +557,6 @@ const DoctorDashboardScreen = () => {
       };
     }
 
-    // Most recent addition (last in array)
     if (patients.length > 0) {
       const lastPatient = patients[patients.length - 1];
       highlights.recentAddition = {
@@ -606,7 +571,6 @@ const DoctorDashboardScreen = () => {
 
   const patientHighlights = getPatientHighlights;
 
-  // Calculate practice health metrics
   const practiceHealthMetrics = useMemo(() => {
     const totalPatients = patients.length;
     const patientsWithData = Object.values(patientData).filter(
@@ -637,7 +601,7 @@ const DoctorDashboardScreen = () => {
     if (patientId) {
       const patient = patients.find((p) => p.uid === patientId);
       if (patient) {
-        navigation.navigate("DoctorPatientDetail", { patient });
+        navigation.navigate("DoctorPatients", { patient });
       }
     }
   };
@@ -648,7 +612,6 @@ const DoctorDashboardScreen = () => {
     }
   };
 
-  // Check if any patient data is still loading
   const isAnyPatientLoading = Object.values(patientData).some(
     (patient: PatientData) => patient.loading,
   );
@@ -698,26 +661,10 @@ const DoctorDashboardScreen = () => {
               day: "numeric",
             })}
           </Text>
-
-          {/* Practice Status Badge */}
-          <View style={styles.practiceStatus}>
-            <Feather
-              name={patients.length > 0 ? "check-circle" : "info"}
-              size={14}
-              color={
-                patients.length > 0
-                  ? VintageColors.iconGreen
-                  : VintageColors.iconBlue
-              }
-            />
-            <Text style={styles.practiceStatusText}>
-              {patients.length === 0
-                ? "Ready for first patient"
-                : `${patients.length} patient${patients.length !== 1 ? "s" : ""} in care`}
-            </Text>
-          </View>
         </View>
 
+        <View style={{ height: 16 }} />
+        
         {/* Stats Overview */}
         <View style={styles.statsGrid}>
           {stats.map((stat, index) => (
@@ -726,13 +673,13 @@ const DoctorDashboardScreen = () => {
                 <View
                   style={[
                     styles.statIconContainer,
-                    { backgroundColor: `${stat.color}20` },
+                    { backgroundColor: stat.color },
                   ]}
                 >
                   <Feather
                     name={stat.icon as any}
                     size={20}
-                    color={stat.color}
+                    color={VintageColors.primaryText}
                   />
                 </View>
               </View>
@@ -747,7 +694,14 @@ const DoctorDashboardScreen = () => {
         {patients.length > 0 && (
           <View style={styles.healthSummary}>
             <View style={styles.healthSummaryHeader}>
-              <Feather name="heart" size={18} color={VintageColors.iconGreen} />
+              <View
+                style={[
+                  styles.healthSummaryIcon,
+                  { backgroundColor: VintageColors.iconGreen },
+                ]}
+              >
+                <Feather name="heart" size={18} color={VintageColors.primaryText} />
+              </View>
               <Text style={styles.healthSummaryTitle}>Practice Health</Text>
             </View>
             <View style={styles.healthSummaryContent}>
@@ -821,15 +775,14 @@ const DoctorDashboardScreen = () => {
                   style={[
                     styles.activityIconContainer,
                     {
-                      backgroundColor: `${activity.color}20`,
-                      borderColor: activity.color,
+                      backgroundColor: activity.color,
                     },
                   ]}
                 >
                   <Feather
                     name={activity.icon as any}
                     size={18}
-                    color={activity.color}
+                    color={VintageColors.primaryText}
                   />
                 </View>
 
@@ -902,13 +855,13 @@ const DoctorDashboardScreen = () => {
                   <View
                     style={[
                       styles.highlightIcon,
-                      { backgroundColor: `${VintageColors.iconYellow}20` },
+                      { backgroundColor: VintageColors.iconYellow },
                     ]}
                   >
                     <Ionicons
                       name="trophy"
                       size={20}
-                      color={VintageColors.iconYellow}
+                      color={VintageColors.primaryText} 
                     />
                   </View>
                   <View style={styles.highlightContent}>
@@ -949,13 +902,13 @@ const DoctorDashboardScreen = () => {
                     <View
                       style={[
                         styles.highlightIcon,
-                        { backgroundColor: `${VintageColors.iconOrange}20` },
+                        { backgroundColor: VintageColors.iconOrange },
                       ]}
                     >
                       <MaterialCommunityIcons
                         name="progress-alert"
                         size={20}
-                        color={VintageColors.iconOrange}
+                        color={VintageColors.primaryText}
                       />
                     </View>
                     <View style={styles.highlightContent}>
@@ -990,13 +943,13 @@ const DoctorDashboardScreen = () => {
                     <View
                       style={[
                         styles.highlightIcon,
-                        { backgroundColor: `${VintageColors.iconBlue}20` },
+                        { backgroundColor: VintageColors.iconBlue },
                       ]}
                     >
                       <Feather
                         name="user-plus"
                         size={20}
-                        color={VintageColors.iconBlue}
+                        color={VintageColors.primaryText} 
                       />
                     </View>
                     <View style={styles.highlightContent}>
@@ -1026,12 +979,13 @@ const DoctorDashboardScreen = () => {
               style={styles.navigationCard}
               onPress={() => navigation.navigate("DoctorAnalytics")}
             >
-              <View style={styles.navigationIcon}>
-                <Feather
-                  name="bar-chart-2"
-                  size={24}
-                  color={VintageColors.primaryText}
-                />
+              <View
+                style={[
+                  styles.navigationIcon,
+                  { backgroundColor: VintageColors.iconPurple },
+                ]}
+              >
+                <Feather name="bar-chart-2" size={24} color={VintageColors.primaryText} />
               </View>
               <Text style={styles.navigationText}>Analytics</Text>
             </TouchableOpacity>
@@ -1040,12 +994,13 @@ const DoctorDashboardScreen = () => {
               style={styles.navigationCard}
               onPress={() => navigation.navigate("DoctorPatients")}
             >
-              <View style={styles.navigationIcon}>
-                <Feather
-                  name="users"
-                  size={24}
-                  color={VintageColors.primaryText}
-                />
+              <View
+                style={[
+                  styles.navigationIcon,
+                  { backgroundColor: VintageColors.iconGreen },
+                ]}
+              >
+                <Feather name="users" size={24} color={VintageColors.primaryText} />
               </View>
               <Text style={styles.navigationText}>Patients</Text>
             </TouchableOpacity>
@@ -1054,12 +1009,13 @@ const DoctorDashboardScreen = () => {
               style={styles.navigationCard}
               onPress={() => navigation.navigate("Settings")}
             >
-              <View style={styles.navigationIcon}>
-                <Feather
-                  name="settings"
-                  size={24}
-                  color={VintageColors.primaryText}
-                />
+              <View
+                style={[
+                  styles.navigationIcon,
+                  { backgroundColor: VintageColors.iconPink },
+                ]}
+              >
+                <Feather name="settings" size={24} color={VintageColors.primaryText} />
               </View>
               <Text style={styles.navigationText}>Settings</Text>
             </TouchableOpacity>
@@ -1072,7 +1028,6 @@ const DoctorDashboardScreen = () => {
   );
 };
 
-// Add new styles
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
@@ -1131,6 +1086,7 @@ const styles = StyleSheet.create({
     flexWrap: "wrap",
     gap: 12,
     marginBottom: 24,
+    justifyContent: "center",
   },
   statCard: {
     width: (width - 48) / 2 - 6,
@@ -1188,6 +1144,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     gap: 8,
     marginBottom: 16,
+  },
+  healthSummaryIcon: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: "center",
+    alignItems: "center",
+    borderWidth: 1,
+    borderColor: VintageColors.border,
   },
   healthSummaryTitle: {
     fontSize: 16,
@@ -1285,6 +1250,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
     marginRight: 12,
     borderWidth: 1,
+    borderColor: VintageColors.border,
   },
   activityContent: {
     flex: 1,
@@ -1392,7 +1358,6 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: VintageColors.lightBackground,
     justifyContent: "center",
     alignItems: "center",
     marginBottom: 12,
