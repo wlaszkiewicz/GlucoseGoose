@@ -38,8 +38,12 @@ const SettingsScreen = () => {
   const [isNightscoutModalVisible, setIsNightscoutModalVisible] =
     useState(false);
 
-  const [notificationsEnabled, setNotificationsEnabled] = useState(
-    !!userData?.notificationsEnabled,
+  // Alerts settings
+  const [alertsEnabled, setAlertsEnabled] = useState(
+    userData?.alertsEnabled ?? true,
+  );
+  const [liveStatusEnabled, setLiveStatusEnabled] = useState(
+    userData?.liveStatusEnabled ?? true,
   );
   const [cooldownMinutes, setCooldownMinutes] = useState(
     String(userData?.cooldownMinutes ?? 20),
@@ -62,8 +66,16 @@ const SettingsScreen = () => {
   const [fastDropThreshold, setFastDropThreshold] = useState(
     String(userData?.fastDropThreshold ?? -2),
   );
+  const [backInRangeEnabled, setBackInRangeEnabled] = useState(
+    userData?.backInRangeEnabled ?? true,
+  );
+  const [worsenDelta, setWorsenDelta] = useState(
+    String(userData?.worsenDelta ?? 20),
+  );
+  const [soundMode, setSoundMode] = useState(userData?.soundMode ?? "normal");
 
-  // Nightscout settings
+  const notificationsEnabled = alertsEnabled || liveStatusEnabled;
+
   const storeLocally = !!userData?.storeLocally;
   const [nightscoutUrl, setNightscoutUrl] = useState("");
   const [nightscoutSecret, setNightscoutSecretState] = useState("");
@@ -85,14 +97,24 @@ const SettingsScreen = () => {
     if (!firebaseUser?.uid) return;
 
     const payload = {
-      notificationsEnabled,
+      alertsEnabled,
+      liveStatusEnabled,
+      notificationsEnabled: alertsEnabled || liveStatusEnabled,
+
       cooldownMinutes: parseInt(cooldownMinutes) || 20,
+      staleMinutes: parseInt(staleMinutes) || 15,
+
       lowThreshold: parseInt(lowThreshold) || 70,
       highThreshold: parseInt(highThreshold) || 180,
       urgentLowThreshold: parseInt(urgentLowThreshold) || 55,
-      staleMinutes: parseInt(staleMinutes) || 15,
-      trendAlertsEnabled,
       fastDropThreshold: parseFloat(fastDropThreshold) || -2,
+      worsenDelta: parseInt(worsenDelta) || 20,
+
+      trendAlertsEnabled,
+      backInRangeEnabled,
+
+      soundMode,
+
       updatedAt: Date.now(),
     };
 
@@ -258,21 +280,36 @@ const SettingsScreen = () => {
         visible={isAlertsModalVisible}
         onClose={() => setIsAlertsModalVisible(false)}
         notificationsEnabled={notificationsEnabled}
-        setNotificationsEnabled={setNotificationsEnabled}
+        // Master controls
+        alertsEnabled={alertsEnabled}
+        setAlertsEnabled={setAlertsEnabled}
+        liveStatusEnabled={liveStatusEnabled}
+        setLiveStatusEnabled={setLiveStatusEnabled}
+        // Timing
         cooldownMinutes={cooldownMinutes}
         setCooldownMinutes={setCooldownMinutes}
+        staleMinutes={staleMinutes}
+        setStaleMinutes={setStaleMinutes}
+        // Thresholds
         lowThreshold={lowThreshold}
         setLowThreshold={setLowThreshold}
         highThreshold={highThreshold}
         setHighThreshold={setHighThreshold}
         urgentLowThreshold={urgentLowThreshold}
         setUrgentLowThreshold={setUrgentLowThreshold}
-        staleMinutes={staleMinutes}
-        setStaleMinutes={setStaleMinutes}
-        trendAlertsEnabled={trendAlertsEnabled}
-        setTrendAlertsEnabled={setTrendAlertsEnabled}
         fastDropThreshold={fastDropThreshold}
         setFastDropThreshold={setFastDropThreshold}
+        worsenDelta={worsenDelta}
+        setWorsenDelta={setWorsenDelta}
+        // Additional features
+        trendAlertsEnabled={trendAlertsEnabled}
+        setTrendAlertsEnabled={setTrendAlertsEnabled}
+        backInRangeEnabled={backInRangeEnabled}
+        setBackInRangeEnabled={setBackInRangeEnabled}
+        // Sound
+        soundMode={soundMode}
+        setSoundMode={setSoundMode}
+        // Save callback
         onSave={saveAlerts}
       />
 
