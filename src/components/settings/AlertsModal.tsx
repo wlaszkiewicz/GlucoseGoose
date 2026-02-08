@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   Modal,
   View,
@@ -11,8 +11,11 @@ import {
   Keyboard,
   Platform,
   Switch,
+  Dimensions,
+  StyleSheet,
 } from "react-native";
 import { Feather } from "@expo/vector-icons";
+import DropDownPicker from "react-native-dropdown-picker";
 
 import { VintageStyles } from "../../themes/vintage/styles_vintage";
 import { VintageColors } from "../../themes/vintage/colors";
@@ -21,29 +24,37 @@ type Props = {
   visible: boolean;
   onClose: () => void;
 
-  notificationsEnabled: boolean;
-  setNotificationsEnabled: (v: boolean) => void;
+  notificationsEnabled?: boolean;
 
+  alertsEnabled: boolean;
+  setAlertsEnabled: (v: boolean) => void;
+  liveStatusEnabled: boolean;
+  setLiveStatusEnabled: (v: boolean) => void;
   cooldownMinutes: string;
   setCooldownMinutes: (v: string) => void;
+  staleMinutes: string;
+  setStaleMinutes: (v: string) => void;
 
   lowThreshold: string;
   setLowThreshold: (v: string) => void;
-
   highThreshold: string;
   setHighThreshold: (v: string) => void;
-
   urgentLowThreshold: string;
   setUrgentLowThreshold: (v: string) => void;
-
-  staleMinutes: string;
-  setStaleMinutes: (v: string) => void;
+  fastDropThreshold: string;
+  setFastDropThreshold: (v: string) => void;
 
   trendAlertsEnabled: boolean;
   setTrendAlertsEnabled: (v: boolean) => void;
 
-  fastDropThreshold: string;
-  setFastDropThreshold: (v: string) => void;
+  backInRangeEnabled: boolean;
+  setBackInRangeEnabled: (v: boolean) => void;
+
+  worsenDelta: string;
+  setWorsenDelta: (v: string) => void;
+
+  soundMode: "normal" | "goose";
+  setSoundMode: (v: "normal" | "goose") => void;
 
   onSave: () => Promise<void>;
 };
@@ -51,33 +62,50 @@ type Props = {
 export const AlertsModal: React.FC<Props> = ({
   visible,
   onClose,
-
   notificationsEnabled,
-  setNotificationsEnabled,
 
+  alertsEnabled,
+  setAlertsEnabled,
+  liveStatusEnabled,
+  setLiveStatusEnabled,
   cooldownMinutes,
   setCooldownMinutes,
+  staleMinutes,
+  setStaleMinutes,
 
   lowThreshold,
   setLowThreshold,
-
   highThreshold,
   setHighThreshold,
-
   urgentLowThreshold,
   setUrgentLowThreshold,
-
-  staleMinutes,
-  setStaleMinutes,
+  fastDropThreshold,
+  setFastDropThreshold,
 
   trendAlertsEnabled,
   setTrendAlertsEnabled,
 
-  fastDropThreshold,
-  setFastDropThreshold,
+  backInRangeEnabled,
+  setBackInRangeEnabled,
+
+  worsenDelta,
+  setWorsenDelta,
+
+  soundMode,
+  setSoundMode,
 
   onSave,
 }) => {
+  const { height: windowHeight } = Dimensions.get("window");
+  const maxModalHeight = windowHeight * 0.8;
+
+  // Added state for dropdown open
+  const [open, setOpen] = useState(false);
+
+  const handleSave = async () => {
+    await onSave();
+  };
+
   return (
     <Modal
       animationType="fade"
@@ -85,18 +113,31 @@ export const AlertsModal: React.FC<Props> = ({
       visible={visible}
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <View style={{ flex: 1 }}>
+        {/* Background overlay */}
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+          <View style={styles.overlay} />
+        </TouchableWithoutFeedback>
+
+        {/* Centered modal */}
         <KeyboardAvoidingView
+          style={styles.modalWrapper}
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          style={VintageStyles.modalOverlay}
         >
-          <View style={VintageStyles.modalContentCenter}>
-            <View style={VintageStyles.modalProfileSection}>
+          <View
+            style={[
+              VintageStyles.modalContentCenter,
+              styles.modalContainer,
+              { maxHeight: maxModalHeight },
+            ]}
+          >
+            {/* Header */}
+            <View style={styles.modalHeader}>
               <View style={VintageStyles.modalIconCircle}>
                 <View style={VintageStyles.modalIconContainer}>
                   <Feather
                     name="bell"
-                    size={50}
+                    size={40}
                     color={VintageColors.primaryText}
                   />
                 </View>
@@ -104,200 +145,344 @@ export const AlertsModal: React.FC<Props> = ({
               <Text style={VintageStyles.modalProfileTitle}>
                 Reminders & Alerts
               </Text>
+              <Text style={styles.subtitle}>
+                Configure your glucose monitoring preferences
+              </Text>
             </View>
 
+            {/* Scrollable Content */}
             <ScrollView
-              style={VintageStyles.formScroll}
+              contentContainerStyle={styles.scrollContent}
               showsVerticalScrollIndicator={false}
-              contentContainerStyle={{ paddingBottom: 20 }}
+              keyboardShouldPersistTaps="handled"
+              bounces={true}
             >
-              {/* Enable */}
-              <View style={VintageStyles.formGroup}>
-                <View
-                  style={[
-                    VintageStyles.labelContainer,
-                    { justifyContent: "space-between" },
-                  ]}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+              {/* Master Toggles */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Master Controls</Text>
+
+                <View style={styles.toggleItem}>
+                  <View style={styles.toggleLabel}>
                     <Feather
-                      name="toggle-left"
-                      size={16}
-                      color={VintageColors.primaryText}
-                      style={VintageStyles.labelIcon}
+                      name="alert-triangle"
+                      size={18}
+                      color={VintageColors.formAccent1}
+                      style={styles.toggleIcon}
                     />
-                    <Text style={VintageStyles.label}>Notifications</Text>
+                    <Text style={styles.toggleText}>All Alerts</Text>
                   </View>
                   <Switch
-                    value={notificationsEnabled}
-                    onValueChange={setNotificationsEnabled}
+                    value={alertsEnabled}
+                    onValueChange={setAlertsEnabled}
                     trackColor={{
                       false: VintageColors.border,
-                      true: VintageColors.iconGreen,
+                      true: VintageColors.formAccent1,
+                    }}
+                    thumbColor={VintageColors.primaryText}
+                  />
+                </View>
+
+                <View style={styles.toggleItem}>
+                  <View style={styles.toggleLabel}>
+                    <Feather
+                      name="activity"
+                      size={18}
+                      color={VintageColors.formAccent2}
+                      style={styles.toggleIcon}
+                    />
+                    <Text style={styles.toggleText}>Live Status</Text>
+                  </View>
+                  <Switch
+                    value={liveStatusEnabled}
+                    onValueChange={setLiveStatusEnabled}
+                    trackColor={{
+                      false: VintageColors.border,
+                      true: VintageColors.formAccent2,
                     }}
                     thumbColor={VintageColors.primaryText}
                   />
                 </View>
               </View>
 
-              {/* Cooldown */}
-              <View style={VintageStyles.formGroup}>
-                <View style={VintageStyles.labelContainer}>
-                  <Feather
-                    name="clock"
-                    size={16}
-                    color={VintageColors.primaryText}
-                    style={VintageStyles.labelIcon}
-                  />
-                  <Text style={VintageStyles.label}>Cooldown (minutes)</Text>
-                </View>
-                <TextInput
-                  style={VintageStyles.input}
-                  placeholder="e.g. 20"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={cooldownMinutes}
-                  onChangeText={setCooldownMinutes}
-                  keyboardType="numeric"
-                />
-              </View>
+              {/* Timing */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Timing</Text>
 
-              {/* Thresholds */}
-              <View style={VintageStyles.formGroup}>
-                <View style={VintageStyles.labelContainer}>
-                  <Feather
-                    name="alert-triangle"
-                    size={16}
-                    color={VintageColors.primaryText}
-                    style={VintageStyles.labelIcon}
-                  />
-                  <Text style={VintageStyles.label}>Low threshold (mg/dL)</Text>
-                </View>
-                <TextInput
-                  style={VintageStyles.input}
-                  placeholder="e.g. 70"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={lowThreshold}
-                  onChangeText={setLowThreshold}
-                  keyboardType="numeric"
-                />
-              </View>
-
-              <View style={VintageStyles.formGroup}>
-                <View style={VintageStyles.labelContainer}>
-                  <Feather
-                    name="trending-up"
-                    size={16}
-                    color={VintageColors.primaryText}
-                    style={VintageStyles.labelIcon}
-                  />
-                  <Text style={VintageStyles.label}>
-                    High threshold (mg/dL)
-                  </Text>
-                </View>
-                <TextInput
-                  style={VintageStyles.input}
-                  placeholder="e.g. 180"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={highThreshold}
-                  onChangeText={setHighThreshold}
-                  keyboardType="numeric"
-                />
-              </View>
-
-              <View style={VintageStyles.formGroup}>
-                <View style={VintageStyles.labelContainer}>
-                  <Feather
-                    name="zap"
-                    size={16}
-                    color={VintageColors.primaryText}
-                    style={VintageStyles.labelIcon}
-                  />
-                  <Text style={VintageStyles.label}>Urgent low (mg/dL)</Text>
-                </View>
-                <TextInput
-                  style={VintageStyles.input}
-                  placeholder="e.g. 55"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={urgentLowThreshold}
-                  onChangeText={setUrgentLowThreshold}
-                  keyboardType="numeric"
-                />
-              </View>
-
-              {/* Stale */}
-              <View style={VintageStyles.formGroup}>
-                <View style={VintageStyles.labelContainer}>
-                  <Feather
-                    name="wifi-off"
-                    size={16}
-                    color={VintageColors.primaryText}
-                    style={VintageStyles.labelIcon}
-                  />
-                  <Text style={VintageStyles.label}>
-                    Stale data alert (minutes)
-                  </Text>
-                </View>
-                <TextInput
-                  style={VintageStyles.input}
-                  placeholder="e.g. 15"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={staleMinutes}
-                  onChangeText={setStaleMinutes}
-                  keyboardType="numeric"
-                />
-              </View>
-
-              {/* Trend */}
-              <View style={VintageStyles.formGroup}>
-                <View
-                  style={[
-                    VintageStyles.labelContainer,
-                    { justifyContent: "space-between" },
-                  ]}
-                >
-                  <View style={{ flexDirection: "row", alignItems: "center" }}>
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
                     <Feather
-                      name="activity"
+                      name="clock"
                       size={16}
                       color={VintageColors.primaryText}
                       style={VintageStyles.labelIcon}
                     />
-                    <Text style={VintageStyles.label}>Trend alerts</Text>
+                    <Text style={VintageStyles.label}>Cooldown (minutes)</Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="20"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={cooldownMinutes}
+                    onChangeText={setCooldownMinutes}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="wifi-off"
+                      size={16}
+                      color={VintageColors.primaryText}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>
+                      Stale alert (minutes)
+                    </Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="15"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={staleMinutes}
+                    onChangeText={setStaleMinutes}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+              </View>
+
+              {/* Thresholds */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Thresholds (mg/dL)</Text>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="arrow-down"
+                      size={16}
+                      color={VintageColors.formAccent2}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>Low</Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="70"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={lowThreshold}
+                    onChangeText={setLowThreshold}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="arrow-up"
+                      size={16}
+                      color={VintageColors.formAccent5}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>High</Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="180"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={highThreshold}
+                    onChangeText={setHighThreshold}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="alert-octagon"
+                      size={16}
+                      color={VintageColors.formAccent3}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>Urgent Low</Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="55"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={urgentLowThreshold}
+                    onChangeText={setUrgentLowThreshold}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="trending-down"
+                      size={16}
+                      color={VintageColors.formAccent4}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>
+                      Fast Drop (per minute)
+                    </Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="-2"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={fastDropThreshold}
+                    onChangeText={setFastDropThreshold}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="trending-up"
+                      size={16}
+                      color={VintageColors.formAccent4}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>Worsen Delta</Text>
+                  </View>
+                  <TextInput
+                    style={VintageStyles.input}
+                    placeholder="20"
+                    placeholderTextColor={VintageColors.secondaryText}
+                    value={worsenDelta}
+                    onChangeText={setWorsenDelta}
+                    keyboardType="numeric"
+                    editable={alertsEnabled}
+                  />
+                </View>
+              </View>
+
+              {/* Additional Features */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Additional Features</Text>
+
+                <View style={styles.toggleItem}>
+                  <View style={styles.toggleLabel}>
+                    <Feather
+                      name="trending-up"
+                      size={18}
+                      color={VintageColors.formAccent1}
+                      style={styles.toggleIcon}
+                    />
+                    <Text style={styles.toggleText}>Trend Alerts</Text>
                   </View>
                   <Switch
                     value={trendAlertsEnabled}
                     onValueChange={setTrendAlertsEnabled}
+                    disabled={!alertsEnabled}
                     trackColor={{
                       false: VintageColors.border,
-                      true: VintageColors.iconBlue,
+                      true: VintageColors.formAccent1,
                     }}
-                    thumbColor={VintageColors.primaryText}
+                    thumbColor={
+                      alertsEnabled
+                        ? VintageColors.primaryText
+                        : VintageColors.border
+                    }
+                  />
+                </View>
+
+                <View style={styles.toggleItem}>
+                  <View style={styles.toggleLabel}>
+                    <Feather
+                      name="check-circle"
+                      size={18}
+                      color={VintageColors.formAccent7}
+                      style={styles.toggleIcon}
+                    />
+                    <Text style={styles.toggleText}>Back in Range</Text>
+                  </View>
+                  <Switch
+                    value={backInRangeEnabled}
+                    onValueChange={setBackInRangeEnabled}
+                    disabled={!alertsEnabled}
+                    trackColor={{
+                      false: VintageColors.border,
+                      true: VintageColors.formAccent7,
+                    }}
+                    thumbColor={
+                      alertsEnabled
+                        ? VintageColors.primaryText
+                        : VintageColors.border
+                    }
                   />
                 </View>
               </View>
 
-              <View style={VintageStyles.formGroup}>
-                <View style={VintageStyles.labelContainer}>
-                  <Feather
-                    name="trending-down"
-                    size={16}
-                    color={VintageColors.primaryText}
-                    style={VintageStyles.labelIcon}
+              {/* Sound */}
+              <View style={styles.section}>
+                <Text style={styles.sectionTitle}>Sound</Text>
+
+                <View style={VintageStyles.formGroup}>
+                  <View style={VintageStyles.labelContainer}>
+                    <Feather
+                      name="volume-2"
+                      size={16}
+                      color={VintageColors.primaryText}
+                      style={VintageStyles.labelIcon}
+                    />
+                    <Text style={VintageStyles.label}>Alert Sound</Text>
+                  </View>
+
+                  <DropDownPicker
+                    open={open}
+                    value={soundMode}
+                    setOpen={setOpen}
+                    setValue={(val: any) => setSoundMode(val)}
+                    items={[
+                      { label: "Normal", value: "normal" },
+                      { label: "Goose 🪿", value: "goose" },
+                    ]}
+                    disabled={!alertsEnabled}
+                    containerStyle={{ height: 48, marginTop: 8 }}
+                    style={{
+                      backgroundColor: VintageColors.cardBackground,
+                      borderColor: VintageColors.border,
+                      borderRadius: 8,
+                    }}
+                    dropDownContainerStyle={{
+                      backgroundColor: VintageColors.cardBackground,
+                      borderColor: VintageColors.border,
+                    }}
+                    textStyle={{ color: VintageColors.primaryText }}
+                    listMode="SCROLLVIEW"
+                    modalProps={{
+                      animationType: "slide",
+                    }}
                   />
-                  <Text style={VintageStyles.label}>
-                    Fast drop threshold (mg/dL/min)
-                  </Text>
                 </View>
-                <TextInput
-                  style={VintageStyles.input}
-                  placeholder="e.g. -2"
-                  placeholderTextColor={VintageColors.secondaryText}
-                  value={fastDropThreshold}
-                  onChangeText={setFastDropThreshold}
-                  keyboardType="numeric"
+              </View>
+
+              {/* Info Panel */}
+              <View style={styles.infoPanel}>
+                <Feather
+                  name="info"
+                  size={16}
+                  color={VintageColors.iconBlue}
+                  style={styles.infoIcon}
                 />
+                <Text style={styles.infoText}>
+                  Notifications are{" "}
+                  {notificationsEnabled ? "ENABLED" : "DISABLED"} system-wide
+                </Text>
               </View>
+            </ScrollView>
 
+            {/* Fixed Footer */}
+            <View style={styles.footer}>
               <View style={VintageStyles.buttonContainer}>
                 <TouchableOpacity
                   style={[VintageStyles.button, VintageStyles.cancelButton]}
@@ -308,15 +493,119 @@ export const AlertsModal: React.FC<Props> = ({
 
                 <TouchableOpacity
                   style={[VintageStyles.button, VintageStyles.saveButton]}
-                  onPress={onSave}
+                  onPress={handleSave}
                 >
                   <Text style={VintageStyles.saveButtonText}>Save</Text>
                 </TouchableOpacity>
               </View>
-            </ScrollView>
+            </View>
           </View>
         </KeyboardAvoidingView>
-      </TouchableWithoutFeedback>
+      </View>
     </Modal>
   );
 };
+
+const styles = StyleSheet.create({
+  overlay: {
+    position: "absolute",
+    width: "100%",
+    height: "100%",
+    backgroundColor: "rgba(0, 0, 0, 0.7)",
+  },
+  modalWrapper: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 20,
+    width: "100%",
+    height: "100%",
+  },
+  modalContainer: {
+    borderRadius: 16,
+    overflow: "hidden",
+    backgroundColor: VintageColors.cardBackground,
+    width: "100%",
+  },
+  modalHeader: {
+    padding: 20,
+    alignItems: "center",
+    borderBottomWidth: 1,
+    borderBottomColor: VintageColors.border,
+    backgroundColor: VintageColors.cardBackground,
+  },
+  subtitle: {
+    color: VintageColors.secondaryText,
+    fontSize: 14,
+    marginTop: 8,
+    fontFamily: "System",
+    textAlign: "center",
+  },
+  scrollContent: {
+    padding: 20,
+    paddingBottom: 10,
+  },
+  section: {
+    marginBottom: 20,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontFamily: "System",
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+    marginBottom: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: VintageColors.border,
+  },
+  toggleItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    backgroundColor: VintageColors.cardBackground,
+    padding: 12,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+    marginBottom: 8,
+  },
+  toggleLabel: {
+    flexDirection: "row",
+    alignItems: "center",
+    flex: 1,
+  },
+  toggleIcon: {
+    marginRight: 12,
+  },
+  toggleText: {
+    fontSize: 16,
+    fontFamily: "System",
+    color: VintageColors.primaryText,
+    flex: 1,
+  },
+  infoPanel: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: VintageColors.cardBackground,
+    padding: 16,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.formAccent2 + "40",
+    marginTop: 20,
+  },
+  infoIcon: {
+    marginRight: 12,
+  },
+  infoText: {
+    flex: 1,
+    fontSize: 14,
+    fontFamily: "System",
+    color: VintageColors.secondaryText,
+  },
+  footer: {
+    borderTopWidth: 1,
+    borderTopColor: VintageColors.border,
+    paddingTop: 20,
+    backgroundColor: VintageColors.cardBackground,
+  },
+});

@@ -13,14 +13,19 @@ const allowedFields = [
   "specialization",
 
   // notifications
+  "alertsEnabled",
+  "liveStatusEnabled",
   "notificationsEnabled",
   "cooldownMinutes",
+  "staleMinutes",
   "lowThreshold",
   "highThreshold",
   "urgentLowThreshold",
-  "staleMinutes",
-  "trendAlertsEnabled",
   "fastDropThreshold",
+  "worsenDelta",
+  "trendAlertsEnabled",
+  "backInRangeEnabled",
+  "soundMode",
 
   // nightscout
   "nightscoutUrl",
