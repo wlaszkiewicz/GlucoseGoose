@@ -27,10 +27,8 @@ import { fetchBundleDirect } from "../../utils/cloudFunctions";
 
 const { width } = Dimensions.get("window");
 
-// Helper functions for calculating real analytics
 const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
   if (!entries || entries.length === 0) {
-    // Return default mock data if no real data
     const days = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
     const glucosePatterns = [
       [142, 156, 138, 145, 168, 152, 140],
@@ -77,7 +75,7 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
       {
         name: "Low",
         population: selectedTimeRange.low,
-        color: VintageColors.iconRed,
+        color: VintageColors.iconYellow,
         legendFontColor: VintageColors.primaryText,
       },
     ];
@@ -85,9 +83,7 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
     return { glucoseData, timeInRangeData };
   }
 
-  // Process real entries data
   try {
-    // Get last 7 days of data
     const sevenDaysAgo = new Date();
     sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
@@ -99,11 +95,9 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
     });
 
     if (recentEntries.length === 0) {
-      // Fallback to mock data if no recent entries
       return calculatePatientAnalytics([], patientIndex);
     }
 
-    // Group by day of week
     const daysOfWeek = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const dailyAverages: { [key: string]: number[] } = {};
 
@@ -122,7 +116,6 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
       }
     });
 
-    // Calculate average for each day
     const labels: string[] = [];
     const averages: number[] = [];
 
@@ -148,7 +141,6 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
       ],
     };
 
-    // Calculate time in range percentages
     const validEntries = entries.filter((e: any) => e.sgv);
     let inRange = 0;
     let high = 0;
@@ -171,7 +163,6 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
       high = Math.round((high / total) * 100);
       low = Math.round((low / total) * 100);
     } else {
-      // Default percentages if no data
       inRange = 70;
       high = 20;
       low = 10;
@@ -193,7 +184,7 @@ const calculatePatientAnalytics = (entries: any[], patientIndex: number) => {
       {
         name: "Low",
         population: low,
-        color: VintageColors.iconRed,
+        color: VintageColors.iconYellow,
         legendFontColor: VintageColors.primaryText,
       },
     ];
@@ -256,7 +247,6 @@ const DoctorAnalyticsScreen = () => {
     }
   }, [patients, loadingPatients]);
 
-  // Check patient access status (public vs private)
   useEffect(() => {
     const checkPatientAccess = async () => {
       const accessStatus: {
@@ -272,20 +262,17 @@ const DoctorAnalyticsScreen = () => {
         const hasSecret = !!secret;
 
         if (hasSecret) {
-          // Has secret, definitely accessible
           accessStatus[patient.uid] = {
             hasSecret: true,
             isPublic: false,
             isAccessible: true,
           };
         } else {
-          // No secret, check if Nightscout is public
           try {
-            // First try to fetch data without secret (test if public)
-            const minutes = 1; // Just test with minimal data
+            const minutes = 1; 
             try {
               await fetchBundleDirect(patient.nightscoutUrl, "", minutes);
-              // If successful without secret, it's public
+              
               accessStatus[patient.uid] = {
                 hasSecret: false,
                 isPublic: true,
@@ -296,15 +283,12 @@ const DoctorAnalyticsScreen = () => {
                 error.message === "AUTH_REQUIRED" ||
                 error.code === "AUTH_REQUIRED"
               ) {
-                // Authentication required, not public
                 accessStatus[patient.uid] = {
                   hasSecret: false,
                   isPublic: false,
                   isAccessible: false,
                 };
               } else {
-                // Other error, might be network or server issue
-                // Assume not accessible for now
                 accessStatus[patient.uid] = {
                   hasSecret: false,
                   isPublic: false,
@@ -313,7 +297,6 @@ const DoctorAnalyticsScreen = () => {
               }
             }
           } catch {
-            // Network error or other issue
             accessStatus[patient.uid] = {
               hasSecret: false,
               isPublic: false,
@@ -324,8 +307,6 @@ const DoctorAnalyticsScreen = () => {
       }
 
       setPatientAccessStatus(accessStatus);
-
-      // Debug log
       console.log("Patient Access Status:", accessStatus);
     };
 
@@ -342,9 +323,7 @@ const DoctorAnalyticsScreen = () => {
         const secret = patientSecrets[patient.uid] || "";
         const accessStatus = patientAccessStatus[patient.uid];
 
-        // Only try to load data if patient is accessible (has secret OR is public)
         if (accessStatus?.isAccessible) {
-          // Initialize patient data structure
           newPatientData[patient.uid] = {
             uid: patient.uid,
             nightscoutUrl: patient.nightscoutUrl,
@@ -357,10 +336,8 @@ const DoctorAnalyticsScreen = () => {
           };
 
           try {
-            // Fetch bundle (entries + treatments) - get last 7 days (10080 minutes)
-            const minutes = 7 * 24 * 60; // 7 days
+            const minutes = 7 * 24 * 60;
 
-            // Use empty string for public Nightscouts, secret for private ones
             const bundleSecret = accessStatus.hasSecret ? secret : "";
 
             const bundle = await fetchBundleDirect(
@@ -394,7 +371,6 @@ const DoctorAnalyticsScreen = () => {
             };
           }
         } else {
-          // Not accessible
           const hasSecret = !!patientSecrets[patient.uid];
           newPatientData[patient.uid] = {
             uid: patient.uid,
@@ -420,10 +396,8 @@ const DoctorAnalyticsScreen = () => {
     }
   }, [patients, patientSecrets, patientAccessStatus]);
 
-  // Refresh function
   const refreshPatientData = async (patientId?: string) => {
     if (patientId) {
-      // Refresh specific patient
       const patient = patients.find((p) => p.uid === patientId);
       if (!patient) return;
 
@@ -440,7 +414,7 @@ const DoctorAnalyticsScreen = () => {
       }));
 
       try {
-        const minutes = 7 * 24 * 60; // 7 days
+        const minutes = 7 * 24 * 60;
         const bundleSecret = accessStatus.hasSecret
           ? patientSecrets[patient.uid]
           : "";
@@ -475,7 +449,6 @@ const DoctorAnalyticsScreen = () => {
         }));
       }
     } else {
-      // Refresh all patients
       const newPatientData = { ...patientData };
       const refreshPromises = patients.map(async (patient) => {
         const accessStatus = patientAccessStatus[patient.uid];
@@ -488,7 +461,7 @@ const DoctorAnalyticsScreen = () => {
         };
 
         try {
-          const minutes = 7 * 24 * 60; // 7 days
+          const minutes = 7 * 24 * 60; 
           const bundleSecret = accessStatus.hasSecret
             ? patientSecrets[patient.uid]
             : "";
@@ -523,10 +496,8 @@ const DoctorAnalyticsScreen = () => {
     }
   };
 
-  // Get real analytics data for selected patient
   const getRealAnalytics = () => {
     if (selectedPatientIndex === "overall") {
-      // Combine data from all patients for overall view
       const allEntries: any[] = [];
       Object.values(patientData).forEach((patient: PatientData) => {
         if (patient.entries) {
@@ -574,7 +545,6 @@ const DoctorAnalyticsScreen = () => {
     },
   };
 
-  // Calculate real stats based on actual data
   const calculateRealStats = () => {
     if (patients.length === 0) {
       return [
@@ -583,30 +553,33 @@ const DoctorAnalyticsScreen = () => {
           value: "--",
           icon: "droplet",
           trend: "neutral",
+          color: VintageColors.iconPurple,
         },
         {
           label: "Time in Range",
           value: "--",
           icon: "target",
           trend: "neutral",
+          color: VintageColors.iconBlue,
         },
         {
           label: "Hypo Events",
           value: "--",
           icon: "alert-triangle",
           trend: "neutral",
+          color: VintageColors.iconPink,
         },
         {
           label: "Adherence",
           value: "--",
           icon: "check-circle",
           trend: "neutral",
+          color: VintageColors.iconGreen,
         },
       ];
     }
 
     if (selectedPatientIndex === "overall") {
-      // Calculate overall stats from all patients
       let totalGlucose = 0;
       let totalReadings = 0;
       let totalInRange = 0;
@@ -639,7 +612,6 @@ const DoctorAnalyticsScreen = () => {
           totalTreatments += patient.treatments.length;
         }
 
-        // Expected readings: ~288 per day (5 min intervals) for 7 days
         totalExpectedReadings += 288 * 7;
       });
 
@@ -661,6 +633,7 @@ const DoctorAnalyticsScreen = () => {
           icon: "droplet",
           trend:
             avgGlucose > 150 ? "up" : avgGlucose < 120 ? "down" : "neutral",
+          color: VintageColors.iconPurple,
         },
         {
           label: "Time in Range",
@@ -672,6 +645,7 @@ const DoctorAnalyticsScreen = () => {
               : timeInRangePercent < 50
                 ? "down"
                 : "neutral",
+          color: VintageColors.iconBlue,
         },
         {
           label: "Hypo Events",
@@ -683,6 +657,7 @@ const DoctorAnalyticsScreen = () => {
               : totalHypoEvents === 0
                 ? "down"
                 : "neutral",
+          color: VintageColors.iconPink,
         },
         {
           label: "Adherence",
@@ -694,10 +669,10 @@ const DoctorAnalyticsScreen = () => {
               : adherencePercent < 50
                 ? "down"
                 : "neutral",
+          color: VintageColors.iconGreen,
         },
       ];
     } else {
-      // Individual patient stats
       const patient = patients[selectedPatientIndex];
       const patientDataObj = patientData[patient?.uid];
 
@@ -706,7 +681,6 @@ const DoctorAnalyticsScreen = () => {
         !patientDataObj.entries ||
         patientDataObj.entries.length === 0
       ) {
-        // Fallback to mock data if no real data
         const patterns = [
           { glucose: "142", timeInRange: "72%", hypo: "2", adherence: "95%" },
           { glucose: "168", timeInRange: "58%", hypo: "4", adherence: "78%" },
@@ -721,6 +695,7 @@ const DoctorAnalyticsScreen = () => {
             value: `${pattern.glucose} mg/dL`,
             icon: "droplet",
             trend: Number(pattern.glucose) < 150 ? "down" : "up",
+            color: VintageColors.iconPurple,
           },
           {
             label: "Time in Range",
@@ -728,12 +703,14 @@ const DoctorAnalyticsScreen = () => {
             icon: "target",
             trend:
               Number(pattern.timeInRange.replace("%", "")) > 70 ? "up" : "down",
+            color: VintageColors.iconBlue,
           },
           {
             label: "Hypo Events",
             value: pattern.hypo,
             icon: "alert-triangle",
             trend: Number(pattern.hypo) > 2 ? "up" : "down",
+            color: VintageColors.iconPink,
           },
           {
             label: "Adherence",
@@ -741,11 +718,11 @@ const DoctorAnalyticsScreen = () => {
             icon: "check-circle",
             trend:
               Number(pattern.adherence.replace("%", "")) > 85 ? "up" : "down",
+            color: VintageColors.iconGreen,
           },
         ];
       }
 
-      // Calculate from real data
       const entries = patientDataObj.entries;
       const treatments = patientDataObj.treatments || [];
 
@@ -779,8 +756,7 @@ const DoctorAnalyticsScreen = () => {
           ? Math.round((totalInRange / totalReadings) * 100)
           : 0;
 
-      // Adherence calculation based on expected readings vs actual
-      const expectedReadings = 288 * 7; // 5 min intervals for 7 days
+      const expectedReadings = 288 * 7;
       const adherencePercent = Math.min(
         100,
         Math.round((totalReadings / expectedReadings) * 100),
@@ -793,6 +769,7 @@ const DoctorAnalyticsScreen = () => {
           icon: "droplet",
           trend:
             avgGlucose > 150 ? "up" : avgGlucose < 120 ? "down" : "neutral",
+          color: VintageColors.iconPurple, 
         },
         {
           label: "Time in Range",
@@ -804,6 +781,7 @@ const DoctorAnalyticsScreen = () => {
               : timeInRangePercent < 50
                 ? "down"
                 : "neutral",
+          color: VintageColors.iconBlue,
         },
         {
           label: "Hypo Events",
@@ -815,6 +793,7 @@ const DoctorAnalyticsScreen = () => {
               : totalHypoEvents === 0
                 ? "down"
                 : "neutral",
+          color: VintageColors.iconPink,
         },
         {
           label: "Adherence",
@@ -826,6 +805,7 @@ const DoctorAnalyticsScreen = () => {
               : adherencePercent < 50
                 ? "down"
                 : "neutral",
+          color: VintageColors.iconGreen, 
         },
       ];
     }
@@ -833,7 +813,6 @@ const DoctorAnalyticsScreen = () => {
 
   const stats = calculateRealStats();
 
-  // Get selected patient name or "Overall"
   const getSelectedPatientName = () => {
     if (selectedPatientIndex === "overall") {
       return "Overall Statistics";
@@ -842,7 +821,6 @@ const DoctorAnalyticsScreen = () => {
     return patient?.displayName || `Patient ${selectedPatientIndex + 1}`;
   };
 
-  // Get selected patient data for recommendations
   const getSelectedPatientData = () => {
     if (selectedPatientIndex === "overall") {
       return null;
@@ -851,9 +829,7 @@ const DoctorAnalyticsScreen = () => {
     return patientData[patient?.uid];
   };
 
-  // Helper function to generate report data
   const generateReportData = async () => {
-    // Prepare report data
     const reportData = {
       patientName: getSelectedPatientName(),
       reportDate: new Date().toLocaleDateString("en-US", {
@@ -878,11 +854,9 @@ const DoctorAnalyticsScreen = () => {
       recommendations: generateRecommendations(),
     };
 
-    // Generate report
     return await ReportService.generateReport(reportData);
   };
 
-  // Function to save as PDF
   const saveAsPDF = async (htmlContent: string, patientName: string) => {
     try {
       const { uri } = await Print.printToFileAsync({
@@ -915,7 +889,6 @@ const DoctorAnalyticsScreen = () => {
     }
   };
 
-  // Working export functionality
   const handleExportReport = async () => {
     const patientName = getSelectedPatientName();
 
@@ -966,7 +939,6 @@ const DoctorAnalyticsScreen = () => {
     );
   };
 
-  // Generate recommendations based on real stats
   const generateRecommendations = () => {
     const recommendations: string[] = [];
     const patientDataObj = getSelectedPatientData();
@@ -1041,7 +1013,6 @@ const DoctorAnalyticsScreen = () => {
       : ["Continue current management plan"];
   };
 
-  // Check if any patient data is still loading
   const isAnyPatientLoading = Object.values(patientData).some(
     (patient: PatientData) => patient.loading,
   );
@@ -1076,48 +1047,16 @@ const DoctorAnalyticsScreen = () => {
       >
         {/* Header */}
         <View style={[VintageStyles.headerSection, { marginBottom: 8 }]}>
-          <View style={styles.headerRow}>
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              activeOpacity={0.75}
-              style={styles.backArrow}
-            >
-              <Feather
-                name="chevron-left"
-                size={20}
-                color={VintageColors.primaryText}
-              />
-            </TouchableOpacity>
-
-            <View style={styles.headerCenter}>
-              <View style={VintageStyles.headerDecoration}>
-                <View style={VintageStyles.headerLine} />
-                <Text style={VintageStyles.headerTitle}>
-                  Analytics Dashboard
-                </Text>
-                <View style={VintageStyles.headerLine} />
-              </View>
+          <View style={VintageStyles.header}>
+            <View style={VintageStyles.headerDecoration}>
+              <View style={VintageStyles.headerLine} />
+              <Text style={VintageStyles.headerTitle}>
+                Analytics Dashboard
+              </Text>
+              <View style={VintageStyles.headerLine} />
             </View>
-
-            {/* Refresh Button */}
-            <TouchableOpacity
-              onPress={() => refreshPatientData()}
-              activeOpacity={0.75}
-              style={styles.refreshButton}
-            >
-              <Feather
-                name="refresh-cw"
-                size={18}
-                color={VintageColors.primaryText}
-              />
-            </TouchableOpacity>
           </View>
 
-          <Text style={styles.headerSubtitle}>
-            {patients.length === 0
-              ? "Add patients to see analytics"
-              : `View statistics for individual patients`}
-          </Text>
         </View>
 
         {/* Patient Selection */}
@@ -1162,7 +1101,6 @@ const DoctorAnalyticsScreen = () => {
                 const isPublic = patientDataObj?.isPublic;
                 const hasSecret = !!patientSecrets[patient.uid];
 
-                // Determine accessibility and icon
                 const isAccessible = accessStatus?.isAccessible || false;
                 let iconName = "lock";
                 let iconColor = VintageColors.iconOrange;
@@ -1351,50 +1289,93 @@ const DoctorAnalyticsScreen = () => {
             );
           })()}
 
-        {/* Quick Stats Grid */}
-        <View style={styles.statsGrid}>
-          {stats.map((stat, index) => (
-            <View key={index} style={styles.statCard}>
-              <View style={styles.statHeader}>
-                <View
-                  style={[
-                    styles.statIconContainer,
-                    { backgroundColor: VintageColors.lightBackground },
-                  ]}
-                >
-                  <Feather
-                    name={stat.icon as any}
-                    size={16}
-                    color={VintageColors.primaryText}
-                  />
+        {/* Quick Stats Grid*/}
+        <View style={styles.statsGridCentered}>
+          <View style={styles.statsRow}>
+            {stats.slice(0, 2).map((stat, index) => (
+              <View key={index} style={styles.statCardCentered}>
+                <View style={styles.statHeader}>
+                  <View
+                    style={[
+                      styles.statIconContainer,
+                      { backgroundColor: stat.color },
+                    ]}
+                  >
+                    <Feather
+                      name={stat.icon as any}
+                      size={16}
+                      color={VintageColors.primaryText}
+                    />
+                  </View>
+                  <View style={styles.trendIndicator}>
+                    <Feather
+                      name={
+                        stat.trend === "up"
+                          ? "arrow-up-right"
+                          : stat.trend === "down"
+                            ? "arrow-down-right"
+                            : "minus"
+                      }
+                      size={12}
+                      color={
+                        stat.trend === "up"
+                          ? VintageColors.iconGreen
+                          : stat.trend === "down"
+                            ? VintageColors.iconRed
+                            : VintageColors.secondaryText
+                      }
+                    />
+                  </View>
                 </View>
-                <View style={styles.trendIndicator}>
-                  <Feather
-                    name={
-                      stat.trend === "up"
-                        ? "arrow-up-right"
-                        : stat.trend === "down"
-                          ? "arrow-down-right"
-                          : "minus"
-                    }
-                    size={12}
-                    color={
-                      stat.trend === "up"
-                        ? VintageColors.iconGreen
-                        : stat.trend === "down"
-                          ? VintageColors.iconRed
-                          : VintageColors.secondaryText
-                    }
-                  />
-                </View>
+                <Text style={styles.statValue}>{stat.value}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
               </View>
-              <Text style={styles.statValue}>{stat.value}</Text>
-              <Text style={styles.statLabel}>{stat.label}</Text>
-            </View>
-          ))}
+            ))}
+          </View>
+          <View style={styles.statsRow}>
+            {stats.slice(2, 4).map((stat, index) => (
+              <View key={index} style={styles.statCardCentered}>
+                <View style={styles.statHeader}>
+                  <View
+                    style={[
+                      styles.statIconContainer,
+                      { backgroundColor: stat.color },
+                    ]}
+                  >
+                    <Feather
+                      name={stat.icon as any}
+                      size={16}
+                      color={VintageColors.primaryText}
+                    />
+                  </View>
+                  <View style={styles.trendIndicator}>
+                    <Feather
+                      name={
+                        stat.trend === "up"
+                          ? "arrow-up-right"
+                          : stat.trend === "down"
+                            ? "arrow-down-right"
+                            : "minus"
+                      }
+                      size={12}
+                      color={
+                        stat.trend === "up"
+                          ? VintageColors.iconGreen
+                          : stat.trend === "down"
+                            ? VintageColors.iconRed
+                            : VintageColors.secondaryText
+                      }
+                    />
+                  </View>
+                </View>
+                <Text style={styles.statValue}>{stat.value}</Text>
+                <Text style={styles.statLabel}>{stat.label}</Text>
+              </View>
+            ))}
+          </View>
         </View>
 
-        {/* Charts Section - Only show if we have patients */}
+        {/* Charts Section */}
         {patients.length > 0 ? (
           <>
             {/* Glucose Trends Chart */}
@@ -1523,7 +1504,6 @@ const DoctorAnalyticsScreen = () => {
   );
 };
 
-// Add new styles for the updated components
 const styles = StyleSheet.create({
   loadingContainer: {
     flex: 1,
@@ -1551,30 +1531,6 @@ const styles = StyleSheet.create({
   headerCenter: {
     alignItems: "center",
     flex: 1,
-  },
-  backArrow: {
-    position: "absolute",
-    left: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: VintageColors.lightBackground,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  refreshButton: {
-    position: "absolute",
-    right: 0,
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    justifyContent: "center",
-    alignItems: "center",
-    backgroundColor: VintageColors.lightBackground,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
   },
   headerSubtitle: {
     fontSize: 14,
@@ -1773,13 +1729,16 @@ const styles = StyleSheet.create({
     fontWeight: "500",
   },
 
-  statsGrid: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
+  statsGridCentered: {
     marginBottom: 20,
+    alignItems: "center",
   },
-  statCard: {
+  statsRow: {
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 12,
+  },
+  statCardCentered: {
     width: (width - 48) / 2 - 6,
     backgroundColor: VintageColors.cardBackground,
     padding: 16,
