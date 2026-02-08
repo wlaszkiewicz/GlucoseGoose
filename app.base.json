@@ -25,7 +25,7 @@
         "backgroundColor": "#ffffff"
       },
       "notification": {
-        "icon": "./assets/logo-notification.png",
+        "icon": "./assets/logo-notifications.png",
         "color": "#ffffff"
       },
       "predictiveBackGestureEnabled": false,
