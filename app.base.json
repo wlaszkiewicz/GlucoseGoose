@@ -46,10 +46,14 @@
       [
         "expo-notifications",
         {
+          "icon": "./assets/logo-notifications.png",
+          "color": "#ffffff",
+          "defaultChannel": "default",
           "sounds": [
             "./assets/sounds/goose_soft.wav",
             "./assets/sounds/goose_urgent.wav"
-          ]
+          ],
+          "enableBackgroundRemoteNotifications": false
         }
       ],
       [

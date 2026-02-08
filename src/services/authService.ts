@@ -111,8 +111,14 @@ export async function loginWithUsername(
       await StorageService.set("geminiAPIKey", geminiAPIKey, rememberMe);
     }
 
-    const token = await getFcmToken();
-    if (token) await upsertDeviceToken(result.user.uid, token, Platform.OS);
+    try {
+      const token = await getFcmToken();
+      if (token) {
+        await upsertDeviceToken(result.user.uid, token, Platform.OS);
+      }
+    } catch (e) {
+      console.warn("FCM token setup failed:", e);
+    }
 
     return { success: true, user: result.user };
   } catch (error: any) {
