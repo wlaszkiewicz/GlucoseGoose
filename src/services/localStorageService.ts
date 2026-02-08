@@ -58,6 +58,7 @@ export const StorageService = {
         "rememberMe",
         "nightscoutUrl",
         "geminiAPIKey",
+        "deviceId",
       ];
       await Promise.all(keys.map((k) => SecureStore.deleteItemAsync(k)));
     }

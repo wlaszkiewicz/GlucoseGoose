@@ -1,4 +1,4 @@
-import { doc, setDoc, updateDoc } from "firebase/firestore";
+import { doc, setDoc, deleteDoc } from "firebase/firestore";
 import { db } from "../../firebaseConfig";
 import { getOrCreateDeviceId } from "./deviceIdService";
 
@@ -13,10 +13,8 @@ export async function upsertDeviceToken(
     doc(db, "users", uid, "devices", deviceId),
     {
       token,
-      enabled: true,
       platform,
       updatedAt: Date.now(),
-      createdAt: Date.now(),
       deviceId,
     },
     { merge: true },
@@ -25,10 +23,7 @@ export async function upsertDeviceToken(
   return deviceId;
 }
 
-export async function disableThisDeviceToken(uid: string) {
+export async function removeThisDevice(uid: string) {
   const deviceId = await getOrCreateDeviceId();
-  await updateDoc(doc(db, "users", uid, "devices", deviceId), {
-    enabled: false,
-    updatedAt: Date.now(),
-  });
+  await deleteDoc(doc(db, "users", uid, "devices", deviceId));
 }

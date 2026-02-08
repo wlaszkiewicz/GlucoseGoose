@@ -13,10 +13,7 @@ import Constants from "expo-constants";
 import { StorageService } from "./localStorageService";
 import { Platform } from "react-native";
 import { getFcmToken } from "../notifications/getFcmToken";
-import {
-  disableThisDeviceToken,
-  upsertDeviceToken,
-} from "./deviceTokenService";
+import { removeThisDevice, upsertDeviceToken } from "./deviceTokenService";
 
 const CLOUD_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
@@ -137,9 +134,10 @@ export async function logoutUser() {
     const uid = auth.currentUser?.uid;
 
     if (uid) {
-      await disableThisDeviceToken(uid);
+      await removeThisDevice(uid).catch((e) =>
+        console.warn("Failed to disable device token:", e),
+      );
     }
-
     await auth.signOut();
     await StorageService.clearAll();
     return { success: true };
