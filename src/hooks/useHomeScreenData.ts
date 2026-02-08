@@ -31,14 +31,12 @@ export const useHomeScreenData = () => {
     if (!nightscoutUrl) return;
 
     (async () => {
-      setIsRefreshing(true);
       try {
         await loadFullDay();
         setDataLoaded(true);
       } catch (err) {
         console.error("Failed to load data:", err);
       } finally {
-        setIsRefreshing(false);
         startPolling();
       }
     })();

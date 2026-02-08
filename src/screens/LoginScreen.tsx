@@ -1,5 +1,4 @@
 import React from "react";
-import { StatusBar } from "expo-status-bar";
 import {
   Text,
   Linking,
@@ -100,7 +99,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
 
     try {
       let nightscoutSecretHash: string | undefined = undefined;
-      if (nightscoutSecret && nightscoutSecret.trim().length > 0 && !isDoctorMode) {
+      if (
+        nightscoutSecret &&
+        nightscoutSecret.trim().length > 0 &&
+        !isDoctorMode
+      ) {
         nightscoutSecretHash = sha1.sha1(nightscoutSecret);
       }
 
@@ -109,9 +112,9 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         password,
         isDoctorMode ? "" : nightscoutUrl,
         nightscoutSecretHash || undefined,
-        isDoctorMode ? false : storeLocally, 
+        isDoctorMode ? false : storeLocally,
         rememberMe,
-        useCustomGemini ? geminiApiKey : undefined
+        useCustomGemini ? geminiApiKey : undefined,
       );
 
       if (!result.success) {
@@ -201,8 +204,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
               {isDoctorMode ? "Welcome, Doctor!" : "Welcome Back!"}
             </Text>
             <Text style={VintageStylesAuth.welcomeSubtitle}>
-              {isDoctorMode 
-                ? "Access your patients' glucose data" 
+              {isDoctorMode
+                ? "Access your patients' glucose data"
                 : "Glad to see you again in our cozy flock"}
             </Text>
           </View>
@@ -212,30 +215,31 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 VintageStylesAuth.doctorToggleButton,
-                isDoctorMode && VintageStylesAuth.doctorToggleButtonActive
+                isDoctorMode && VintageStylesAuth.doctorToggleButtonActive,
               ]}
               onPress={() => setIsDoctorMode(!isDoctorMode)}
               activeOpacity={0.7}
             >
-              <Ionicons 
-                name={isDoctorMode ? "medical" : "person"} 
-                size={20} 
-                color={isDoctorMode ? "#FFFFFF" : VintageColors.primaryText} 
+              <Ionicons
+                name={isDoctorMode ? "medical" : "person"}
+                size={20}
+                color={isDoctorMode ? "#FFFFFF" : VintageColors.primaryText}
               />
-              <Text style={[
-                VintageStylesAuth.doctorToggleText,
-                isDoctorMode && VintageStylesAuth.doctorToggleTextActive
-              ]}>
+              <Text
+                style={[
+                  VintageStylesAuth.doctorToggleText,
+                  isDoctorMode && VintageStylesAuth.doctorToggleTextActive,
+                ]}
+              >
                 {isDoctorMode ? "I'm a Doctor" : "I'm a Patient"}
               </Text>
-              <Ionicons 
-                name="swap-horizontal" 
-                size={16} 
-                color={isDoctorMode ? "#FFFFFF" : VintageColors.secondaryText} 
+              <Ionicons
+                name="swap-horizontal"
+                size={16}
+                color={isDoctorMode ? "#FFFFFF" : VintageColors.secondaryText}
                 style={{ marginLeft: 8 }}
               />
             </TouchableOpacity>
-            
           </View>
 
           {/* Registration Form*/}
@@ -268,8 +272,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                   errors.identifier && VintageStylesAuth.inputError,
                 ]}
                 placeholder={
-                  isDoctorMode 
-                    ? "Enter your doctor username" 
+                  isDoctorMode
+                    ? "Enter your doctor username"
                     : "Enter your username"
                 }
                 placeholderTextColor={VintageColors.secondaryText}
@@ -457,7 +461,11 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                           : { backgroundColor: VintageColors.iconPurple },
                       ]}
                     >
-                      <MaterialIcons name="smart-toy" size={20} color="#FFFFFF" />
+                      <MaterialIcons
+                        name="smart-toy"
+                        size={20}
+                        color="#FFFFFF"
+                      />
                     </View>
                     <View>
                       <Text style={VintageStylesAuth.geminiTitle}>
@@ -535,7 +543,8 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                               VintageStylesAuth.input,
                               focusedInput === "geminiApiKey" &&
                                 VintageStylesAuth.inputFocused,
-                              errors.geminiApiKey && VintageStylesAuth.inputError,
+                              errors.geminiApiKey &&
+                                VintageStylesAuth.inputError,
                             ]}
                             ref={geminiApiKeyRef}
                             placeholder="AIza... (your Gemini API key)"
@@ -624,16 +633,16 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
                             color={VintageColors.secondaryText}
                             style={{ marginRight: 8 }}
                           />
-                          By default, GlucoseGoose uses its own Gemini API key for
-                          AI features. You can optionally provide your own for
-                          personalized usage.
+                          By default, GlucoseGoose uses its own Gemini API key
+                          for AI features. You can optionally provide your own
+                          for personalized usage.
                         </Text>
 
                         <TouchableOpacity
                           style={VintageStylesAuth.geminiLink}
                           onPress={() =>
                             Linking.openURL(
-                              "https://ai.google.dev/gemini-api/docs/api-key"
+                              "https://ai.google.dev/gemini-api/docs/api-key",
                             )
                           }
                         >
@@ -707,7 +716,7 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 VintageStylesAuth.primaryButton,
-                isDoctorMode && { backgroundColor: VintageColors.formAccent1 }
+                isDoctorMode && { backgroundColor: VintageColors.formAccent1 },
               ]}
               onPress={handleLogin}
               disabled={loading}
@@ -764,7 +773,6 @@ const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
         </View>
 
         <View style={VintageStylesAuth.spacing40} />
-        <StatusBar style="auto" />
       </ScrollView>
     </View>
   );

@@ -3,6 +3,8 @@ import { View, ScrollView, TouchableOpacity, Text } from "react-native";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
+import { useEffect } from "react";
+
 import { VintageStyles } from "../themes/vintage/styles_vintage";
 import { VintageColors } from "../themes/vintage/colors";
 
@@ -17,12 +19,98 @@ import { SettingsList } from "../components//settings/SettingsList";
 import { ProfileModal } from "../components//settings/ProfileModal";
 import { useProfileSettings } from "../hooks/useProfileSettings";
 
+import { AlertsModal } from "../components/settings/AlertsModal";
+import { NightscoutModal } from "../components/settings/NightscoutModal";
+import { updateUserProfile } from "../services/userProfileService";
+import {
+  getNightscoutSecret,
+  getNightscoutUrlForUser,
+  setNightscoutSecret,
+  setNightscoutUrlForUser,
+} from "../services/nightscoutLocalService";
+
 const SettingsScreen = () => {
   const navigation = useNavigation();
   const { reset } = useNightscout();
-  const { userData, isDoctor } = useAuth();
+  const { userData, firebaseUser, isDoctor } = useAuth();
+
+  const [isAlertsModalVisible, setIsAlertsModalVisible] = useState(false);
+  const [isNightscoutModalVisible, setIsNightscoutModalVisible] =
+    useState(false);
+
+  const [notificationsEnabled, setNotificationsEnabled] = useState(
+    !!userData?.notificationsEnabled,
+  );
+  const [cooldownMinutes, setCooldownMinutes] = useState(
+    String(userData?.cooldownMinutes ?? 20),
+  );
+  const [lowThreshold, setLowThreshold] = useState(
+    String(userData?.lowThreshold ?? 70),
+  );
+  const [highThreshold, setHighThreshold] = useState(
+    String(userData?.highThreshold ?? 180),
+  );
+  const [urgentLowThreshold, setUrgentLowThreshold] = useState(
+    String(userData?.urgentLowThreshold ?? 55),
+  );
+  const [staleMinutes, setStaleMinutes] = useState(
+    String(userData?.staleMinutes ?? 15),
+  );
+  const [trendAlertsEnabled, setTrendAlertsEnabled] = useState(
+    userData?.trendAlertsEnabled ?? true,
+  );
+  const [fastDropThreshold, setFastDropThreshold] = useState(
+    String(userData?.fastDropThreshold ?? -2),
+  );
+
+  // Nightscout settings
+  const storeLocally = !!userData?.storeLocally;
+  const [nightscoutUrl, setNightscoutUrl] = useState("");
+  const [nightscoutSecret, setNightscoutSecretState] = useState("");
+
+  useEffect(() => {
+    const loadNightscoutSettings = async () => {
+      if (!firebaseUser?.uid) return;
+      const url = await getNightscoutUrlForUser(firebaseUser.uid);
+      const secret = await getNightscoutSecret();
+      setNightscoutUrl(url);
+      setNightscoutSecretState(secret);
+    };
+    loadNightscoutSettings();
+  }, [firebaseUser?.uid]);
 
   const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
+
+  const saveAlerts = async () => {
+    if (!firebaseUser?.uid) return;
+
+    const payload = {
+      notificationsEnabled,
+      cooldownMinutes: parseInt(cooldownMinutes) || 20,
+      lowThreshold: parseInt(lowThreshold) || 70,
+      highThreshold: parseInt(highThreshold) || 180,
+      urgentLowThreshold: parseInt(urgentLowThreshold) || 55,
+      staleMinutes: parseInt(staleMinutes) || 15,
+      trendAlertsEnabled,
+      fastDropThreshold: parseFloat(fastDropThreshold) || -2,
+      updatedAt: Date.now(),
+    };
+
+    const res = await updateUserProfile(firebaseUser.uid, payload as any);
+    if (!res.success) console.error("Failed to save alerts:", res.error);
+    setIsAlertsModalVisible(false);
+  };
+
+  const saveNightscout = async () => {
+    if (!firebaseUser?.uid) return;
+
+    await setNightscoutUrlForUser(firebaseUser.uid, nightscoutUrl.trim());
+    await setNightscoutSecret(nightscoutSecret.trim());
+    setIsNightscoutModalVisible(false);
+  };
+
+  const openAlertsModal = () => setIsAlertsModalVisible(true);
+  const openNightscoutModal = () => setIsNightscoutModalVisible(true);
 
   const {
     // modal
@@ -100,7 +188,12 @@ const SettingsScreen = () => {
         />
 
         {/* settings list */}
-        <SettingsList isDoctor={isDoctor()} onAccountPress={openProfileModal} />
+        <SettingsList
+          isDoctor={isDoctor()}
+          onAccountPress={openProfileModal}
+          onAlertsPress={openAlertsModal}
+          onNightscoutPress={openNightscoutModal}
+        />
 
         {/* sign out */}
         <TouchableOpacity
@@ -159,6 +252,39 @@ const SettingsScreen = () => {
           setIsAvatarPickerVisible(false);
         }}
         currentAvatar={selectedAvatarId}
+      />
+
+      <AlertsModal
+        visible={isAlertsModalVisible}
+        onClose={() => setIsAlertsModalVisible(false)}
+        notificationsEnabled={notificationsEnabled}
+        setNotificationsEnabled={setNotificationsEnabled}
+        cooldownMinutes={cooldownMinutes}
+        setCooldownMinutes={setCooldownMinutes}
+        lowThreshold={lowThreshold}
+        setLowThreshold={setLowThreshold}
+        highThreshold={highThreshold}
+        setHighThreshold={setHighThreshold}
+        urgentLowThreshold={urgentLowThreshold}
+        setUrgentLowThreshold={setUrgentLowThreshold}
+        staleMinutes={staleMinutes}
+        setStaleMinutes={setStaleMinutes}
+        trendAlertsEnabled={trendAlertsEnabled}
+        setTrendAlertsEnabled={setTrendAlertsEnabled}
+        fastDropThreshold={fastDropThreshold}
+        setFastDropThreshold={setFastDropThreshold}
+        onSave={saveAlerts}
+      />
+
+      <NightscoutModal
+        visible={isNightscoutModalVisible}
+        onClose={() => setIsNightscoutModalVisible(false)}
+        nightscoutUrl={nightscoutUrl}
+        setNightscoutUrl={setNightscoutUrl}
+        nightscoutSecret={nightscoutSecret}
+        setNightscoutSecret={setNightscoutSecretState}
+        storeLocally={storeLocally}
+        onSave={saveNightscout}
       />
     </View>
   );

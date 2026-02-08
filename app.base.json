@@ -24,12 +24,52 @@
         "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
+      "notification": {
+        "icon": "./assets/logo-notification.png",
+        "color": "#ffffff"
+      },
       "predictiveBackGestureEnabled": false,
-      "package": "com.hotties.glucosegoose"
+      "package": "com.hotties.glucosegoose",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.WRITE_STEPS",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.WRITE_HEART_RATE"
+      ]
     },
     "web": {
-      "favicon": "./assets/logo.png"
+      "favicon": "./assets/goose1-nobg.png"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/goose_soft.wav",
+            "./assets/sounds/goose_urgent.wav"
+          ]
+        }
+      ],
+      [
+        "expo-health-connect",
+        {
+          "permissions": ["Steps", "HeartRate"]
+        }
+      ],
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "minSdkVersion": 26,
+            "kotlinVersion": "2.2.20"
+          }
+        }
+      ]
+    ]
   }
 }

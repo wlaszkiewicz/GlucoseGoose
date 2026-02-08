@@ -12,6 +12,17 @@ import { VintageColors } from "./themes/vintage/colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import DoctorTabNavigator from "./navigation/DoctorTabNavigator";
 import { DoctorProvider } from "./contexts/DoctorContext";
+import * as Notifications from "expo-notifications";
+import { StatusBar } from "react-native";
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowBanner: true, // iOS banner
+    shouldShowList: true, // iOS Notification Center list
+    shouldPlaySound: true,
+    shouldSetBadge: false,
+  }),
+});
 
 const Stack = createNativeStackNavigator();
 
@@ -56,16 +67,21 @@ export default function App() {
           <NavigationContainer>
             <SafeAreaProvider>
               <>
-                <SafeAreaView
-                  edges={["top", "left", "right"]}
-                  style={{ backgroundColor: VintageColors.background }}
+                <StatusBar
+                  barStyle="dark-content"
+                  backgroundColor={VintageColors.background}
                 />
+                {/* 
+                <SafeAreaView
+                  //edges={["top", "left", "right"]}
+                  style={{ backgroundColor: VintageColors.background }}
+                /> */}
 
                 <SafeAreaView
-                  edges={["bottom"]}
+                  //   edges={["bottom"]}
                   style={{
                     flex: 1,
-                    backgroundColor: VintageColors.cardBackground,
+                    backgroundColor: VintageColors.background,
                   }}
                 >
                   <AppContent />

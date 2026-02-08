@@ -14,9 +14,16 @@ import { SettingsCard } from "./SettingsCard";
 type Props = {
   isDoctor: boolean;
   onAccountPress: () => void;
+  onAlertsPress: () => void;
+  onNightscoutPress: () => void;
 };
 
-export const SettingsList: React.FC<Props> = ({ isDoctor, onAccountPress }) => {
+export const SettingsList: React.FC<Props> = ({
+  isDoctor,
+  onAccountPress,
+  onAlertsPress,
+  onNightscoutPress,
+}) => {
   return (
     <View style={VintageStyles.settingsList}>
       <View style={VintageStyles.sectionHeader}>
@@ -47,6 +54,7 @@ export const SettingsList: React.FC<Props> = ({ isDoctor, onAccountPress }) => {
       />
 
       <SettingsCard
+        onPress={onAlertsPress}
         title="Reminders & Alerts"
         subtitle="Glucose checks, medication"
         icon={
@@ -66,13 +74,29 @@ export const SettingsList: React.FC<Props> = ({ isDoctor, onAccountPress }) => {
       />
 
       <SettingsCard
+        onPress={onNightscoutPress}
+        title="Nightscout"
+        subtitle="URL & secret"
+        icon={
+          <View
+            style={[
+              VintageStyles.settingIcon,
+              { backgroundColor: VintageColors.iconBlue },
+            ]}
+          >
+            <Feather name="link" size={22} color={VintageColors.primaryText} />
+          </View>
+        }
+      />
+
+      <SettingsCard
         title="Health Data"
         subtitle="Connect devices & apps"
         icon={
           <View
             style={[
               VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconBlue },
+              { backgroundColor: VintageColors.iconPink },
             ]}
           >
             <Feather
@@ -91,7 +115,7 @@ export const SettingsList: React.FC<Props> = ({ isDoctor, onAccountPress }) => {
           <View
             style={[
               VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconPink },
+              { backgroundColor: VintageColors.iconPurple },
             ]}
           >
             <MaterialIcons
@@ -110,7 +134,7 @@ export const SettingsList: React.FC<Props> = ({ isDoctor, onAccountPress }) => {
           <View
             style={[
               VintageStyles.settingIcon,
-              { backgroundColor: VintageColors.iconPurple },
+              { backgroundColor: VintageColors.iconGreen },
             ]}
           >
             <Feather
