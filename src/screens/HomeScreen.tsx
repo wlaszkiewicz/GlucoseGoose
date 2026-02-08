@@ -32,18 +32,6 @@ const HomeScreen: React.FC<HomeScreenProps> = ({ navigation }) => {
     setShowEventModal,
   } = useHomeScreenData();
 
-  if (!isLoading && filteredEntries.length === 0) {
-    return (
-      <View style={[VintageStyles.container, { justifyContent: "center" }]}>
-        <View style={VintageStylesHome.emptyContainer}>
-          <Text style={VintageStylesHome.emptyText}>
-            No glucose data available.
-          </Text>
-        </View>
-      </View>
-    );
-  }
-
   return (
     <View style={VintageStyles.container}>
       <ScrollView
