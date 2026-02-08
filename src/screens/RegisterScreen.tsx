@@ -1,5 +1,4 @@
 import React from "react";
-import { StatusBar } from "expo-status-bar";
 import {
   Text,
   TextInput,
@@ -148,9 +147,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
       email,
       password,
       isDoctorMode ? false : storeLocally,
-      isDoctorMode ? "" : nightscoutUrl ?? "",
+      isDoctorMode ? "" : (nightscoutUrl ?? ""),
       isDoctorMode ? "doctor" : "patient",
-      extraData
+      extraData,
     );
 
     setLoading(false);
@@ -233,26 +232,28 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 VintageStylesAuth.doctorToggleButton,
-                isDoctorMode && VintageStylesAuth.doctorToggleButtonActive
+                isDoctorMode && VintageStylesAuth.doctorToggleButtonActive,
               ]}
               onPress={() => setIsDoctorMode(!isDoctorMode)}
               activeOpacity={0.7}
             >
-              <Ionicons 
-                name={isDoctorMode ? "medical" : "person"} 
-                size={20} 
-                color={isDoctorMode ? "#FFFFFF" : VintageColors.primaryText} 
+              <Ionicons
+                name={isDoctorMode ? "medical" : "person"}
+                size={20}
+                color={isDoctorMode ? "#FFFFFF" : VintageColors.primaryText}
               />
-              <Text style={[
-                VintageStylesAuth.doctorToggleText,
-                isDoctorMode && VintageStylesAuth.doctorToggleTextActive
-              ]}>
+              <Text
+                style={[
+                  VintageStylesAuth.doctorToggleText,
+                  isDoctorMode && VintageStylesAuth.doctorToggleTextActive,
+                ]}
+              >
                 {isDoctorMode ? "I'm a Doctor" : "I'm a Patient"}
               </Text>
-              <Ionicons 
-                name="swap-horizontal" 
-                size={16} 
-                color={isDoctorMode ? "#FFFFFF" : VintageColors.secondaryText} 
+              <Ionicons
+                name="swap-horizontal"
+                size={16}
+                color={isDoctorMode ? "#FFFFFF" : VintageColors.secondaryText}
                 style={{ marginLeft: 8 }}
               />
             </TouchableOpacity>
@@ -371,7 +372,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                       VintageStylesAuth.input,
                       focusedInput === "specialization" &&
                         VintageStylesAuth.inputFocused,
-                      errors.doctorSpecialization && VintageStylesAuth.inputError,
+                      errors.doctorSpecialization &&
+                        VintageStylesAuth.inputError,
                     ]}
                     ref={specializationRef}
                     placeholder="e.g., Diabetologist"
@@ -582,7 +584,11 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                     />
                     {errors.nightscoutUrl && (
                       <View style={VintageStylesAuth.errorContainer}>
-                        <Ionicons name="alert-circle" size={14} color="#D32F2F" />
+                        <Ionicons
+                          name="alert-circle"
+                          size={14}
+                          color="#D32F2F"
+                        />
                         <Text style={VintageStylesAuth.errorText}>
                           {errors.nightscoutUrl}
                         </Text>
@@ -605,7 +611,8 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                   <TouchableOpacity
                     style={[
                       VintageStylesAuth.localStorageHeader,
-                      storeLocally && VintageStylesAuth.localStorageHeaderActive,
+                      storeLocally &&
+                        VintageStylesAuth.localStorageHeaderActive,
                     ]}
                     onPress={() =>
                       setShowLocalStorageDetails(!showLocalStorageDetails)
@@ -660,7 +667,9 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                       </TouchableOpacity>
                       <Ionicons
                         name={
-                          showLocalStorageDetails ? "chevron-up" : "chevron-down"
+                          showLocalStorageDetails
+                            ? "chevron-up"
+                            : "chevron-down"
                         }
                         size={20}
                         color={
@@ -790,7 +799,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                     style={VintageStylesAuth.guideLink}
                     onPress={() =>
                       Linking.openURL(
-                        "https://i.pinimg.com/736x/d2/42/ca/d242ca98cfcc6a961aa77f29a3d9a834.jpg"
+                        "https://i.pinimg.com/736x/d2/42/ca/d242ca98cfcc6a961aa77f29a3d9a834.jpg",
                       )
                     }
                   >
@@ -815,7 +824,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
                     style={VintageStylesAuth.guideLink}
                     onPress={() =>
                       Linking.openURL(
-                        "https://i.pinimg.com/736x/55/c9/75/55c975c34c32722bea92dd0ba7272ee4.jpg"
+                        "https://i.pinimg.com/736x/55/c9/75/55c975c34c32722bea92dd0ba7272ee4.jpg",
                       )
                     }
                   >
@@ -857,7 +866,7 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
             <TouchableOpacity
               style={[
                 VintageStylesAuth.primaryButton,
-                isDoctorMode && { backgroundColor: VintageColors.formAccent1 }
+                isDoctorMode && { backgroundColor: VintageColors.formAccent1 },
               ]}
               onPress={handleRegister}
               disabled={loading}
@@ -894,7 +903,6 @@ const RegisterScreen: React.FC<RegisterScreenProps> = ({ navigation }) => {
         </View>
 
         <View style={VintageStylesAuth.spacing40} />
-        <StatusBar style="auto" />
       </ScrollView>
     </View>
   );

@@ -4,11 +4,11 @@
     "slug": "GlucoseGoose",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/goose1-nobg.png",
+    "icon": "./assets/logo.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/goose1-nobg.png",
+      "image": "./assets/logo.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -21,15 +21,55 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/goose1-nobg.png",
+        "foregroundImage": "./assets/logo.png",
         "backgroundColor": "#ffffff"
       },
+      "notification": {
+        "icon": "./assets/logo-notification.png",
+        "color": "#ffffff"
+      },
       "predictiveBackGestureEnabled": false,
-      "package": "com.hotties.glucosegoose"
+      "package": "com.hotties.glucosegoose",
+      "googleServicesFile": "./google-services.json",
+      "permissions": [
+        "android.permission.health.READ_STEPS",
+        "android.permission.health.WRITE_STEPS",
+        "android.permission.health.READ_HEART_RATE",
+        "android.permission.health.WRITE_HEART_RATE"
+      ]
     },
     "web": {
       "favicon": "./assets/goose1-nobg.png"
     },
-    "plugins": ["expo-secure-store"]
+    "plugins": [
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "sounds": [
+            "./assets/sounds/goose_soft.wav",
+            "./assets/sounds/goose_urgent.wav"
+          ]
+        }
+      ],
+      [
+        "expo-health-connect",
+        {
+          "permissions": ["Steps", "HeartRate"]
+        }
+      ],
+      "react-native-health-connect",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "compileSdkVersion": 36,
+            "targetSdkVersion": 36,
+            "minSdkVersion": 26,
+            "kotlinVersion": "2.2.20"
+          }
+        }
+      ]
+    ]
   }
 }

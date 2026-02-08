@@ -6,6 +6,7 @@ import SportsScreen from "../screens/journal/SportsScreen";
 import OtherEntriesScreen from "../screens/journal/OtherEntriesScreen";
 import { JournalHeader } from "../components/journal/JournalNavHeader";
 import { VintageColors } from "../themes/vintage/colors";
+import HealthConnectScreen from "../screens/HealthConnectScreen";
 export type JournalStackParamList = {
   JournalMain: undefined;
   Food: { selectedDate: string };
@@ -53,9 +54,23 @@ const JournalStackNavigator = () => {
         })}
       />
 
-      <Stack.Screen
+      {/* <Stack.Screen
         name="Sports"
         component={SportsScreen}
+        options={({ navigation }) => ({
+          header: () => (
+            <JournalHeader
+              title="Sports"
+              navigation={navigation}
+              showBackButton={true}
+            />
+          ),
+        })}
+      /> */}
+
+      <Stack.Screen
+        name="Sports"
+        component={HealthConnectScreen}
         options={({ navigation }) => ({
           header: () => (
             <JournalHeader

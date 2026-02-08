@@ -12,6 +12,11 @@ import { getEmailFromUsername } from "../utils/cloudFunctions";
 import Constants from "expo-constants";
 import { StorageService } from "./localStorageService";
 import { Platform } from "react-native";
+import { getFcmToken } from "../notifications/getFcmToken";
+import {
+  disableThisDeviceToken,
+  upsertDeviceToken,
+} from "./deviceTokenService";
 
 const CLOUD_HOST = Constants.expoConfig?.extra?.cloudFunctionsHost;
 
@@ -21,13 +26,13 @@ export async function registerUser(
   storeLocally: boolean,
   nightscoutUrl: string,
   role: string = "patient",
-  extra: any = {}
+  extra: any = {},
 ) {
   try {
     const { user } = await createUserWithEmailAndPassword(
       auth,
       email,
-      password
+      password,
     );
 
     await setDoc(doc(db, "users", user.uid), {
@@ -51,7 +56,7 @@ export async function registerUser(
     if (auth.currentUser) {
       await deleteDoc(doc(db, "users", auth.currentUser.uid)).catch(() => {});
       await deleteDoc(doc(db, "public_users", auth.currentUser.uid)).catch(
-        () => {}
+        () => {},
       );
       await deleteUser(auth.currentUser).catch(() => {});
     }
@@ -67,13 +72,13 @@ export async function loginWithUsername(
   nightscoutSecretHash?: string,
   storeLocally: boolean = false,
   rememberMe: boolean = true,
-  geminiAPIKey?: string
+  geminiAPIKey?: string,
 ) {
   try {
     if (Platform.OS === "web") {
       await setPersistence(
         auth,
-        rememberMe ? browserLocalPersistence : browserSessionPersistence
+        rememberMe ? browserLocalPersistence : browserSessionPersistence,
       );
     }
 
@@ -96,7 +101,7 @@ export async function loginWithUsername(
       await StorageService.set(
         "nightscoutSecret",
         nightscoutSecretHash,
-        rememberMe
+        rememberMe,
       );
     }
     if (result.user && storeLocally && nightscoutUrl) {
@@ -106,10 +111,13 @@ export async function loginWithUsername(
       await StorageService.set("geminiAPIKey", geminiAPIKey, rememberMe);
     }
 
+    const token = await getFcmToken();
+    if (token) await upsertDeviceToken(result.user.uid, token, Platform.OS);
+
     return { success: true, user: result.user };
   } catch (error: any) {
     const friendlyMessage = getFriendlyFirebaseError(
-      error.code || "auth/unknown"
+      error.code || "auth/unknown",
     );
     return {
       success: false,
@@ -120,6 +128,12 @@ export async function loginWithUsername(
 
 export async function logoutUser() {
   try {
+    const uid = auth.currentUser?.uid;
+
+    if (uid) {
+      await disableThisDeviceToken(uid);
+    }
+
     await auth.signOut();
     await StorageService.clearAll();
     return { success: true };
@@ -128,22 +142,47 @@ export async function logoutUser() {
   }
 }
 
-//TODO: expand this and CHECK IF THESE ARE ACTAULLY REAL FIREBASE ERRORS
 export function getFriendlyFirebaseError(code: string): string {
   switch (code) {
     case "auth/invalid-email":
       return "The email address is badly formatted.";
+
     case "auth/user-not-found":
-      return "Incorrect email/username or password. Please try again.";
+    case "auth/wrong-password":
     case "auth/invalid-credential":
-      return "Incorrect email/username or password. Please try again.";
+      return "Incorrect email or password. Please try again.";
+
     case "auth/email-already-in-use":
       return "This email is already registered. Try logging in.";
+
     case "auth/weak-password":
       return "Password must be at least 6 characters long.";
+
+    case "auth/missing-password":
+      return "Please enter your password.";
+
+    case "auth/missing-email":
+      return "Please enter your email.";
+
+    case "auth/user-disabled":
+      return "This account has been disabled.";
+
     case "auth/too-many-requests":
       return "Too many attempts. Please wait a moment and try again.";
+
+    case "auth/network-request-failed":
+      return "Network error. Check your internet connection.";
+
+    case "auth/operation-not-allowed":
+      return "This sign-in method is not enabled.";
+
+    case "auth/requires-recent-login":
+      return "Please log in again to continue.";
+
+    case "auth/internal-error":
+      return "Internal error. Please try again.";
+
     default:
-      return `Something went wrong. Please try again: ${code}`;
+      return "Something went wrong. Please try again.";
   }
 }

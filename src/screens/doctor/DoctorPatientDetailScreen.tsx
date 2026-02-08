@@ -9,7 +9,6 @@ import {
   Modal,
   ActivityIndicator,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
 import { useRoute, useNavigation } from "@react-navigation/native";
 
@@ -34,7 +33,6 @@ const DoctorPatientDetailScreen = () => {
   if (!patient?.uid || !patient?.nightscoutUrl) {
     return (
       <View style={VintageStyles.container}>
-        <StatusBar style="auto" />
         <ScrollView
           contentContainerStyle={[
             VintageStyles.scrollContent,
@@ -169,8 +167,6 @@ const DoctorPatientDetailScreen = () => {
 
   return (
     <View style={VintageStyles.container}>
-      <StatusBar style="auto" />
-
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}

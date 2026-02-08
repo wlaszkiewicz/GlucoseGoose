@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "101841828420",
+    "project_id": "glucose-goose",
+    "storage_bucket": "glucose-goose.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:101841828420:android:4a8386e030607c01fa1a11",
+        "android_client_info": {
+          "package_name": "com.hotties.glucosegoose"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyD8OH41AoJFv7bIOrXErVnkdij58wY6n4A"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
