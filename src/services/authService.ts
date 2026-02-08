@@ -32,12 +32,29 @@ export async function registerUser(
       password,
     );
 
+    const defaultAlerts = {
+      alertsEnabled: true,
+      liveStatusEnabled: true,
+      notificationsEnabled: true,
+      cooldownMinutes: 20,
+      staleMinutes: 15,
+      lowThreshold: 70,
+      highThreshold: 180,
+      urgentLowThreshold: 55,
+      trendAlertsEnabled: true,
+      fastDropThreshold: -2,
+      backInRangeEnabled: true,
+      worsenDelta: 20,
+      soundMode: "normal" as "normal" | "goose",
+    };
+
     await setDoc(doc(db, "users", user.uid), {
       email,
       createdAt: Date.now(),
       storeLocally: storeLocally,
       nightscoutUrl: storeLocally ? "" : nightscoutUrl,
       role: role,
+      ...defaultAlerts,
       ...(extra || {}),
     });
 
