@@ -31,6 +31,18 @@ const DoctorPatientsScreen = () => {
     );
   };
 
+  const getAvatarColor = (index: number) => {
+    const colors = [
+      VintageColors.iconGreen,
+      VintageColors.iconBlue,
+      VintageColors.iconPurple,
+      VintageColors.iconPink,
+      VintageColors.iconOrange,
+      VintageColors.iconRed,
+    ];
+    return colors[index % colors.length];
+  };
+
   return (
     <View style={VintageStyles.container}>
       <ScrollView
@@ -39,7 +51,7 @@ const DoctorPatientsScreen = () => {
         contentContainerStyle={VintageStyles.scrollContent}
       >
         {/* Header */}
-        <View style={[VintageStyles.headerSection, { marginBottom: 8 }]}>
+        <View style={[VintageStyles.headerSection, { marginBottom: 24 }]}>
           <View style={VintageStyles.header}>
             <View style={VintageStyles.headerDecoration}>
               <View style={VintageStyles.headerLine} />
@@ -49,35 +61,14 @@ const DoctorPatientsScreen = () => {
           </View>
         </View>
 
-        {/* Stats Row */}
-        <View style={styles.statsRow}>
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>{patients.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>
-              {patients.filter((p) => p.displayName).length}
-            </Text>
-            <Text style={styles.statLabel}>Named</Text>
-          </View>
-          <View style={styles.statDivider} />
-          <View style={styles.statCard}>
-            <Text style={styles.statNumber}>
-              {patients.filter((p) => !p.displayName).length}
-            </Text>
-            <Text style={styles.statLabel}>Unnamed</Text>
-          </View>
-        </View>
-
-        {/* Patient List Section */}
+        {/* Patient List Header */}
         <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            {loadingPatients ? "Loading…" : `Patients (${patients.length})`}
-          </Text>
-          <View style={styles.featherAccent}>
-            <Feather name="users" size={16} color={VintageColors.primaryText} />
+          <View style={styles.sectionIconContainer}>
+            <Feather name="list" size={20} color={VintageColors.primaryText} />
+          </View>
+          <Text style={styles.sectionTitle}>Patient List</Text>
+          <View style={styles.patientCount}>
+            <Text style={styles.patientCountText}>{patients.length}</Text>
           </View>
         </View>
 
@@ -86,39 +77,31 @@ const DoctorPatientsScreen = () => {
             <View style={styles.emptyIcon}>
               <Feather
                 name="loader"
-                size={24}
+                size={32}
                 color={VintageColors.secondaryText}
               />
             </View>
-            <Text style={styles.emptyTitle}>Fetching patient list…</Text>
+            <Text style={styles.emptyTitle}>Loading patients...</Text>
             <Text style={styles.emptySubtext}>
-              This should only take a moment.
+              Please wait while we fetch your patient list
             </Text>
           </View>
         ) : patients.length === 0 ? (
           <View style={styles.emptyCard}>
             <View style={styles.emptyIcon}>
               <Feather
-                name="user-plus"
+                name="users"
                 size={32}
                 color={VintageColors.secondaryText}
               />
             </View>
             <Text style={styles.emptyTitle}>No patients yet</Text>
             <Text style={styles.emptySubtext}>
-              When you add patients, they'll appear here.
+              Your patients will appear here once added
             </Text>
-            <TouchableOpacity style={styles.addButton}>
-              <Feather
-                name="plus"
-                size={16}
-                color={VintageColors.primaryText}
-              />
-              <Text style={styles.addButtonText}>Add Patient</Text>
-            </TouchableOpacity>
           </View>
         ) : (
-          patients.map((p) => (
+          patients.map((p, index) => (
             <TouchableOpacity
               key={p.uid}
               style={styles.patientCard}
@@ -127,40 +110,42 @@ const DoctorPatientsScreen = () => {
                 navigation.navigate("DoctorPatientDetail", { patient: p })
               }
             >
-              <View style={styles.iconBox}>
-                <Text style={styles.patientInitials}>
+              {/* Patient Avatar with Color */}
+              <View 
+                style={[
+                  styles.avatarContainer,
+                  { backgroundColor: getAvatarColor(index) }
+                ]}
+              >
+                <Text style={styles.avatarText}>
                   {getInitials(p.displayName || "Patient")}
                 </Text>
               </View>
 
-              <View style={styles.textCol}>
-                <Text style={styles.patientTitle}>
+              {/* Patient Info */}
+              <View style={styles.patientInfo}>
+                <Text style={styles.patientName}>
                   {p.displayName || "Unnamed Patient"}
                 </Text>
-
-                <View style={styles.metaRow}>
+                
+                <View style={styles.urlRow}>
                   <Feather
                     name="link"
                     size={12}
                     color={VintageColors.secondaryText}
                   />
-                  <Text style={styles.meta} numberOfLines={1}>
-                    {p.nightscoutUrl}
+                  <Text style={styles.urlText} numberOfLines={1}>
+                    {p.nightscoutUrl.replace('https://', '').replace('http://', '')}
                   </Text>
                 </View>
-
-                <Text style={styles.patientId}>
-                  ID: {p.uid.substring(0, 8)}...
-                </Text>
               </View>
 
-              <View style={styles.arrowCircle}>
-                <Feather
-                  name="chevron-right"
-                  size={16}
-                  color={VintageColors.primaryText}
-                />
-              </View>
+              {/* Arrow */}
+              <Feather
+                name="chevron-right"
+                size={20}
+                color={VintageColors.secondaryText}
+              />
             </TouchableOpacity>
           ))
         )}
@@ -172,60 +157,48 @@ const DoctorPatientsScreen = () => {
 };
 
 const styles = StyleSheet.create({
-  statsRow: {
-    flexDirection: "row",
-    backgroundColor: VintageColors.cardBackground,
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 20,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-  },
-  statCard: {
-    flex: 1,
-    alignItems: "center",
-  },
-  statNumber: {
-    fontSize: 28,
-    fontWeight: "400",
-    color: VintageColors.primaryText,
-    marginBottom: 4,
-    fontVariant: ["tabular-nums"],
-  },
-  statLabel: {
-    fontSize: 12,
-    color: VintageColors.secondaryText,
-    fontWeight: "500",
-    letterSpacing: 0.5,
-    textTransform: "uppercase",
-  },
-  statDivider: {
-    width: 1,
-    height: 40,
-    backgroundColor: VintageColors.border,
-  },
   sectionHeader: {
     flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
     marginBottom: 16,
+    paddingHorizontal: 4,
   },
-  sectionTitle: {
-    fontSize: 18,
-    color: VintageColors.primaryText,
-    fontWeight: "500",
-    letterSpacing: 0.3,
-  },
-  featherAccent: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
+  
+  sectionIconContainer: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     backgroundColor: VintageColors.lightBackground,
     justifyContent: "center",
     alignItems: "center",
+    marginRight: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
+  
+  sectionTitle: {
+    fontSize: 18,
+    color: VintageColors.primaryText,
+    fontWeight: "600",
+    letterSpacing: 0.3,
+    flex: 1,
+  },
+  
+  patientCount: {
+    backgroundColor: VintageColors.lightBackground,
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+  
+  patientCountText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: VintageColors.primaryText,
+  },
+  
   patientCard: {
     backgroundColor: VintageColors.cardBackground,
     padding: 16,
@@ -236,7 +209,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
-  iconBox: {
+  
+  avatarContainer: {
     width: 48,
     height: 48,
     borderRadius: 24,
@@ -245,59 +219,46 @@ const styles = StyleSheet.create({
     marginRight: 12,
     borderWidth: 1,
     borderColor: VintageColors.border,
-    backgroundColor: VintageColors.lightBackground,
   },
-  patientInitials: {
-    fontSize: 14,
+  
+  avatarText: {
+    fontSize: 16,
     fontWeight: "600",
     color: VintageColors.primaryText,
   },
-  textCol: {
+  
+  patientInfo: {
     flex: 1,
   },
-  patientTitle: {
+  
+  patientName: {
     fontSize: 16,
     fontWeight: "600",
     color: VintageColors.primaryText,
     marginBottom: 6,
-    letterSpacing: 0.2,
   },
-  metaRow: {
+  
+  urlRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginBottom: 4,
     gap: 6,
   },
-  meta: {
+  
+  urlText: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    lineHeight: 16,
     flex: 1,
   },
-  patientId: {
-    fontSize: 11,
-    color: VintageColors.secondaryText,
-    fontFamily: "monospace",
-  },
-  arrowCircle: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: VintageColors.lightBackground,
-    justifyContent: "center",
-    alignItems: "center",
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    marginLeft: 10,
-  },
+  
   emptyCard: {
     backgroundColor: VintageColors.cardBackground,
-    padding: 24,
+    padding: 40,
     borderRadius: 16,
     borderWidth: 1,
     borderColor: VintageColors.border,
     alignItems: "center",
   },
+  
   emptyIcon: {
     width: 64,
     height: 64,
@@ -309,35 +270,20 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: VintageColors.border,
   },
+  
   emptyTitle: {
     fontSize: 16,
     fontWeight: "600",
     color: VintageColors.primaryText,
     marginBottom: 8,
+    textAlign: "center",
   },
+  
   emptySubtext: {
     fontSize: 12,
     color: VintageColors.secondaryText,
-    lineHeight: 16,
     textAlign: "center",
-    marginBottom: 16,
-  },
-  addButton: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: VintageColors.border,
-    backgroundColor: VintageColors.lightBackground,
-  },
-  addButtonText: {
-    fontSize: 12,
-    color: VintageColors.primaryText,
-    fontWeight: "600",
+    lineHeight: 16,
   },
 });
 
