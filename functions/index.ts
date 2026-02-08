@@ -687,7 +687,9 @@ function createChart(
           const ctx = chart.ctx;
           ctx.save();
           ctx.globalCompositeOperation = "destination-over";
-          ctx.clearRect(0, 0, chart.width, chart.height);
+          ctx.fillStyle = "#fff";
+          ctx.fillRect(0, 0, chart.width, chart.height);
+
           ctx.restore();
         },
       },
@@ -859,7 +861,7 @@ export const nightscoutAlertsEvery5Min = onSchedule(
         const body =
           alertType === "STALE"
             ? `No new data for ~${Math.round(age)} min.`
-            : `${latestBg} mg/dL ${trend} \n` + `• ${deltaText}  • ${rateText}`;
+            : `${latestBg} mg/dL ${trend} \n` + `${deltaText}  • ${rateText}`;
 
         if (liveStatusEnabled) {
           const chartUrl = createChart(history, low, high, urgentLow);
