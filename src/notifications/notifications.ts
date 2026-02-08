@@ -22,7 +22,7 @@ export async function ensureAndroidChannel() {
 
   await Notifications.setNotificationChannelAsync("glucose_live", {
     name: "Live glucose",
-    importance: Notifications.AndroidImportance.HIGH,
+    importance: Notifications.AndroidImportance.MAX,
     vibrationPattern: [],
     sound: null,
     lockscreenVisibility: Notifications.AndroidNotificationVisibility.PRIVATE,

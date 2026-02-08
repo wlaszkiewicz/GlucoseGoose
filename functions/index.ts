@@ -563,7 +563,6 @@ async function disableBadTokens(
 
   await batch.commit();
 }
-
 function createChart(
   history: { ts: number; bg: number }[],
   low: number,
@@ -590,40 +589,56 @@ function createChart(
     high: "#EFD77A",
   };
 
+  // Split glucose into multiple datasets for each color zone
+  const glucoseDatasets = [
+    {
+      label: "Urgent Low",
+      data: glucoseValues.map((v) => (v <= urgentLow ? v : null)),
+      borderColor: COLORS.urgentLow,
+      fill: false,
+      pointBackgroundColor: COLORS.urgentLow,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      tension: 0.35,
+    },
+    {
+      label: "Low",
+      data: glucoseValues.map((v) => (v > urgentLow && v <= low ? v : null)),
+      borderColor: COLORS.low,
+      fill: false,
+      pointBackgroundColor: COLORS.low,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      tension: 0.35,
+    },
+    {
+      label: "Target",
+      data: glucoseValues.map((v) => (v > low && v < high ? v : null)),
+      borderColor: COLORS.target,
+      fill: false,
+      pointBackgroundColor: COLORS.target,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      tension: 0.35,
+    },
+    {
+      label: "High",
+      data: glucoseValues.map((v) => (v >= high ? v : null)),
+      borderColor: COLORS.high,
+      fill: false,
+      pointBackgroundColor: COLORS.high,
+      pointRadius: 2,
+      pointHoverRadius: 4,
+      tension: 0.35,
+    },
+  ];
+
   const chartJson = {
     type: "line",
     data: {
       labels,
       datasets: [
-        // Glucose line with dynamic color
-        {
-          data: glucoseValues,
-          borderWidth: 2,
-          fill: false,
-          tension: 0.35,
-          pointRadius: 2,
-          pointHoverRadius: 4,
-
-          segment: {
-            borderColor: (ctx: any) => {
-              const value = ctx.p1.parsed.y;
-              if (value <= urgentLow) return COLORS.urgentLow;
-              if (value <= low) return COLORS.low;
-              if (value >= high) return COLORS.high;
-              return COLORS.target;
-            },
-          },
-
-          pointBackgroundColor: (ctx: any) => {
-            const value = ctx.parsed.y;
-            if (value <= urgentLow) return COLORS.urgentLow;
-            if (value <= low) return COLORS.low;
-            if (value >= high) return COLORS.high;
-            return COLORS.target;
-          },
-        },
-
-        // LOW
+        ...glucoseDatasets, // dynamic line
         {
           data: lowLine,
           borderColor: COLORS.low,
@@ -632,8 +647,6 @@ function createChart(
           pointRadius: 0,
           fill: false,
         },
-
-        // URGENT LOW
         {
           data: urgentLowLine,
           borderColor: COLORS.urgentLow,
@@ -642,8 +655,6 @@ function createChart(
           pointRadius: 0,
           fill: false,
         },
-
-        // HIGH
         {
           data: highLine,
           borderColor: COLORS.high,
@@ -654,12 +665,9 @@ function createChart(
         },
       ],
     },
-
     options: {
       responsive: true,
       maintainAspectRatio: false,
-      legend: { display: false },
-
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -671,27 +679,16 @@ function createChart(
           borderWidth: 1,
         },
       },
-
       scales: {
-        x: {
-          display: false,
-          grid: { display: false },
-        },
+        x: { display: false, grid: { display: false } },
         y: {
           min: 40,
           max: 220,
-          grid: {
-            color: "#1f1f1f",
-            drawBorder: false,
-          },
-          ticks: {
-            color: "#888",
-            padding: 6,
-          },
+          grid: { color: "#1f1f1f", drawBorder: false },
+          ticks: { color: "#888", padding: 6 },
         },
       },
     },
-
     plugins: [
       {
         id: "customCanvasBackgroundColor",
@@ -706,9 +703,12 @@ function createChart(
     ],
   };
 
+  const width = 500;
+  const height = 200;
+
   return `https://quickchart.io/chart?c=${encodeURIComponent(
     JSON.stringify(chartJson),
-  )}`;
+  )}&w=${width}&h=${height}`;
 }
 
 export const nightscoutAlertsEvery5Min = onSchedule(
