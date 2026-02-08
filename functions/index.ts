@@ -589,61 +589,52 @@ function createChart(
     high: "#EFD77A",
   };
 
-  // Split glucose into multiple datasets for each color zone
-  const glucoseDatasets = [
-    {
-      label: "Urgent Low",
-      data: glucoseValues.map((v) => (v <= urgentLow ? v : null)),
-      borderColor: COLORS.urgentLow,
+  const getColor = (v: number) => {
+    if (v <= urgentLow) return COLORS.urgentLow;
+    if (v <= low) return COLORS.low;
+    if (v >= high) return COLORS.high;
+    return COLORS.target;
+  };
+
+  const glucoseDatasets = ["urgentLow", "low", "target", "high"].map((zone) => {
+    const zoneColor = COLORS[zone as keyof typeof COLORS];
+
+    const data = glucoseValues.map((v, i) => {
+      const vColor = getColor(v);
+
+      if (zoneColor === vColor) return v;
+
+      const prev = glucoseValues[i - 1];
+      const next = glucoseValues[i + 1];
+      if (prev !== undefined && getColor(prev) === zoneColor) return v;
+      if (next !== undefined && getColor(next) === zoneColor) return v;
+
+      return null;
+    });
+
+    return {
+      label: zone,
+      data,
+      borderColor: zoneColor,
       fill: false,
-      pointBackgroundColor: COLORS.urgentLow,
+      pointBackgroundColor: zoneColor,
       pointRadius: 2,
       pointHoverRadius: 4,
       tension: 0.35,
-    },
-    {
-      label: "Low",
-      data: glucoseValues.map((v) => (v > urgentLow && v <= low ? v : null)),
-      borderColor: COLORS.low,
-      fill: false,
-      pointBackgroundColor: COLORS.low,
-      pointRadius: 2,
-      pointHoverRadius: 4,
-      tension: 0.35,
-    },
-    {
-      label: "Target",
-      data: glucoseValues.map((v) => (v > low && v < high ? v : null)),
-      borderColor: COLORS.target,
-      fill: false,
-      pointBackgroundColor: COLORS.target,
-      pointRadius: 2,
-      pointHoverRadius: 4,
-      tension: 0.35,
-    },
-    {
-      label: "High",
-      data: glucoseValues.map((v) => (v >= high ? v : null)),
-      borderColor: COLORS.high,
-      fill: false,
-      pointBackgroundColor: COLORS.high,
-      pointRadius: 2,
-      pointHoverRadius: 4,
-      tension: 0.35,
-    },
-  ];
+    };
+  });
 
   const chartJson = {
     type: "line",
     data: {
       labels,
       datasets: [
-        ...glucoseDatasets, // dynamic line
+        ...glucoseDatasets,
         {
           data: lowLine,
           borderColor: COLORS.low,
           borderDash: [6, 6],
-          borderWidth: 1,
+          borderWidth: 2,
           pointRadius: 0,
           fill: false,
         },
@@ -651,7 +642,7 @@ function createChart(
           data: urgentLowLine,
           borderColor: COLORS.urgentLow,
           borderDash: [3, 3],
-          borderWidth: 1,
+          borderWidth: 2,
           pointRadius: 0,
           fill: false,
         },
@@ -659,7 +650,7 @@ function createChart(
           data: highLine,
           borderColor: COLORS.high,
           borderDash: [6, 6],
-          borderWidth: 1,
+          borderWidth: 2,
           pointRadius: 0,
           fill: false,
         },
@@ -668,6 +659,7 @@ function createChart(
     options: {
       responsive: true,
       maintainAspectRatio: false,
+      legend: { display: false },
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -960,19 +952,19 @@ export function simulateBG(t: number) {
   const day = 86400 * 1000;
   const x = (t % day) / day;
 
-  const w1 = Math.abs(Math.sin(x * 2 * Math.PI * 3)) * 18;
-  const w2 = Math.sin(x * 2 * Math.PI * 7) * 10;
-  const w3 = Math.sin(x * 2 * Math.PI * 11 + 1) * 7;
+  const w1 = Math.sin(x * 2 * Math.PI * 3) * 25;
+  const w2 = Math.sin(x * 2 * Math.PI * 7) * 15;
+  const w3 = Math.sin(x * 2 * Math.PI * 11 + 1) * 10;
 
-  if (Math.random() < 0.015) {
-    lastBG += (Math.random() - 0.5) * 25;
+  if (Math.random() < 0.02) {
+    lastBG += (Math.random() - 0.5) * 50;
   }
 
-  lastBG += (Math.random() - 0.5) * 1.8;
+  lastBG += (Math.random() - 0.5) * 3;
 
-  const noise = (Math.random() - 0.5) * 8;
+  const noise = (Math.random() - 0.5) * 12;
 
-  const value = 120 + w1 + w2 + w3 + (lastBG - 120) * 0.08 + noise;
+  const value = 120 + w1 + w2 + w3 + (lastBG - 120) * 0.2 + noise;
 
   return Math.round(value);
 }
