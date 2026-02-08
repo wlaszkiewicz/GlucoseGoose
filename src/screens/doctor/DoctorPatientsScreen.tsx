@@ -7,7 +7,6 @@ import {
   StyleSheet,
   Dimensions,
 } from "react-native";
-import { StatusBar } from "expo-status-bar";
 import { Feather } from "@expo/vector-icons";
 import { useNavigation } from "@react-navigation/native";
 
@@ -34,8 +33,6 @@ const DoctorPatientsScreen = () => {
 
   return (
     <View style={VintageStyles.container}>
-      <StatusBar style="auto" />
-
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}

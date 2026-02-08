@@ -1,6 +1,7 @@
 import * as SecureStore from "expo-secure-store";
 
 export type StorageKey =
+  | "deviceId"
   | "nightscoutSecret"
   | "rememberMe"
   | "nightscoutUrl"

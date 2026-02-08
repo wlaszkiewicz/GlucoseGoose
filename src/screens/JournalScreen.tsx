@@ -1,6 +1,5 @@
 import React from "react";
 import { View, ScrollView } from "react-native";
-import { StatusBar } from "expo-status-bar";
 
 import { JournalHeader } from "../components/journal/JournalHeader";
 import { DateSelector } from "../components/journal/DateSelector";
@@ -34,8 +33,6 @@ const JournalScreen = () => {
 
   return (
     <View style={VintageStyles.container}>
-      <StatusBar style="auto" />
-
       <ScrollView
         style={{ flex: 1 }}
         showsVerticalScrollIndicator={false}
