@@ -430,12 +430,11 @@ async function fetchLatestEntries(
   );
 }
 
-async function getEnabledDeviceTokens(uid: string) {
+async function getDeviceTokens(uid: string) {
   const snap = await db
     .collection("users")
     .doc(uid)
     .collection("devices")
-    .where("enabled", "==", true)
     .get();
 
   return snap.docs
@@ -449,7 +448,7 @@ async function sendLiveGlucosePush(
   body: string,
   chartUrl: string,
 ) {
-  const tokens = await getEnabledDeviceTokens(uid);
+  const tokens = await getDeviceTokens(uid);
   if (tokens.length === 0) return;
 
   const resp = await getMessaging().sendEachForMulticast({
@@ -488,7 +487,7 @@ async function sendAlertPush(
   soundMode: "normal" | "goose" | undefined,
   data?: Record<string, string>,
 ) {
-  const tokens = await getEnabledDeviceTokens(uid);
+  const tokens = await getDeviceTokens(uid);
   if (tokens.length === 0) return;
 
   const channelId = soundMode === "goose" ? "alerts_goose" : "alerts_normal";
