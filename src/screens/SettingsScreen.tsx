@@ -79,6 +79,7 @@ const SettingsScreen = () => {
     loadNightscoutSettings();
   }, [firebaseUser?.uid]);
 
+
   const [isAvatarPickerVisible, setIsAvatarPickerVisible] = useState(false);
 
   const saveAlerts = async () => {
@@ -111,6 +112,10 @@ const SettingsScreen = () => {
 
   const openAlertsModal = () => setIsAlertsModalVisible(true);
   const openNightscoutModal = () => setIsNightscoutModalVisible(true);
+  const openHealthData = () => {
+    // Navigate to HealthConnect screen as a modal or stack screen
+    navigation.navigate('HealthConnect' as never);
+  };
 
   const {
     // modal
@@ -193,6 +198,7 @@ const SettingsScreen = () => {
           onAccountPress={openProfileModal}
           onAlertsPress={openAlertsModal}
           onNightscoutPress={openNightscoutModal}
+          onHealthDataPress={openHealthData}
         />
 
         {/* sign out */}

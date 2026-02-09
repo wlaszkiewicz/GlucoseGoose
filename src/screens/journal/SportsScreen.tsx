@@ -829,6 +829,10 @@ const SportsScreen: React.FC<SportsScreenProps> = ({ route }) => {
             activity.eventType || "",
           );
           const activityColor = getActivityColor(activityType);
+          const hasMetrics =
+            metrics.duration > 0 ||
+            !!metrics.caloriesBurned ||
+            !!metrics.distance;
 
           return (
             <View
@@ -894,12 +898,10 @@ const SportsScreen: React.FC<SportsScreenProps> = ({ route }) => {
               <Text style={VintageStylesSports.activityDescription}>
                 {activity.notes || "No description"}
               </Text>
-              {(metrics.duration > 0 ||
-                metrics.caloriesBurned ||
-                metrics.distance) && (
+              {hasMetrics && (
                 <View style={VintageStylesSports.activityMetrics}>
                   <View style={VintageStylesSports.metricsRow}>
-                    {metrics.intensity && (
+                    {!!metrics.intensity && (
                       <View style={VintageStylesSports.metricItem}>
                         <Ionicons
                           name="speedometer"
@@ -911,7 +913,8 @@ const SportsScreen: React.FC<SportsScreenProps> = ({ route }) => {
                         </Text>
                       </View>
                     )}
-                    {metrics.caloriesBurned && (
+                    {metrics.caloriesBurned != null &&
+                      metrics.caloriesBurned > 0 && (
                       <View style={VintageStylesSports.metricItem}>
                         <Ionicons
                           name="flame"
@@ -923,7 +926,7 @@ const SportsScreen: React.FC<SportsScreenProps> = ({ route }) => {
                         </Text>
                       </View>
                     )}
-                    {metrics.distance && (
+                    {metrics.distance != null && metrics.distance > 0 && (
                       <View style={VintageStylesSports.metricItem}>
                         <Feather
                           name="map-pin"
