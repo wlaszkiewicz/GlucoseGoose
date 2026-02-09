@@ -5,6 +5,7 @@ import {
   getGlucoseColor,
   GLUCOSE_RANGES,
   isSpecialEvent,
+  getEventTimeMs,
   EventPosition,
 } from "../../utils/chartUtils/chartUtils";
 
@@ -104,7 +105,7 @@ export const useChartData = ({
       const positions: EventPosition[] = [];
 
       for (const event of eventsToPosition) {
-        const eventTime = new Date(event.created_at).getTime();
+        const eventTime = getEventTimeMs(event);
 
         let closestIndex = 0;
         let minDiff = Math.abs(displayEntries[0].date - eventTime);
@@ -151,7 +152,7 @@ export const useChartData = ({
       const positions: EventPosition[] = [];
 
       for (const event of insulinEvents) {
-        const eventTime = new Date(event.created_at).getTime();
+        const eventTime = getEventTimeMs(event);
 
         let closestIndex = 0;
         let minDiff = Math.abs(displayEntries[0].date - eventTime);
@@ -195,7 +196,7 @@ export const useChartData = ({
       const positions: EventPosition[] = [];
 
       for (const event of specialEvents) {
-        const eventTime = new Date(event.created_at).getTime();
+        const eventTime = getEventTimeMs(event);
 
         let closestIndex = 0;
         let minDiff = Math.abs(displayEntries[0].date - eventTime);

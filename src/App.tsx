@@ -4,6 +4,7 @@ import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import LoginScreen from "./screens/LoginScreen";
 import RegisterScreen from "./screens/RegisterScreen";
 import SplashScreen from "./screens/SplashScreen";
+import HealthConnectScreen from "./screens/HealthConnectScreen";
 import { AuthProvider, useAuth } from "./contexts/AuthContext";
 import { NightscoutProvider } from "./contexts/NightscoutContext";
 
@@ -15,6 +16,7 @@ import { DoctorProvider } from "./contexts/DoctorContext";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "react-native";
 import { TrendsProvider } from "./contexts/TrendsContext";
+import { useHealthConnectAutoSync } from "./hooks/useHealthConnectAutoSync";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -29,6 +31,7 @@ const Stack = createNativeStackNavigator();
 
 const AppContent = () => {
   const { firebaseUser, loading, userData } = useAuth();
+  useHealthConnectAutoSync();
 
   if (loading) return <SplashScreen />;
 
@@ -42,6 +45,7 @@ const AppContent = () => {
     >
       <Stack.Screen name="Login" component={LoginScreen} />
       <Stack.Screen name="Register" component={RegisterScreen} />
+      <Stack.Screen name="HealthConnect" component={HealthConnectScreen} />
 
       {userData?.role === "doctor" ? (
         <Stack.Screen
