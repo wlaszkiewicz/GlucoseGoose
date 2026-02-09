@@ -14,6 +14,7 @@ import DoctorTabNavigator from "./navigation/DoctorTabNavigator";
 import { DoctorProvider } from "./contexts/DoctorContext";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "react-native";
+import { TrendsProvider } from "./contexts/TrendsContext";
 
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
@@ -64,31 +65,33 @@ export default function App() {
     <AuthProvider>
       <NightscoutProvider>
         <DoctorProvider>
-          <NavigationContainer>
-            <SafeAreaProvider>
-              <>
-                <StatusBar
-                  barStyle="dark-content"
-                  backgroundColor={VintageColors.background}
-                />
-                {/* 
+          <TrendsProvider>
+            <NavigationContainer>
+              <SafeAreaProvider>
+                <>
+                  <StatusBar
+                    barStyle="dark-content"
+                    backgroundColor={VintageColors.background}
+                  />
+                  {/* 
                 <SafeAreaView
                   //edges={["top", "left", "right"]}
                   style={{ backgroundColor: VintageColors.background }}
                 /> */}
 
-                <SafeAreaView
-                  //   edges={["bottom"]}
-                  style={{
-                    flex: 1,
-                    backgroundColor: VintageColors.background,
-                  }}
-                >
-                  <AppContent />
-                </SafeAreaView>
-              </>
-            </SafeAreaProvider>
-          </NavigationContainer>
+                  <SafeAreaView
+                    //   edges={["bottom"]}
+                    style={{
+                      flex: 1,
+                      backgroundColor: VintageColors.background,
+                    }}
+                  >
+                    <AppContent />
+                  </SafeAreaView>
+                </>
+              </SafeAreaProvider>
+            </NavigationContainer>
+          </TrendsProvider>
         </DoctorProvider>
       </NightscoutProvider>
     </AuthProvider>
