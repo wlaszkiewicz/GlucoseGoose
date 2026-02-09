@@ -16,6 +16,7 @@ type Props = {
   onAccountPress: () => void;
   onAlertsPress: () => void;
   onNightscoutPress: () => void;
+  onHealthDataPress: () => void;
 };
 
 export const SettingsList: React.FC<Props> = ({
@@ -23,6 +24,7 @@ export const SettingsList: React.FC<Props> = ({
   onAccountPress,
   onAlertsPress,
   onNightscoutPress,
+  onHealthDataPress,
 }) => {
   return (
     <View style={VintageStyles.settingsList}>
@@ -90,6 +92,7 @@ export const SettingsList: React.FC<Props> = ({
       />
 
       <SettingsCard
+        onPress={onHealthDataPress}
         title="Health Data"
         subtitle="Connect devices & apps"
         icon={

@@ -6,6 +6,7 @@ import HomeScreen from "../screens/HomeScreen";
 import JournalScreen from "../screens/JournalScreen";
 import TrendsScreen from "../screens/TrendsScreen";
 import SettingsScreen from "../screens/SettingsScreen";
+import HealthConnectScreen from "../screens/HealthConnectScreen";
 import { MainTabParamList } from "../types/navigation";
 import { VintageColors } from "../themes/vintage/colors";
 import JournalStackNavigator from "./JournalStackNavigator";
@@ -218,6 +219,7 @@ const MainTabNavigator = () => {
           ),
         }}
       />
+
     </Tab.Navigator>
   );
 };

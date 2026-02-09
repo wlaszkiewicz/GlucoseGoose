@@ -5,6 +5,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   MainTabs: undefined;
+  HealthConnect: undefined;
 };
 
 export type MainTabParamList = {

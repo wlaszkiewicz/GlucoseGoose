@@ -35,7 +35,15 @@
         "android.permission.health.READ_STEPS",
         "android.permission.health.WRITE_STEPS",
         "android.permission.health.READ_HEART_RATE",
-        "android.permission.health.WRITE_HEART_RATE"
+        "android.permission.health.WRITE_HEART_RATE",
+        "android.permission.health.READ_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.WRITE_ACTIVE_CALORIES_BURNED",
+        "android.permission.health.READ_DISTANCE",
+        "android.permission.health.WRITE_DISTANCE",
+        "android.permission.health.READ_EXERCISE",
+        "android.permission.health.WRITE_EXERCISE",
+        "android.permission.health.READ_NUTRITION",
+        "android.permission.health.WRITE_NUTRITION"
       ]
     },
     "web": {
@@ -54,12 +62,6 @@
             "./assets/sounds/goose_urgent.wav"
           ],
           "enableBackgroundRemoteNotifications": false
-        }
-      ],
-      [
-        "expo-health-connect",
-        {
-          "permissions": ["Steps", "HeartRate"]
         }
       ],
       "react-native-health-connect",
