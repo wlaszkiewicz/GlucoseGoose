@@ -816,4 +816,68 @@ export const VintageStylesSports = StyleSheet.create({
     fontSize: 14,
     fontWeight: "500",
   },
+
+  // Health Connect specific styles
+  statusIndicator: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+
+  statusText: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+    marginLeft: 8,
+  },
+
+  dataItem: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: VintageColors.lightBackground,
+    borderRadius: 8,
+    marginBottom: 8,
+    borderWidth: 1,
+    borderColor: VintageColors.border,
+  },
+
+  dataTime: {
+    fontSize: 14,
+    color: VintageColors.secondaryText,
+    fontWeight: "400",
+  },
+
+  dataValue: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    fontWeight: "500",
+  },
+
+  moreDataText: {
+    fontSize: 12,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    marginTop: 8,
+    fontStyle: "italic",
+  },
+
+  noDataText: {
+    fontSize: 14,
+    color: VintageColors.secondaryText,
+    textAlign: "center",
+    fontStyle: "italic",
+  },
+
+  descriptionText: {
+    fontSize: 14,
+    color: VintageColors.primaryText,
+    lineHeight: 20,
+  },
+
+  saveButtonDisabled: {
+    opacity: 0.6,
+  },
 });

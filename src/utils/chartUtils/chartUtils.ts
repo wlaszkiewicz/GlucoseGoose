@@ -101,11 +101,35 @@ export const filterEventsByTime = (
   ];
 
   return allEvents
-    .filter((event) => new Date(event.created_at).getTime() >= cutoff)
+    .filter((event) => getEventTimeMs(event) >= cutoff)
     .sort(
       (a, b) =>
-        new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        getEventTimeMs(a) - getEventTimeMs(b)
     );
+};
+
+export const getEventTimeMs = (event: any): number => {
+  const candidates = [
+    event?.created_at,
+    event?.createdAt,
+    event?.timestamp,
+    event?.date,
+    event?.sysTime,
+  ];
+
+  for (const value of candidates) {
+    if (typeof value === "number" && !isNaN(value)) return value;
+    if (typeof value === "string") {
+      const parsed = new Date(value).getTime();
+      if (!isNaN(parsed)) return parsed;
+    }
+    if (value instanceof Date) {
+      const parsed = value.getTime();
+      if (!isNaN(parsed)) return parsed;
+    }
+  }
+
+  return 0;
 };
 
 export const calculateGlucoseRange = (entries: any[]) => {
