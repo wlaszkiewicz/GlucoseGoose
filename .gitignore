@@ -1,6 +1,7 @@
 # Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
 
 .env 
+*.log
 
 # dependencies
 node_modules/
@@ -44,3 +45,5 @@ yarn-error.*
 
 
 .idea/
+
+serviceAccountKey.json
