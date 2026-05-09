@@ -61,35 +61,33 @@ GlucoseGoose connects to a [Nightscout](https://nightscout.github.io/) CGM serve
 ## Screenshots
 <!-- Row 1: Login, Home, Food Modal -->
 <div align="center">
-<img src="docs/screenshots/01_login.PNG" width="30%"/>
-<img src="docs/screenshots/03_main.PNG" width="30%"/>
-<img src="docs/screenshots/04c_modal_food.PNG" width="30%"/>
+<img src="docs/screenshots/01_login.PNG" width="24%"/>
+<img src="docs/screenshots/03_main.PNG" width="24%"/>
+<img src="docs/screenshots/04c_modal_food.PNG" width="24%"/>
+  <img src="docs/screenshots/11b_goose_avatar.PNG" width="24%"/>
+
 </div>
 
 <!-- Row 2: Journal charts -->
 <div align="center">
-<img src="docs/screenshots/07_journal_charts.PNG" width="30%"/>
-<img src="docs/screenshots/07b_journal_charts.PNG" width="30%"/>
-<img src="docs/screenshots/07c_journal_charts.PNG" width="30%"/>
+<img src="docs/screenshots/07_journal_charts.PNG" width="24%"/>
+<img src="docs/screenshots/07b_journal_charts.PNG" width="24%"/>
+<img src="docs/screenshots/10b_metrics.PNG" width="24%"/>
+<img src="docs/screenshots/10e_trends_info.PNG" width="24%"/>
 </div>
 
 <!-- Row 3: Meals -->
 <div align="center">
-<img src="docs/screenshots/08_meals.PNG" width="30%"/>
-<img src="docs/screenshots/08d_add_meal.PNG" width="30%"/>
-<img src="docs/screenshots/08e_meal_results.PNG" width="30%"/>
-</div>
+<img src="docs/screenshots/08_meals.PNG" width="24%"/>
+<img src="docs/screenshots/08d_add_meal.PNG" width="24%"/>
+<img src="docs/screenshots/08e_meal_results.PNG" width="24%"/>
+  <img src="docs/screenshots/08f_today_meals.png" width="24%"/>
 
-<!-- Row 4: Trends -->
-<div align="center">
-<img src="docs/screenshots/10b_metrics.PNG" width="30%"/>
-<img src="docs/screenshots/10e_trends_info.PNG" width="30%"/>
-<img src="docs/screenshots/11b_goose_avatar.PNG" width="30%"/>
 </div>
 
 <!-- Row 5: Notification (full width, landscape) -->
 <div align="center">
-<img src="docs/screenshots/notification_live_graoh.png" width="92%"/>
+<img src="docs/screenshots/notification_live_graoh.png" width="50%"/>
 </div>
 
 [See all screenshots](docs/screenshots/)
