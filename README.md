@@ -27,7 +27,7 @@ GlucoseGoose connects to a [Nightscout](https://nightscout.github.io/) CGM serve
 - Event overlays on the chart: meals, activities, insulin — tap any to see details
 - Smart alerts: low, high, urgent low, rapid drop, stale data, back-in-range
 - Persistent live status notification showing current glucose
-- Optional goose sound alert mode 🪿
+- Optional goose sound alert mode <picture><source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1fabf/512.webp" type="image/webp"><img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1fabf/512.gif" alt="🪿" width="20" height="20" style="vertical-align: middle;"></picture> — [hear for yourself](assets/sounds/goose_soft.mp3)
 
 **Meal Logging**
 - Log meals by type (Breakfast, Lunch, Dinner, Snacks) with time picker
@@ -54,7 +54,7 @@ GlucoseGoose connects to a [Nightscout](https://nightscout.github.io/) CGM serve
 **Profile & Alerts**
 - Fully configurable glucose thresholds, cooldown periods, and sound modes
 - User profile with weight, height, age, gender (used for calorie calculations)
-- Goose avatar picker 🪿
+- Goose avatar picker <picture><source srcset="https://fonts.gstatic.com/s/e/notoemoji/latest/1fabf/512.webp" type="image/webp"><img src="https://fonts.gstatic.com/s/e/notoemoji/latest/1fabf/512.gif" alt="🪿" width="20" height="20" style="vertical-align: middle;"></picture> 
 
 ---
 
