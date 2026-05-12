@@ -11,8 +11,6 @@ import { NightscoutProvider } from "./contexts/NightscoutContext";
 import MainTabNavigator from "./navigation/MainTabNavigator";
 import { VintageColors } from "./themes/vintage/colors";
 import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
-import DoctorTabNavigator from "./navigation/DoctorTabNavigator";
-import { DoctorProvider } from "./contexts/DoctorContext";
 import * as Notifications from "expo-notifications";
 import { StatusBar } from "react-native";
 import { TrendsProvider } from "./contexts/TrendsContext";
@@ -47,19 +45,11 @@ const AppContent = () => {
       <Stack.Screen name="Register" component={RegisterScreen} />
       <Stack.Screen name="HealthConnect" component={HealthConnectScreen} />
 
-      {userData?.role === "doctor" ? (
-        <Stack.Screen
-          name="MainTabs"
-          component={DoctorTabNavigator}
-          options={{ headerShown: false }}
-        />
-      ) : (
-        <Stack.Screen
-          name="MainTabs"
-          component={MainTabNavigator}
-          options={{ headerShown: false }}
-        />
-      )}
+      <Stack.Screen
+        name="MainTabs"
+        component={MainTabNavigator}
+        options={{ headerShown: false }}
+      />
     </Stack.Navigator>
   );
 };
@@ -68,35 +58,33 @@ export default function App() {
   return (
     <AuthProvider>
       <NightscoutProvider>
-        <DoctorProvider>
-          <TrendsProvider>
-            <NavigationContainer>
-              <SafeAreaProvider>
-                <>
-                  <StatusBar
-                    barStyle="dark-content"
-                    backgroundColor={VintageColors.background}
-                  />
-                  {/* 
+        <TrendsProvider>
+          <NavigationContainer>
+            <SafeAreaProvider>
+              <>
+                <StatusBar
+                  barStyle="dark-content"
+                  backgroundColor={VintageColors.background}
+                />
+                {/* 
                 <SafeAreaView
                   //edges={["top", "left", "right"]}
                   style={{ backgroundColor: VintageColors.background }}
                 /> */}
 
-                  <SafeAreaView
-                    //   edges={["bottom"]}
-                    style={{
-                      flex: 1,
-                      backgroundColor: VintageColors.background,
-                    }}
-                  >
-                    <AppContent />
-                  </SafeAreaView>
-                </>
-              </SafeAreaProvider>
-            </NavigationContainer>
-          </TrendsProvider>
-        </DoctorProvider>
+                <SafeAreaView
+                  //   edges={["bottom"]}
+                  style={{
+                    flex: 1,
+                    backgroundColor: VintageColors.background,
+                  }}
+                >
+                  <AppContent />
+                </SafeAreaView>
+              </>
+            </SafeAreaProvider>
+          </NavigationContainer>
+        </TrendsProvider>
       </NightscoutProvider>
     </AuthProvider>
   );
