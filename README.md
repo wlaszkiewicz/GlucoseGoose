@@ -19,6 +19,15 @@
 
 GlucoseGoose connects to a [Nightscout](https://nightscout.github.io/) CGM server to display real-time glucose readings, log meals and activities, analyze long-term trends, and send smart glucose alerts. Built as a personal project for real daily use.
 
+## How It Fits In
+
+GlucoseGoose acts as a **Nightscout follower**. It reads data from your existing Nightscout instance without replacing any part of your current CGM setup.
+
+<div align="center">
+<img src="docs/nightscout_ecoystem.png" width="80%" alt="Nightscout ecosystem diagram showing GlucoseGoose as a follower"/>
+<p><em>Nightscout ecosystem overview. Diagram adapted from <a href="https://nightscout.github.io/">Nightscout documentation</a>, with GlucoseGoose added as a follower.</em></p>
+</div>
+
 ## Features
 
 **Real-time Glucose Monitoring**
